@@ -1,0 +1,47 @@
+_zload_install() {
+  emulate -L zsh
+
+  local in_var="$1"
+  local -A _zspec
+  _zspec=("${(@Pkv)in_var}")
+
+  local dir="${_zspec[dir]}"
+  local type="${_zspec[type]}"
+  local url="${_zspec[url]}"
+  local ref="${_zspec[ref]}"
+
+  if [[ -d "$dir" ]]; then
+    return 0
+  fi
+
+  if [[ "$type" == "local" ]]; then
+    print -u2 "zload: local plugin directory not found: $dir"
+    return 1
+  fi
+
+  mkdir -p "${dir:h}"
+
+  local -a git_opts
+  git_opts=(clone --depth 1)
+
+  if [[ -n "$ref" ]]; then
+    git_opts+=(-b "$ref")
+  fi
+
+  if [[ "$type" == "prezto" ]]; then
+    git_opts+=(--recurse-submodules --shallow-submodules)
+  fi
+
+  local label="${_zspec[raw]:-${_zspec[spec]}}"
+  print -P "%F{cyan}zload:%f installing %F{yellow}${label}%f..."
+  command git "${git_opts[@]}" "$url" "$dir" >/dev/null 2>&1
+  local ret=$?
+
+  if (( ret != 0 )); then
+    print -u2 -P "%F{red}zload: failed to clone ${url}%f"
+    rm -rf "$dir"
+    return $ret
+  fi
+
+  return 0
+}

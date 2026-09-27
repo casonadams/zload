@@ -1,0 +1,105 @@
+_zload_parse_spec() {
+  emulate -L zsh
+  setopt extended_glob
+
+  local out_var="$1"
+  shift
+
+  local -A _zparsed
+  _zparsed[raw]="$*"
+  _zparsed[spec]=""
+  _zparsed[name]=""
+  _zparsed[type]=""
+  _zparsed[url]=""
+  _zparsed[ref]=""
+  _zparsed[dir]=""
+  _zparsed[subpath]=""
+  _zparsed[on_cmds]=""
+  _zparsed[defer]="0"
+  _zparsed[bin]=""
+
+  local -a words
+  words=($=*)
+
+  local spec="${words[1]}"
+  _zparsed[spec]="$spec"
+
+  integer idx=2
+  while (( idx <= ${#words} )); do
+    case "${words[idx]}" in
+      --on)
+        (( idx++ ))
+        _zparsed[on_cmds]="${words[idx]}"
+        ;;
+      --defer|--idle)
+        _zparsed[defer]="1"
+        ;;
+      --bin)
+        (( idx++ ))
+        _zparsed[bin]="${words[idx]}"
+        ;;
+    esac
+    (( idx++ ))
+  done
+
+  if [[ "$spec" == omz:* ]]; then
+    _zparsed[type]="omz"
+    _zparsed[name]="_omz"
+    _zparsed[url]="https://github.com/ohmyzsh/ohmyzsh.git"
+    _zparsed[dir]="${ZLOAD_PLUGINS}/_omz"
+    local rest="${spec#omz:}"
+    if [[ "$rest" == plugins/* || "$rest" == themes/* || "$rest" == lib/* ]]; then
+      _zparsed[subpath]="$rest"
+    else
+      _zparsed[subpath]="plugins/$rest"
+    fi
+  elif [[ "$spec" == prezto:* ]]; then
+    _zparsed[type]="prezto"
+    _zparsed[name]="_prezto"
+    _zparsed[url]="https://github.com/sorin-ionescu/prezto.git"
+    _zparsed[dir]="${ZLOAD_PLUGINS}/_prezto"
+    local rest="${spec#prezto:}"
+    if [[ "$rest" == modules/* ]]; then
+      _zparsed[subpath]="$rest"
+    else
+      _zparsed[subpath]="modules/$rest"
+    fi
+  elif [[ "$spec" == http://* || "$spec" == https://* || "$spec" == git@* || "$spec" == file://* ]]; then
+    _zparsed[type]="git"
+    local base="${spec%%[@#]*}"
+    if [[ "$spec" == *@* ]]; then
+      _zparsed[ref]="${spec#*@}"
+    elif [[ "$spec" == *[\#]* ]]; then
+      _zparsed[ref]="${spec#*[\#]}"
+    fi
+    _zparsed[url]="$base"
+    local slug="${base#*://}"
+    slug="${slug#git@}"
+    slug="${slug%.git}"
+    slug="${slug//[:\/]/---}"
+    _zparsed[name]="$slug"
+    _zparsed[dir]="${ZLOAD_PLUGINS}/${slug}"
+  elif [[ "$spec" == /* || "$spec" == ~* || "$spec" == ./* ]]; then
+    _zparsed[type]="local"
+    local expanded="${(e)spec}"
+    expanded="${expanded:A}"
+    local base_name="${expanded:t}"
+    _zparsed[name]="local---${base_name}"
+    _zparsed[dir]="$expanded"
+  else
+    _zparsed[type]="github"
+    local base="${spec%%[@#]*}"
+    if [[ "$spec" == *@* ]]; then
+      _zparsed[ref]="${spec#*@}"
+    elif [[ "$spec" == *[\#]* ]]; then
+      _zparsed[ref]="${spec#*[\#]}"
+    fi
+    _zparsed[url]="https://github.com/${base}.git"
+    local slug="${base//\//---}"
+    _zparsed[name]="$slug"
+    _zparsed[dir]="${ZLOAD_PLUGINS}/${slug}"
+  fi
+
+  typeset -g -A "$out_var"
+  set -A "$out_var" "${(@kv)_zparsed}"
+}

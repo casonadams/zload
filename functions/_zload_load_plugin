@@ -1,0 +1,64 @@
+_zload_load_plugin() {
+  local in_var="$1"
+  local -A _zspec
+  _zspec=("${(@Pkv)in_var}")
+
+  local target_dir="${_zspec[dir]}"
+  if [[ -n "${_zspec[subpath]}" ]]; then
+    target_dir="${target_dir}/${_zspec[subpath]}"
+  fi
+
+  local plugin_name="${_zspec[subpath]:t}"
+  [[ -z "$plugin_name" ]] && plugin_name="${_zspec[name]}"
+
+  local -A _zinfo
+  _zload_find_main_file _zinfo "$target_dir" "$plugin_name"
+
+  if [[ -n "${_zinfo[fpath]}" ]]; then
+    local -a fps
+    fps=("${(s.:.)_zinfo[fpath]}")
+    for fp in "${fps[@]}"; do
+      if [[ -d "$fp" ]] && (( ! ${fpath[(Ie)$fp]} )); then
+        fpath=("$fp" "${fpath[@]}")
+      fi
+    done
+  fi
+
+  local bin_dir="${_zinfo[bin]}"
+  if [[ -n "${_zspec[bin]}" ]]; then
+    bin_dir="${_zspec[dir]}/${_zspec[bin]}"
+  fi
+  if [[ -n "$bin_dir" && -d "$bin_dir" ]]; then
+    if (( ! ${path[(Ie)$bin_dir]} )); then
+      path=("$bin_dir" "${path[@]}")
+    fi
+  fi
+
+  if [[ -n "${_zspec[on_cmds]}" ]]; then
+    local -a cmds
+    cmds=("${(s:,:)_zspec[on_cmds]}")
+    local script_path="${_zinfo[script]}"
+    for cmd in "${cmds[@]}"; do
+      cmd="${cmd//[[:space:]]/}"
+      [[ -z "$cmd" ]] && continue
+      eval "
+        ${cmd}() {
+          for c in ${(j: :)cmds}; do
+            unfunction \"\$c\" 2>/dev/null
+          done
+          [[ -f ${(q)script_path} ]] && source ${(q)script_path}
+          \"\$0\" \"\$@\"
+        }
+      "
+    done
+    _zload_loaded_plugins["${_zspec[raw]}"]="stubbed"
+    return 0
+  fi
+
+  if [[ -n "${_zinfo[script]}" && -f "${_zinfo[script]}" ]]; then
+    source "${_zinfo[script]}"
+    _zload_loaded_plugins["${_zspec[raw]}"]="loaded"
+  fi
+
+  return 0
+}

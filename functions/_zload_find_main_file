@@ -1,0 +1,68 @@
+_zload_find_main_file() {
+  emulate -L zsh
+  setopt extended_glob null_glob
+
+  local out_var="$1"
+  local dir="${2:A}"
+  local name="$3"
+
+  local -A _zfile_info
+  _zfile_info[script]=""
+  _zfile_info[fpath]=""
+  _zfile_info[bin]=""
+
+  if [[ ! -d "$dir" ]]; then
+    typeset -g -A "$out_var"
+    set -A "$out_var" "${(@kv)_zfile_info}"
+    return 1
+  fi
+
+  [[ -z "$name" ]] && name="${dir:t}"
+
+  if [[ -f "$dir/${name}.plugin.zsh" ]]; then
+    _zfile_info[script]="$dir/${name}.plugin.zsh"
+  elif [[ -f "$dir/${name}.zsh" ]]; then
+    _zfile_info[script]="$dir/${name}.zsh"
+  elif [[ -f "$dir/${name}.zsh-theme" ]]; then
+    _zfile_info[script]="$dir/${name}.zsh-theme"
+  elif [[ -n "$dir"/*\.plugin\.zsh(#qN) ]]; then
+    local -a matches
+    matches=("$dir"/*\.plugin\.zsh(#qN))
+    _zfile_info[script]="${matches[1]}"
+  elif [[ -f "$dir/init.zsh" ]]; then
+    _zfile_info[script]="$dir/init.zsh"
+  elif [[ -f "$dir/${name}.sh" ]]; then
+    _zfile_info[script]="$dir/${name}.sh"
+  else
+    local -a candidates
+    candidates=("$dir"/*\.zsh(#qN))
+    for c in "${candidates[@]}"; do
+      local base="${c:t}"
+      if [[ "$base" == *test* || "$base" == *spec* || "$base" == *build* || "$base" == *\.zwc ]]; then
+        continue
+      fi
+      _zfile_info[script]="$c"
+      break
+    done
+  fi
+
+  local -a fpaths
+  if [[ -n "$dir"/_*(#qN) ]]; then
+    fpaths+=("$dir")
+  fi
+  for comp_sub in completions completion src; do
+    if [[ -d "$dir/$comp_sub" && -n "$dir/$comp_sub"/_*(#qN) ]]; then
+      fpaths+=("$dir/$comp_sub")
+    fi
+  done
+  _zfile_info[fpath]="${(j.:.)fpaths}"
+
+  if [[ -d "$dir/bin" ]]; then
+    _zfile_info[bin]="$dir/bin"
+  fi
+
+  typeset -g -A "$out_var"
+  set -A "$out_var" "${(@kv)_zfile_info}"
+
+  [[ -n "${_zfile_info[script]}" || -n "${_zfile_info[fpath]}" || -n "${_zfile_info[bin]}" ]]
+}
