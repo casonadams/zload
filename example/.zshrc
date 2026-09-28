@@ -7,8 +7,13 @@
 ZLOAD_ROOT="${0:A:h:h}"
 source "${ZLOAD_ROOT}/zload.zsh"
 
-# 2. Add custom paths (automatically deduplicated)
-zload path ~/bin /opt/homebrew/bin ~/.local/bin
+# 2. Add custom paths in clean array syntax (automatically deduplicated)
+user_paths=(
+  ~/bin
+  ~/.local/bin
+  /opt/homebrew/bin
+)
+zload path "${user_paths[@]}"
 
 # 3. Declare plugins in simple array syntax
 plugins=(

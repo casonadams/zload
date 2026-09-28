@@ -255,13 +255,16 @@ Managing `$PATH` manually with lines of `export PATH="$PATH:/dir"` in `.zshrc` f
 
 ### 1. Prepend to `$PATH` with Auto-Deduplication
 ```zsh
-zload path \
-  ~/.opencode/bin \
-  ~/.cargo/bin \
-  ~/.local/bin \
-  /opt/homebrew/bin \
-  /opt/homebrew/sbin \
+user_paths=(
+  ~/.opencode/bin
+  ~/.cargo/bin
+  ~/.local/bin
+  /opt/homebrew/bin
+  /opt/homebrew/sbin
   /opt/homebrew/opt/openjdk/bin
+  /usr/local/bin
+)
+zload path "${user_paths[@]}"
 ```
 
 - **Existence Validation**: Only directories that actually exist on disk are added. Dead or deleted paths are filtered out automatically, preventing command resolution stalls.

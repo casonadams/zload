@@ -41,6 +41,7 @@
         <li><a href="#features">Features</a></li>
         <li><a href="#config">Configuration</a></li>
         <li><a href="#matrix">Comparison</a></li>
+        <li><a href="docs.html" style="color: var(--accent); font-weight: 600;">Docs</a></li>
       </ul>
 
       <div class="nav-actions">
@@ -66,6 +67,7 @@
         <li><a href="#features" onclick="closeMobileNav()">Features</a></li>
         <li><a href="#config" onclick="closeMobileNav()">Configuration</a></li>
         <li><a href="#matrix" onclick="closeMobileNav()">Comparison</a></li>
+        <li><a href="docs.html" onclick="closeMobileNav()" style="color: var(--accent); font-weight: 600;">Documentation ↗</a></li>
         <li><a href="https://github.com/casonadams/zload" target="_blank" rel="noopener">GitHub Repository ↗</a></li>
       </ul>
     </div>
@@ -313,8 +315,13 @@ bindkey <span style="color: #38bdf8;">'^ '</span> autosuggest-accept
           <pre><code id="code-standard"><span style="color: #64748b;"># Source zload</span>
 <span style="color: #818cf8;">source</span> <span style="color: #38bdf8;">~/.zload/zload.zsh</span>
 
-<span style="color: #64748b;"># Deduplicating path management</span>
-zload path ~/bin ~/.local/bin /opt/homebrew/bin
+<span style="color: #64748b;"># Deduplicating path management in clean array syntax</span>
+user_paths=(
+  ~/bin
+  ~/.local/bin
+  /opt/homebrew/bin
+)
+zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span>
 
 <span style="color: #64748b;"># Declare plugins</span>
 plugins=(
@@ -344,15 +351,17 @@ zload <span style="color: #38bdf8;">"${plugins[@]}"</span></code></pre>
             <span class="code-title">Smart PATH &amp; FPATH Helpers</span>
             <button class="btn-copy" onclick="copySnippet('code-paths')">Copy</button>
           </div>
-          <pre><code id="code-paths"><span style="color: #64748b;"># Prepend to PATH: verifies existence, expands ~, and strictly deduplicates</span>
-zload path \
-  ~/.opencode/bin \
-  ~/.cargo/bin \
-  ~/.local/bin \
-  /opt/homebrew/bin \
-  /opt/homebrew/sbin \
-  /opt/homebrew/opt/openjdk/bin \
+          <pre><code id="code-paths"><span style="color: #64748b;"># Prepend to PATH: native array syntax with existence check and deduplication</span>
+user_paths=(
+  ~/.opencode/bin
+  ~/.cargo/bin
+  ~/.local/bin
+  /opt/homebrew/bin
+  /opt/homebrew/sbin
+  /opt/homebrew/opt/openjdk/bin
   /usr/local/bin
+)
+zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span>
 
 <span style="color: #64748b;"># Prepend to fpath with deduplication</span>
 zload fpath ~/.my-completions /opt/homebrew/share/zsh/site-functions
