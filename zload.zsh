@@ -14,7 +14,7 @@ if (( ! ${fpath[(Ie)${ZLOAD_HOME}/functions]} )); then
   fpath=("${ZLOAD_HOME}/functions" "${fpath[@]}")
 fi
 
-autoload -Uz _zload_parse_spec _zload_find_main_file _zload_install _zload_load_plugin
+autoload -Uz _zload_parse_spec _zload_find_main_file _zload_install _zload_load_plugin _zload_ensure_omz _zload_omz_shim
 
 typeset -g -a _zload_specs
 typeset -g -A _zload_loaded_plugins

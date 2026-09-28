@@ -19,6 +19,11 @@ _zload_install() {
     return 1
   fi
 
+  if [[ "$type" == "omz" ]]; then
+    _zload_ensure_omz
+    return $?
+  fi
+
   mkdir -p "${dir:h}"
 
   local -a git_opts

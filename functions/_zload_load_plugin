@@ -12,7 +12,21 @@ _zload_load_plugin() {
   [[ -z "$plugin_name" ]] && plugin_name="${_zspec[name]}"
 
   local -A _zinfo
-  _zload_find_main_file _zinfo "$target_dir" "$plugin_name"
+  if [[ -f "${target_dir}.zsh-theme" ]]; then
+    _zinfo[script]="${target_dir}.zsh-theme"
+  else
+    _zload_find_main_file _zinfo "$target_dir" "$plugin_name"
+  fi
+
+  # Prezto functions autoloading
+  if [[ "${_zspec[type]}" == "prezto" && -d "$target_dir/functions" ]]; then
+    local -a funcs
+    funcs=("$target_dir/functions"/*(N:t))
+    if (( ${#funcs} > 0 )); then
+      fpath=("$target_dir/functions" "${fpath[@]}")
+      autoload -Uz "${funcs[@]}"
+    fi
+  fi
 
   if [[ -n "${_zinfo[fpath]}" ]]; then
     local -a fps
@@ -46,6 +60,9 @@ _zload_load_plugin() {
           for c in ${(j: :)cmds}; do
             unfunction \"\$c\" 2>/dev/null
           done
+          if [[ \"${_zspec[type]}\" == \"omz\" ]]; then
+            _zload_omz_shim \"${_zspec[subpath]}\" ${(q)script_path}
+          fi
           [[ -f ${(q)script_path} ]] && source ${(q)script_path}
           \"\$0\" \"\$@\"
         }
@@ -53,6 +70,10 @@ _zload_load_plugin() {
     done
     _zload_loaded_plugins["${_zspec[raw]}"]="stubbed"
     return 0
+  fi
+
+  if [[ "${_zspec[type]}" == "omz" ]]; then
+    _zload_omz_shim "${_zspec[subpath]}" "${_zinfo[script]}"
   fi
 
   if [[ -n "${_zinfo[script]}" && -f "${_zinfo[script]}" ]]; then

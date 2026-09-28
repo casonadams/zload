@@ -1,0 +1,43 @@
+_zload_omz_shim() {
+  emulate -L zsh
+  setopt extended_glob
+
+  typeset -g -A _zload_omz_loaded_libs
+
+  local subpath="$1"
+  local script_file="$2"
+  local omz_lib="${ZSH:-${ZLOAD_PLUGINS}/_omz}/lib"
+
+  [[ ! -d "$omz_lib" ]] && return 0
+
+  local need_git=0
+  if [[ "$subpath" == plugins/git || "$subpath" == themes/* ]]; then
+    need_git=1
+  elif [[ -f "$script_file" ]]; then
+    local content="$(< "$script_file")"
+    if [[ "$content" == *(current_branch|git_prompt_info|git_current_branch)* ]]; then
+      need_git=1
+    fi
+  fi
+
+  if (( need_git )) && (( ! ${_zload_omz_loaded_libs[git]:-0} )) && [[ -f "$omz_lib/git.zsh" ]]; then
+    source "$omz_lib/git.zsh"
+    _zload_omz_loaded_libs[git]=1
+  fi
+
+  if [[ "$subpath" == themes/* ]] && (( ! ${_zload_omz_loaded_libs[theme]:-0} )) && [[ -f "$omz_lib/theme-and-appearance.zsh" ]]; then
+    source "$omz_lib/theme-and-appearance.zsh"
+    _zload_omz_loaded_libs[theme]=1
+  fi
+
+  if [[ -f "$script_file" ]]; then
+    local content="$(< "$script_file")"
+    if [[ "$content" == *(omz_termsupport|title )* ]] && \
+       (( ! ${_zload_omz_loaded_libs[termsupport]:-0} )) && [[ -f "$omz_lib/termsupport.zsh" ]]; then
+      source "$omz_lib/termsupport.zsh"
+      _zload_omz_loaded_libs[termsupport]=1
+    fi
+  fi
+
+  return 0
+}
