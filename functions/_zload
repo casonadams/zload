@@ -17,6 +17,8 @@ _zload() {
     'fpath:Prepend directories to fpath with deduplication'
     'which:Print directory path of an installed plugin'
     'cd:Change directory to an installed plugin'
+    'lock:Export pinned commit hashes to a lockfile'
+    'sync:Synchronize installed plugins to exact lockfile commits'
     'compinit:Initialize completion system'
     'help:Display help message'
   )
@@ -34,6 +36,10 @@ _zload() {
         clean)
           _arguments \
             '(-f --force)'{-f,--force}'[Force remove unreferenced plugins]'
+          ;;
+        lock|sync)
+          _arguments \
+            '1:lockfile:_files'
           ;;
         compinit)
           _arguments \

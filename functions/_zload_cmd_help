@@ -14,6 +14,8 @@ Commands:
   doctor                           Run system and configuration health checks
   profile                          Profile shell startup latency
   compile                          Recompile plugin bundle into bytecode (.zwc)
+  lock [file]                      Generate lockfile pinning exact Git commits
+  sync [file]                      Checkout exact commits from lockfile
   compinit [--lazy]                Initialize completion system (deferred by default)
   help                             Display this help message
 

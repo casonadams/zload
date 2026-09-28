@@ -14,7 +14,7 @@ if (( ! ${fpath[(Ie)${ZLOAD_HOME}/functions]} )); then
   fpath=("${ZLOAD_HOME}/functions" "${fpath[@]}")
 fi
 
-autoload -Uz _zload_parse_spec _zload_find_main_file _zload_install _zload_load_plugin _zload_ensure_omz _zload_omz_shim _zload_create_stub _zload_setup_lazy_compinit _zload_real_compinit _zload_schedule_deferred _zload_run_deferred _zload_sort_plugins _zload_compile_bundle _zload_cmd_compile _zload_cmd_update _zload_cmd_clean _zload_cmd_list _zload_cmd_doctor _zload_cmd_profile _zload_cmd_help _zload_eval _zload_schedule_on_dir _zload_cmd_path _zload_cmd_fpath _zload_install_gh_r _zload_cmd_which _zload_cmd_cd
+autoload -Uz _zload_parse_spec _zload_find_main_file _zload_install _zload_load_plugin _zload_ensure_omz _zload_omz_shim _zload_create_stub _zload_setup_lazy_compinit _zload_real_compinit _zload_schedule_deferred _zload_run_deferred _zload_sort_plugins _zload_compile_bundle _zload_cmd_compile _zload_cmd_update _zload_cmd_clean _zload_cmd_list _zload_cmd_doctor _zload_cmd_profile _zload_cmd_help _zload_eval _zload_schedule_on_dir _zload_cmd_path _zload_cmd_fpath _zload_install_gh_r _zload_cmd_which _zload_cmd_cd _zload_cmd_lock _zload_cmd_sync
 
 typeset -g -a _zload_specs
 typeset -g -A _zload_loaded_plugins
@@ -87,7 +87,7 @@ zload() {
       _zload_cmd_cd "$@"
       return $?
       ;;
-    update|clean|list|doctor|profile|compile|help)
+    update|clean|list|doctor|profile|compile|lock|sync|help)
       local cmd="$1"
       shift
       autoload -Uz "_zload_cmd_${cmd}" 2>/dev/null

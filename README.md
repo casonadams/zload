@@ -180,6 +180,10 @@ zload fpath ~/.zfunc
 zload which omz:git
 zload cd zsh-autosuggestions
 
+# Export and synchronize pinned lockfiles
+zload lock [file]
+zload sync [file]
+
 # Display help and options
 zload help
 ```

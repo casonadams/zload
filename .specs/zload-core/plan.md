@@ -397,6 +397,27 @@ Immediately `source "$ZLOAD_CACHE/bundle.zsh"` and return.
 
 ---
 
+### Slice 12: Reproducible Lockfiles & Machine Sync (`zload lock`, `zload sync`)
+**Goal**: Provide deterministic, version-pinned dotfiles synchronization across machines through reproducible lockfiles.
+**Acceptance Criteria**:
+- `zload lock [file]` generates a lockfile (default: `${ZLOAD_DATA}/zload.lock`) recording each installed plugin and its resolved Git commit SHA.
+- `zload sync [file]` reads the lockfile and checks out the exact recorded commit hashes for all installed plugins.
+- Verification tests confirm lockfile generation and exact commit synchronization.
+
+#### Task 12.1: Lockfile generator (`zload lock`) [2]
+**Do**: Implement `_zload_cmd_lock` in `functions/_zload_cmd_lock`. Iterates installed plugins, queries `git rev-parse HEAD`, and writes clean YAML/key-value lines `<name>:<commit>`.
+**Tests**: `test/test_lock.zsh`: Generate a lockfile for mock repos, verify commits match.
+**Verify**: `zsh test/test_lock.zsh` -- passes.
+
+#### Task 12.2: Machine synchronization (`zload sync`) [2]
+**Do**: Implement `_zload_cmd_sync` in `functions/_zload_cmd_sync`. Reads lockfile, checks out matching commits, and recompiles the bundle.
+**Tests**: `test/test_lock.zsh`: Advance remote commit, run `zload sync`, verify repo is checked out to locked commit.
+**Verify**: `zsh test/test_lock.zsh` -- passes.
+
+**Slice 12 Verification**: Full test suite passes including `test_lock.zsh`.
+
+---
+
 ## Final Verification
 
 1. **Syntax Check**: `zsh -n zload.zsh` returns 0 with no errors.

@@ -79,6 +79,10 @@ zsh test/test_completions.zsh
 zsh test/test_which_cd.zsh
 print -P "%F{green}[OK] Slice 11 passed.%f\n"
 
+print -P "%F{blue}==> Slice 12: Reproducible Lockfiles & Machine Sync...%f"
+zsh test/test_lock.zsh
+print -P "%F{green}[OK] Slice 12 passed.%f\n"
+
 print -P "%F{green}========================================%f"
 print -P "%F{green}  ALL TESTS PASSED SUCCESSFULLY!        %f"
 print -P "%F{green}========================================%f"

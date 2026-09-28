@@ -1,0 +1,40 @@
+_zload_cmd_sync() {
+  emulate -L zsh
+
+  local lock_file="${1:-${ZLOAD_DATA}/zload.lock}"
+  if [[ ! -f "$lock_file" ]]; then
+    print -u2 "zload: lockfile not found: $lock_file"
+    return 1
+  fi
+
+  print -P "%F{cyan}zload: syncing plugins from lockfile %B${lock_file}%b...%f"
+
+  integer synced=0
+  local line
+  for line in "${(f)"$(< "$lock_file")"}"; do
+    [[ -z "$line" || "$line" == \#* ]] && continue
+
+    local name="${line%%:*}"
+    local commit="${line#*:}"
+    local dir="${ZLOAD_PLUGINS}/${name}"
+
+    if [[ -d "$dir/.git" ]]; then
+      local curr
+      curr="$(command git -C "$dir" rev-parse HEAD 2>/dev/null)"
+      if [[ "$curr" != "$commit" ]]; then
+        command git -C "$dir" checkout -q "$commit" 2>/dev/null || {
+          command git -C "$dir" fetch -q origin 2>/dev/null || true
+          command git -C "$dir" checkout -q "$commit" 2>/dev/null || true
+        }
+        print -P "  %F{green}* %f%B${name}%b synced to %F{yellow}${commit[1,8]}%f"
+        (( synced++ ))
+      else
+        print -P "  %F{blue}* %f%B${name}%b already at locked commit"
+      fi
+    fi
+  done
+
+  _zload_compile_bundle
+  print -P "%F{green}zload: sync complete ($synced plugins updated).%f"
+  return 0
+}
