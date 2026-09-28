@@ -71,3 +71,59 @@ Normally, `compinit` scans `$fpath`, audits permissions, generates `.zcompdump`,
    - Replays all buffered `compdef` calls.
    - Restores native ZLE completion widgets.
 4. Subsequent `<Tab>` keystrokes run at native Zsh speeds.
+
+### Usage in `.zshrc`
+Place `zload compinit --lazy` immediately after your plugin declarations:
+```zsh
+plugins=(
+  omz:git
+  omz:lib/completion.zsh
+  zsh-users/zsh-completions
+)
+zload "${plugins[@]}"
+
+# Initialize completions lazily (defers compinit until first <Tab>)
+zload compinit --lazy
+```
+
+---
+
+## 5. Interactive Menu Selection & Highlighting
+
+By default, bare Zsh lists completion candidates without an interactive cursor or highlight box. `zload` does not inject intrusive styling opinions behind your back, but you can enable highlighted menu navigation using either Oh-My-Zsh's library or native Zsh styles.
+
+### Option A: Oh-My-Zsh Completion Library (OMZ Migrators)
+
+Add `omz:lib/completion.zsh` to your `plugins=(...)` array:
+
+```zsh
+plugins=(
+  omz:lib/completion.zsh
+  zsh-users/zsh-completions
+  # ... other plugins ...
+)
+zload "${plugins[@]}"
+zload compinit --lazy
+```
+
+This imports OMZ's completion defaults (`zmodload -i zsh/complist`, `zstyle ':completion:*:*:*:*:*' menu select`, case-insensitive matching, and process coloring).
+
+> **Note on OMZ Tab Behavior**: OMZ completion sets `auto_menu` and unsets `menu_complete`. The first `<Tab>` displays candidate matches, and the second `<Tab>` activates interactive menu selection with the highlighted cursor.
+
+### Option B: Native Zsh Styles (Zero External Dependencies)
+
+If you prefer not pulling in Oh-My-Zsh, configure native Zsh styles directly in `~/.zshrc`:
+
+```zsh
+# Load complist module (required for menu selection & list coloring)
+zmodload -i zsh/complist
+
+# Enable menu selection with highlighted cursor on Tab
+zstyle ':completion:*' menu select
+
+# Colorize completion entries matching LS_COLORS
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# Reverse navigation with Shift-Tab
+bindkey -M menuselect '^[[Z' reverse-menu-complete
+```

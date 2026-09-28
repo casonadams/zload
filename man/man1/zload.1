@@ -212,6 +212,7 @@ zload path "${user_paths[@]}"
 # 3. Plugins
 plugins=(
   omz:git
+  omz:lib/completion.zsh
   casonadams/walh-shell
   lukechilds/zsh-nvm --on nvm,node,npm
   zsh-users/zsh-syntax-highlighting --defer
@@ -219,6 +220,9 @@ plugins=(
 )
 zload "${plugins[@]}"
 bindkey '^ ' autosuggest-accept
+
+# 4. Completion initialization
+zload compinit --lazy
 .fi
 .RE
 

@@ -159,6 +159,7 @@
   romkatv/powerlevel10k
   omz:lib/theme-and-appearance.zsh
   omz:lib/key-bindings.zsh
+  omz:lib/completion.zsh
   casonadams/fzf.zsh
   casonadams/walh-shell
   lukechilds/zsh-nvm --on nvm,node,npm
@@ -166,7 +167,8 @@
   zsh-users/zsh-autosuggestions
 )
 
-zload <span style="color: #38bdf8;">"${plugins[@]}"</span></code></pre>
+zload <span style="color: #38bdf8;">"${plugins[@]}"</span>
+zload compinit <span style="color: #38bdf8;">--lazy</span></code></pre>
         </div>
 
         <h3>2. Multiline String Syntax</h3>
@@ -334,6 +336,20 @@ zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span></code></pre>
         <p>
           If <code>~/.zfunc</code> exists on your system (standard directory for <code>uv</code>, <code>rustup</code>, <code>pipx</code> completions), <code>zload</code> automatically detects it and links it into <code>$fpath</code> and bytecode bundles with <strong>zero lines in your .zshrc</strong>.
         </p>
+
+        <h3>Lazy &lt;Tab&gt; Compinit &amp; Menu Selection</h3>
+        <p>
+          Initialize completion system deferral right after your plugin array with <code>zload compinit --lazy</code>. Early <code>compdef</code> calls from plugins are buffered safely until your first <code>&lt;Tab&gt;</code> press.
+        </p>
+        <p>
+          To enable highlighted interactive menu completion navigation, add <code>omz:lib/completion.zsh</code> to your plugin declarations, or set native styles in <code>~/.zshrc</code>:
+        </p>
+        <div class="code-preview">
+          <pre><code><span style="color: #64748b;"># Native highlighted menu selection</span>
+zmodload -i zsh/complist
+zstyle <span style="color: #38bdf8;">':completion:*'</span> menu select
+zstyle <span style="color: #38bdf8;">':completion:*'</span> list-colors <span style="color: #38bdf8;">"${(s.:.)LS_COLORS}"</span></code></pre>
+        </div>
       </section>
 
       <!-- Section: CLI Commands -->
@@ -395,6 +411,10 @@ zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span></code></pre>
               <tr>
                 <td><code>zload compile</code></td>
                 <td>Manually forces bundle and core module bytecode recompilation.</td>
+              </tr>
+              <tr>
+                <td><code>zload compinit [--lazy]</code></td>
+                <td>Initializes or defers the Zsh completion system (defers until first &lt;Tab&gt; with <code>--lazy</code>).</td>
               </tr>
             </tbody>
           </table>

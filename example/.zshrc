@@ -17,9 +17,9 @@ zload path "${user_paths[@]}"
 
 # 3. Declare plugins in simple array syntax
 plugins=(
-  # Completion system
+  # Completion system & menu styling
+  omz:lib/completion.zsh
   zsh-users/zsh-completions
-
   # Oh-My-Zsh plugins (loads lib/git.zsh automatically)
   omz:git
   omz:extract
@@ -37,6 +37,8 @@ plugins=(
 
 zload "${plugins[@]}"
 
-# 4. Optional: subshell eval caching (0ms overhead)
-# zload eval starship "starship init zsh"
+# 4. Initialize completion system (defers compinit until first <Tab> press)
+zload compinit --lazy
+
+# 5. Optional: subshell eval caching (0ms overhead)
 # zload eval zoxide "zoxide init zsh"

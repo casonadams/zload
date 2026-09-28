@@ -52,6 +52,7 @@ zload path "${user_paths[@]}"
 # 3. Declare plugins (automatic canonical ordering & bytecode compilation)
 plugins=(
   omz:git
+  omz:lib/completion.zsh
   casonadams/walh-shell
   lukechilds/zsh-nvm --on nvm,node,npm
   zsh-users/zsh-syntax-highlighting --defer
@@ -59,7 +60,9 @@ plugins=(
 )
 zload "${plugins[@]}"
 bindkey '^ ' autosuggest-accept
-```
+
+# 4. Initialize completions (defers compinit to first <Tab> for 0ms startup)
+zload compinit --lazy
 
 > **Tip — Fast Prompts**: Pair with a high-performance prompt like [Powerlevel10k](https://github.com/romkatv/powerlevel10k) (`zload romkatv/powerlevel10k`) or [Starship](https://starship.rs) (`zload eval starship "starship init zsh"`) to complement `zload`'s sub-millisecond shell startup.
 
@@ -101,7 +104,8 @@ Comprehensive guides and technical documentation are organized in [`docs/`](docs
   - `zload path`: Auto-expands `~`, validates directory existence, filters out dead paths, and strictly deduplicates `$PATH`.
   - `zload fpath`: Prepend and deduplicate completion directories.
   - **Automatic `~/.zfunc` Discovery**: Automatically detects and links custom completion directories (for `uv`, `rustup`, `pipx`) into `$fpath` with zero configuration in `.zshrc`.
-  - **Lazy `<Tab>` Compinit**: Automatically buffers early `compdef` calls and defers `compinit` until your first `<Tab>` press.
+  - **Lazy `<Tab>` Compinit**: Automatically buffers early `compdef` calls and defers `compinit` until your first `<Tab>` press (`zload compinit --lazy`).
+  - **Highlighted Menu Selection**: Pair with `omz:lib/completion.zsh` or native `zstyle` for interactive `<Tab>` menu navigation.
 
 - **[Zero-Subprocess Eval Caching](docs/commands.md#3-zload-eval)**
   - Replaces slow `eval "$(starship init zsh)"` or `eval "$(zoxide init zsh)"` subshells by compiling shell output into memory-mapped `.zwc` files, loading in 0.2ms with zero subprocesses.
