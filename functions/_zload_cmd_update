@@ -1,0 +1,59 @@
+_zload_cmd_update() {
+  emulate -L zsh
+  setopt null_glob
+
+  print -P "%F{cyan}zload: updating installed plugins...%f"
+
+  local -a plugin_dirs
+  plugin_dirs=("${ZLOAD_PLUGINS}"/*(N/))
+
+  if (( ${#plugin_dirs} == 0 )); then
+    print "  (no plugins installed)"
+    return 0
+  fi
+
+  local -A job_pids
+  local -A job_names
+  local -a failed
+
+  local dir
+  for dir in "${plugin_dirs[@]}"; do
+    local name="${dir:t}"
+    if [[ ! -d "$dir/.git" ]]; then
+      print -P "  %F{blue}* %f%B${name}%b (local plugin, skipping)"
+      continue
+    fi
+
+    local branch
+    branch="$(command git -C "$dir" branch --show-current 2>/dev/null)"
+    if [[ -z "$branch" ]]; then
+      print -P "  %F{yellow}* %f%B${name}%b (pinned ref, skipping)"
+      continue
+    fi
+
+    (
+      command git -C "$dir" pull --ff-only >/dev/null 2>&1
+    ) &
+    local pid=$!
+    job_pids[$pid]="$dir"
+    job_names[$pid]="$name"
+  done
+
+  for pid in ${(k)job_pids}; do
+    local name="${job_names[$pid]}"
+    if wait "$pid"; then
+      print -P "  %F{green}* %f%B${name}%b up to date"
+    else
+      print -P "  %F{red}* %f%B${name}%b update failed"
+      failed+=("$name")
+    fi
+  done
+
+  if (( ${#failed} > 0 )); then
+    print -u2 -P "%F{yellow}zload: warning: some plugins failed to update%f"
+  fi
+
+  _zload_compile_bundle
+  print -P "%F{green}zload: update complete and bundle recompiled.%f"
+  return 0
+}

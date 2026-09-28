@@ -1,0 +1,30 @@
+_zload_cmd_list() {
+  emulate -L zsh
+  setopt null_glob
+
+  print -P "%F{cyan}zload: installed plugins in ${ZLOAD_PLUGINS}%f"
+
+  local -a plugin_dirs
+  plugin_dirs=("${ZLOAD_PLUGINS}"/*(N/))
+
+  if (( ${#plugin_dirs} == 0 )); then
+    print "  (no plugins installed)"
+    return 0
+  fi
+
+  local dir
+  for dir in "${plugin_dirs[@]}"; do
+    local name="${dir:t}"
+    if [[ -d "$dir/.git" ]]; then
+      local commit ref
+      commit="$(command git -C "$dir" rev-parse --short HEAD 2>/dev/null)"
+      ref="$(command git -C "$dir" describe --tags --exact-match 2>/dev/null || command git -C "$dir" branch --show-current 2>/dev/null)"
+      [[ -z "$ref" ]] && ref="detached"
+      print -P "  %F{green}* %f%B${name}%b %F{yellow}(${ref}@${commit})%f"
+    else
+      print -P "  %F{blue}* %f%B${name}%b (local)"
+    fi
+  done
+
+  return 0
+}

@@ -1,0 +1,47 @@
+_zload_cmd_clean() {
+  emulate -L zsh
+  setopt null_glob
+
+  local force=0
+  [[ "$1" == "-f" || "$1" == "--force" ]] && force=1
+
+  local -A active_dirs
+  for spec_entry in "${_zload_specs[@]}"; do
+    local -A parsed
+    _zload_parse_spec parsed "$spec_entry"
+    if [[ -n "${parsed[dir]}" ]]; then
+      local pdir="${parsed[dir]}"
+      local capdir="${parsed[dir]:A}"
+      active_dirs[$pdir]=1
+      active_dirs[$capdir]=1
+    fi
+  done
+
+  local -a plugin_dirs
+  plugin_dirs=("${ZLOAD_PLUGINS}"/*(N/))
+
+  local -a to_remove
+  for dir in "${plugin_dirs[@]}"; do
+    local cdir="${dir:A}"
+    if (( ! $+active_dirs[$dir] && ! $+active_dirs[$cdir] )); then
+      to_remove+=("$dir")
+    fi
+  done
+
+  if (( ${#to_remove} == 0 )); then
+    print -P "%F{green}zload: cache and plugins are clean.%f"
+    return 0
+  fi
+
+  for dir in "${to_remove[@]}"; do
+    local name="${dir:t}"
+    if (( force )); then
+      print -P "%F{yellow}zload:%f removing %F{red}${name}%f..."
+      rm -rf "$dir"
+    else
+      print -P "%F{yellow}zload:%f found unused plugin: %B${name}%b (use -f/--force to remove)"
+    fi
+  done
+
+  return 0
+}

@@ -1,0 +1,33 @@
+_zload_cmd_help() {
+  cat << 'EOF'
+zload - Ultra-fast, zero-friction Zsh plugin manager
+
+Usage:
+  zload <plugin> [options]         Declare and load a plugin
+  zload ( ... )                    Declare a batch of plugins
+  zload <command> [options]        Execute a management command
+
+Commands:
+  update                           Update installed plugins from remotes
+  clean [-f|--force]               Remove unreferenced plugin directories
+  list                             List all installed plugins and git status
+  doctor                           Run system and configuration health checks
+  profile                          Profile shell startup latency
+  compile                          Recompile plugin bundle into bytecode (.zwc)
+  compinit [--lazy]                Initialize completion system (deferred by default)
+  help                             Display this help message
+
+Options:
+  --on <cmd1,cmd2>                 Lazy load plugin on command invocation
+  --defer                          Defer loading until after prompt display
+  --bin <path>                     Add custom bin directory to PATH
+
+Sources:
+  user/repo[@tag|#branch]          GitHub repository
+  omz:<plugin>                     Oh-My-Zsh plugin (e.g. omz:git)
+  omz:themes/<theme>               Oh-My-Zsh theme (e.g. omz:themes/robbyrussell)
+  prezto:<module>                  Prezto module (e.g. prezto:utility)
+  https://*.git                    Full Git repository URL
+  /path/to/local                   Local plugin directory
+EOF
+}

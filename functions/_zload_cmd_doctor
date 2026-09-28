@@ -1,0 +1,67 @@
+_zload_cmd_doctor() {
+  emulate -L zsh
+  autoload -Uz is-at-least
+
+  print -P "%F{cyan}zload doctor: running environment diagnostics...%f\n"
+  integer errors=0 warnings=0
+
+  if is-at-least 5.1 "$ZSH_VERSION"; then
+    print -P "  %F{green}[OK]%f Zsh version: %B$ZSH_VERSION%b"
+  else
+    print -P "  %F{red}[FAIL]%f Zsh version $ZSH_VERSION is older than required 5.1"
+    (( errors++ ))
+  fi
+
+  if (( $+commands[git] )); then
+    local git_ver="$(command git --version 2>/dev/null)"
+    print -P "  %F{green}[OK]%f Git: %B${git_ver}%b"
+  else
+    print -P "  %F{red}[FAIL]%f Git command not found in PATH"
+    (( errors++ ))
+  fi
+
+  for var_name in ZLOAD_HOME ZLOAD_DATA ZLOAD_CACHE ZLOAD_PLUGINS; do
+    local path_val="${(P)var_name}"
+    if [[ -d "$path_val" && -w "$path_val" ]]; then
+      print -P "  %F{green}[OK]%f $var_name: %B$path_val%b (writable)"
+    elif [[ -d "$path_val" ]]; then
+      print -P "  %F{yellow}[WARN]%f $var_name: %B$path_val%b (not writable)"
+      (( warnings++ ))
+    else
+      print -P "  %F{yellow}[WARN]%f $var_name: %B$path_val%b (directory not found)"
+      (( warnings++ ))
+    fi
+  done
+
+  local bundle_file="${ZLOAD_CACHE}/bundle.zsh"
+  local bundle_zwc="${bundle_file}.zwc"
+  if [[ -f "$bundle_zwc" ]]; then
+    print -P "  %F{green}[OK]%f Bytecode bundle: %B$bundle_zwc%b (compiled)"
+  elif [[ -f "$bundle_file" ]]; then
+    print -P "  %F{yellow}[WARN]%f Bundle: %B$bundle_file%b exists but .zwc wordcode is missing"
+    (( warnings++ ))
+  else
+    print -P "  %F{yellow}[INFO]%f Bundle: not yet generated (will compile on cold startup)"
+  fi
+
+  local dump_file="${ZLOAD_CACHE}/zcompdump-${ZSH_VERSION}"
+  if [[ -f "${dump_file}.zwc" ]]; then
+    print -P "  %F{green}[OK]%f Completion cache: %B${dump_file}.zwc%b (compiled)"
+  elif [[ -f "$dump_file" ]]; then
+    print -P "  %F{green}[OK]%f Completion dump: %B$dump_file%b"
+  else
+    print -P "  %F{yellow}[INFO]%f Completion dump: deferred (will compile on first Tab)"
+  fi
+
+  print ""
+  if (( errors > 0 )); then
+    print -P "%F{red}zload doctor: found $errors error(s) and $warnings warning(s)%f"
+    return 1
+  elif (( warnings > 0 )); then
+    print -P "%F{yellow}zload doctor: found $warnings warning(s), core features operational%f"
+    return 0
+  else
+    print -P "%F{green}zload doctor: all checks passed! System is healthy and optimized.%f"
+    return 0
+  fi
+}
