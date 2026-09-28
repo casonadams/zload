@@ -2,7 +2,7 @@ _zload_cmd_compile() {
   emulate -L zsh
   setopt null_glob
 
-  print -P "%F{cyan}zload:%f compiling plugin bundle..."
+  print -P "%F{14}zload%f  %F{11}compiling%f        %F{15}%Bbytecode bundle (.zwc)%b%f%F{8}...%f"
   _zload_compile_bundle "$@"
   local ret=$?
 
@@ -20,7 +20,7 @@ _zload_cmd_compile() {
   done
 
   if (( ret == 0 )); then
-    print -P "%F{green}zload: bundle and core modules compiled successfully.%f"
+    print -P "%F{10}zload%f  %F{10}✓ compiled%f         %F{15}%Bbundle and modules ready%b%f"
   fi
   return $ret
 }

@@ -31,17 +31,17 @@ _zload_cmd_clean() {
   done
 
   if (( ${#to_remove} == 0 )); then
-    print -P "%F{green}zload: cache and plugins are clean.%f"
+    print -P "%F{10}zload%f  %F{10}✓ cache and plugins are clean.%f"
     return 0
   fi
 
   for dir in "${to_remove[@]}"; do
     local name="${dir:t}"
     if (( force )); then
-      print -P "%F{yellow}zload:%f removing %F{red}${name}%f..."
+      print -P "%F{14}zload%f  %F{9}removing%f       %F{15}%B${name}%b%f%F{8}...%f"
       rm -rf "$dir"
     else
-      print -P "%F{yellow}zload:%f found unused plugin: %B${name}%b (use -f/--force to remove)"
+      print -P "%F{11}zload%f  %F{11}unused%f         %F{15}%B${name}%b%f %F{8}(pass -f to delete)%f"
     fi
   done
 

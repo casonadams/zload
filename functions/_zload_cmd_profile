@@ -2,7 +2,7 @@ _zload_cmd_profile() {
   emulate -L zsh
   zmodload zsh/datetime
 
-  print -P "%F{cyan}zload profile: measuring startup latency...%f\n"
+  print -P "%F{14}zload profile%f  %F{8}measuring startup latency...%f\n"
 
   local bundle_file="${ZLOAD_CACHE}/bundle.zsh"
   local bundle_zwc="${bundle_file}.zwc"
@@ -15,23 +15,23 @@ _zload_cmd_profile() {
     t_bundle=$(( (t1 - t0) * 1000 ))
   fi
 
-  printf "%-35s %12s   %s\n" "Component" "Latency" "Status"
-  print "------------------------------------------------------------------"
+  print -P "  %F{14}%BComponent%b%f                          %F{14}%BLatency%b%f     %F{14}%BStatus%b%f"
+  print -P "  %F{8}------------------------------------------------------------%f"
   if [[ -f "$bundle_zwc" ]]; then
-    printf "%-35s %10.3f ms   %s\n" "Memory-mapped bundle (.zwc)" "$t_bundle" "active"
+    printf "  %-35s %%F{10}%10.3f ms%%f   %%F{10}active%%f\n" "Memory-mapped bundle (.zwc)" "$t_bundle"
   else
-    printf "%-35s %12s   %s\n" "Memory-mapped bundle (.zwc)" "N/A" "uncompiled"
+    printf "  %-35s %%F{8}%12s%%f   %%F{8}uncompiled%%f\n" "Memory-mapped bundle (.zwc)" "N/A"
   fi
 
   if (( _zload_compinit_done )); then
-    printf "%-35s %12s   %s\n" "Completion system (compinit)" "< 1 ms" "initialized"
+    printf "  %-35s %%F{10}%12s%%f   %%F{10}initialized%%f\n" "Completion system (compinit)" "< 1 ms"
   else
-    printf "%-35s %12s   %s\n" "Completion system (compinit)" "0.000 ms" "deferred to <Tab>"
+    printf "  %-35s %%F{8}%12s%%f   %%F{8}deferred to <Tab>%%f\n" "Completion system (compinit)" "0.000 ms"
   fi
 
-  printf "%-35s %12s   %d registered\n" "Command stubs (--on)" "0.000 ms" "${#_zload_loaded_plugins}"
-  print "------------------------------------------------------------------"
-  printf "%-35s %10.3f ms\n" "Total warm interactive overhead" "$t_bundle"
+  printf "  %-35s %%F{8}%12s%%f   %%F{8}%d registered%%f\n" "Command stubs (--on)" "0.000 ms" "${#_zload_loaded_plugins}"
+  print -P "  %F{8}------------------------------------------------------------%f"
+  printf "  %%F{15}%%B%-35s%%b%%f %%F{10}%%B%10.3f ms%%b%%f\n\n" "Total warm interactive overhead" "$t_bundle"
 
   return 0
 }

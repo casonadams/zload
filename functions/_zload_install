@@ -15,8 +15,13 @@ _zload_install() {
   fi
 
   if [[ "$type" == "local" ]]; then
-    print -u2 "zload: local plugin directory not found: $dir"
+    print -u2 -P "%F{9}zload: local plugin directory not found: $dir%f"
     return 1
+  fi
+
+  if [[ "$type" == "omz" ]]; then
+    _zload_ensure_omz
+    return $?
   fi
 
   if [[ "$type" == "gh-r" ]]; then
@@ -29,7 +34,7 @@ _zload_install() {
     [[ -f "$target_file" ]] && return 0
     mkdir -p "$dir"
     local label="${_zspec[raw]:-${_zspec[spec]}}"
-    print -P "%F{cyan}zload:%f fetching snippet %F{yellow}${label}%f..."
+    print -P "%F{14}zload%f  %F{11}fetching snippet%f  %F{15}%B${label}%b%f%F{8}...%f"
     if [[ "$url" == file://* ]]; then
       cp "${url#file://}" "$target_file"
     else
@@ -37,17 +42,12 @@ _zload_install() {
     fi
     local ret=$?
     if (( ret != 0 )) || [[ ! -f "$target_file" ]]; then
-      print -u2 -P "%F{red}zload: failed to fetch snippet ${url}%f"
+      print -u2 -P "%F{9}zload: failed to fetch snippet ${url}%f"
       rm -rf "$dir"
       return 1
     fi
     zcompile -R "$target_file" 2>/dev/null
     return 0
-  fi
-
-  if [[ "$type" == "omz" ]]; then
-    _zload_ensure_omz
-    return $?
   fi
 
   mkdir -p "${dir:h}"
@@ -64,12 +64,12 @@ _zload_install() {
   fi
 
   local label="${_zspec[raw]:-${_zspec[spec]}}"
-  print -P "%F{cyan}zload:%f installing %F{yellow}${label}%f..."
+  print -P "%F{14}zload%f  %F{11}installing%f        %F{15}%B${label}%b%f%F{8}...%f"
   command git "${git_opts[@]}" "$url" "$dir" >/dev/null 2>&1
   local ret=$?
 
   if (( ret != 0 )); then
-    print -u2 -P "%F{red}zload: failed to clone ${url}%f"
+    print -u2 -P "%F{9}zload: failed to clone ${url}%f"
     rm -rf "$dir"
     return $ret
   fi
@@ -77,7 +77,7 @@ _zload_install() {
   if [[ -n "${_zspec[build_cmd]}" ]]; then
     local build_dir="$dir"
     [[ -n "${_zspec[subpath]}" && -d "$dir/${_zspec[subpath]}" ]] && build_dir="$dir/${_zspec[subpath]}"
-    print -P "%F{cyan}zload:%f running build hook %F{yellow}${_zspec[build_cmd]}%f..."
+    print -P "%F{14}zload%f  %F{11}building%f          %F{15}%B${label}%b%f %F{8}(${_zspec[build_cmd]})%f"
     ( cd "$build_dir" && eval "${_zspec[build_cmd]}" ) >/dev/null 2>&1
   fi
 

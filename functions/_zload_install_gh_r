@@ -48,10 +48,10 @@ _zload_install_gh_r() {
       arch_patterns=(x86_64 amd64 x64)
     fi
 
-    print -P "%F{cyan}zload:%f querying GitHub release for %F{yellow}${owner_repo}%f..."
+    print -P "%F{14}zload%f  %F{11}querying release%f   %F{15}%B${owner_repo}%b%f%F{8}...%f"
     local json_out
     json_out="$(command curl -fsSL "$api_url" 2>/dev/null)" || {
-      print -u2 -P "%F{red}zload: failed to fetch release metadata from GitHub%f"
+      print -u2 -P "%F{9}zload: failed to fetch release metadata from GitHub%f"
       return 1
     }
 
@@ -87,14 +87,14 @@ _zload_install_gh_r() {
     [[ -z "$target_url" ]] && target_url="${urls[1]}"
 
     if [[ -z "$target_url" ]]; then
-      print -u2 -P "%F{red}zload: no matching release binary found for ${os_sys}_${arch_sys}%f"
+      print -u2 -P "%F{9}zload: no matching release binary found for ${os_sys}_${arch_sys}%f"
       return 1
     fi
 
-    print -P "%F{cyan}zload:%f downloading %F{yellow}${target_url:t}%f..."
+    print -P "%F{14}zload%f  %F{11}downloading%f       %F{15}%B${target_url:t}%b%f%F{8}...%f"
     asset_file="${temp_dir}/${target_url:t}"
     command curl -fsSL "$target_url" -o "$asset_file" 2>/dev/null || {
-      print -u2 -P "%F{red}zload: download failed for ${target_url}%f"
+      print -u2 -P "%F{9}zload: download failed for ${target_url}%f"
       return 1
     }
   fi

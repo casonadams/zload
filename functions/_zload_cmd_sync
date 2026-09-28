@@ -3,11 +3,11 @@ _zload_cmd_sync() {
 
   local lock_file="${1:-${ZLOAD_DATA}/zload.lock}"
   if [[ ! -f "$lock_file" ]]; then
-    print -u2 "zload: lockfile not found: $lock_file"
+    print -u2 -P "%F{9}zload: lockfile not found: $lock_file%f"
     return 1
   fi
 
-  print -P "%F{cyan}zload: syncing plugins from lockfile %B${lock_file}%b...%f"
+  print -P "%F{14}zload%f  %F{8}syncing plugins from ${lock_file}...%f\n"
 
   integer synced=0
   local line
@@ -26,15 +26,15 @@ _zload_cmd_sync() {
           command git -C "$dir" fetch -q origin 2>/dev/null || true
           command git -C "$dir" checkout -q "$commit" 2>/dev/null || true
         }
-        print -P "  %F{green}* %f%B${name}%b synced to %F{yellow}${commit[1,8]}%f"
+        print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}synced%f  %F{8}(${commit[1,8]})%f"
         (( synced++ ))
       else
-        print -P "  %F{blue}* %f%B${name}%b already at locked commit"
+        print -P "  %F{12}•%f  %F{15}%B${(r:35:)name}%b%f  %F{8}already at locked commit%f"
       fi
     fi
   done
 
   _zload_compile_bundle
-  print -P "%F{green}zload: sync complete ($synced plugins updated).%f"
+  print -P "\n%F{10}zload%f  %F{10}✓ sync complete%f %F{8}($synced plugins updated)%f"
   return 0
 }

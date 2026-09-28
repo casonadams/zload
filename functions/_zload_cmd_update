@@ -2,13 +2,13 @@ _zload_cmd_update() {
   emulate -L zsh
   setopt null_glob
 
-  print -P "%F{cyan}zload: updating installed plugins...%f"
+  print -P "%F{14}zload%f  %F{8}updating installed plugins...%f\n"
 
   local -a plugin_dirs
   plugin_dirs=("${ZLOAD_PLUGINS}"/*(N/))
 
   if (( ${#plugin_dirs} == 0 )); then
-    print "  (no plugins installed)"
+    print -P "  %F{8}(no plugins installed)%f"
     return 0
   fi
 
@@ -16,46 +16,51 @@ _zload_cmd_update() {
   local -A job_names
   local -a failed
 
-  local dir branch
+  local dir name branch pid pdir ref commit
   for dir in "${plugin_dirs[@]}"; do
-    local name="${dir:t}"
+    name="${dir:t}"
     if [[ "$name" == "_snippets" ]]; then
       continue
     fi
     if [[ ! -d "$dir/.git" ]]; then
-      print -P "  %F{blue}* %f%B${name}%b (local plugin, skipping)"
+      print -P "  %F{12}•%f  %F{15}%B${(r:35:)name}%b%f  %F{8}(local plugin, skipping)%f"
       continue
     fi
 
     branch="$(command git -C "$dir" branch --show-current 2>/dev/null)"
     if [[ -z "$branch" ]]; then
-      print -P "  %F{yellow}* %f%B${name}%b (pinned ref, skipping)"
+      print -P "  %F{11}•%f  %F{15}%B${(r:35:)name}%b%f  %F{11}pinned ref (skipping)%f"
       continue
     fi
 
     (
       command git -C "$dir" pull --ff-only >/dev/null 2>&1
     ) &
-    local pid=$!
+    pid=$!
     job_pids[$pid]="$dir"
     job_names[$pid]="$name"
   done
 
   for pid in ${(k)job_pids}; do
-    local name="${job_names[$pid]}"
+    name="${job_names[$pid]}"
+    pdir="${job_pids[$pid]}"
+    commit="$(command git -C "$pdir" rev-parse --short HEAD 2>/dev/null)"
+    ref="$(command git -C "$pdir" branch --show-current 2>/dev/null)"
+    [[ -z "$ref" ]] && ref="pinned"
+
     if wait "$pid"; then
-      print -P "  %F{green}* %f%B${name}%b up to date"
+      print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}up to date%f  %F{8}(${ref}@${commit})%f"
     else
-      print -P "  %F{red}* %f%B${name}%b update failed"
+      print -P "  %F{9}✗%f  %F{15}%B${(r:35:)name}%b%f  %F{9}update failed%f"
       failed+=("$name")
     fi
   done
 
   if (( ${#failed} > 0 )); then
-    print -u2 -P "%F{yellow}zload: warning: some plugins failed to update%f"
+    print -u2 -P "\n%F{11}zload:%f %F{11}warning: some plugins failed to update%f"
   fi
 
   _zload_compile_bundle
-  print -P "%F{green}zload: update complete and bundle recompiled.%f"
+  print -P "\n%F{10}zload%f  %F{10}✓ update complete and bundle recompiled.%f"
   return 0
 }

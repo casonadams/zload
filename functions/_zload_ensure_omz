@@ -11,12 +11,12 @@ _zload_ensure_omz() {
   fi
 
   mkdir -p "${omz_dir:h}"
-  print -P "%F{cyan}zload:%f installing Oh-My-Zsh core..."
+  print -P "%F{14}zload%f  %F{11}installing%f        %F{15}%BOh-My-Zsh core%b%f%F{8}...%f"
   command git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git "$omz_dir" >/dev/null 2>&1
   local ret=$?
 
   if (( ret != 0 )); then
-    print -u2 -P "%F{red}zload: failed to clone Oh-My-Zsh repository%f"
+    print -u2 -P "%F{9}zload: failed to clone Oh-My-Zsh repository%f"
     rm -rf "$omz_dir"
     return $ret
   fi

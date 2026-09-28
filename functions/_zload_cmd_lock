@@ -15,6 +15,9 @@ _zload_cmd_lock() {
   local dir
   for dir in "${plugin_dirs[@]}"; do
     local name="${dir:t}"
+    if [[ "$name" == "_snippets" ]]; then
+      continue
+    fi
     if [[ -d "$dir/.git" ]]; then
       local commit
       commit="$(command git -C "$dir" rev-parse HEAD 2>/dev/null)"
@@ -26,6 +29,6 @@ _zload_cmd_lock() {
   done
 
   print -l "${lines[@]}" > "$lock_file"
-  print -P "%F{green}zload: locked $count plugin(s) to %B${lock_file}%b%f"
+  print -P "%F{10}zload%f  %F{10}✓ locked%f   %F{15}%B$count plugin(s)%b%f %F{8}to ${lock_file}%f"
   return 0
 }

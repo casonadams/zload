@@ -5,37 +5,37 @@ _zload_cmd_doctor() {
   local do_fix=0
   [[ "$1" == "--fix" ]] && do_fix=1
 
-  print -P "%F{cyan}zload doctor: running environment diagnostics...%f\n"
+  print -P "%F{14}zload doctor%f  %F{8}running environment diagnostics...%f\n"
   integer errors=0 warnings=0
 
   if is-at-least 5.1 "$ZSH_VERSION"; then
-    print -P "  %F{green}[OK]%f Zsh version: %B$ZSH_VERSION%b"
+    print -P "  %F{10}[OK]%f    Zsh version: %F{15}%B$ZSH_VERSION%b%f"
   else
-    print -P "  %F{red}[FAIL]%f Zsh version $ZSH_VERSION is older than required 5.1"
+    print -P "  %F{9}[FAIL]%f  Zsh version: %F{15}%B$ZSH_VERSION%b%f %F{9}(older than required 5.1)%f"
     (( errors++ ))
   fi
 
   if (( $+commands[git] )); then
     local git_ver="$(command git --version 2>/dev/null)"
-    print -P "  %F{green}[OK]%f Git: %B${git_ver}%b"
+    print -P "  %F{10}[OK]%f    Git: %F{15}%B${git_ver}%b%f"
   else
-    print -P "  %F{red}[FAIL]%f Git command not found in PATH"
+    print -P "  %F{9}[FAIL]%f  Git command not found in PATH"
     (( errors++ ))
   fi
 
   for var_name in ZLOAD_HOME ZLOAD_DATA ZLOAD_CACHE ZLOAD_PLUGINS; do
     local path_val="${(P)var_name}"
     if [[ -d "$path_val" && -w "$path_val" ]]; then
-      print -P "  %F{green}[OK]%f $var_name: %B$path_val%b (writable)"
+      print -P "  %F{10}[OK]%f    $var_name: %F{15}%B$path_val%b%f %F{8}(writable)%f"
     elif [[ -d "$path_val" ]]; then
-      print -P "  %F{yellow}[WARN]%f $var_name: %B$path_val%b (not writable)"
+      print -P "  %F{11}[WARN]%f  $var_name: %F{15}%B$path_val%b%f %F{11}(not writable)%f"
       (( warnings++ ))
     else
       if (( do_fix )); then
         mkdir -p "$path_val"
-        print -P "  %F{green}[FIXED]%f $var_name: created directory %B$path_val%b"
+        print -P "  %F{10}[FIXED]%f $var_name: created directory %F{15}%B$path_val%b%f"
       else
-        print -P "  %F{yellow}[WARN]%f $var_name: %B$path_val%b (directory not found)"
+        print -P "  %F{11}[WARN]%f  $var_name: %F{15}%B$path_val%b%f %F{11}(directory not found)%f"
         (( warnings++ ))
       fi
     fi
@@ -44,49 +44,49 @@ _zload_cmd_doctor() {
   local bundle_file="${ZLOAD_CACHE}/bundle.zsh"
   local bundle_zwc="${bundle_file}.zwc"
   if [[ -f "$bundle_zwc" ]]; then
-    print -P "  %F{green}[OK]%f Bytecode bundle: %B$bundle_zwc%b (compiled)"
+    print -P "  %F{10}[OK]%f    Bytecode bundle: %F{15}%B$bundle_zwc%b%f %F{8}(compiled)%f"
   elif [[ -f "$bundle_file" ]]; then
     if (( do_fix )); then
       zcompile -R "$bundle_file" 2>/dev/null
-      print -P "  %F{green}[FIXED]%f Bytecode bundle: compiled %B$bundle_zwc%b"
+      print -P "  %F{10}[FIXED]%f Bytecode bundle: compiled %F{15}%B$bundle_zwc%b%f"
     else
-      print -P "  %F{yellow}[WARN]%f Bundle: %B$bundle_file%b exists but .zwc wordcode is missing"
+      print -P "  %F{11}[WARN]%f  Bundle: %F{15}%B$bundle_file%b%f exists but .zwc wordcode is missing"
       (( warnings++ ))
     fi
   else
-    print -P "  %F{yellow}[INFO]%f Bundle: not yet generated (will compile on cold startup)"
+    print -P "  %F{8}[INFO]%f  Bundle: not yet generated (will compile on cold startup)"
   fi
 
   local dump_file="${ZLOAD_CACHE}/zcompdump-${ZSH_VERSION}"
   if [[ -f "${dump_file}.zwc" ]]; then
-    print -P "  %F{green}[OK]%f Completion cache: %B${dump_file}.zwc%b (compiled)"
+    print -P "  %F{10}[OK]%f    Completion cache: %F{15}%B${dump_file}.zwc%b%f %F{8}(compiled)%f"
   elif [[ -f "$dump_file" ]]; then
     if (( do_fix )); then
       zcompile -R "$dump_file" 2>/dev/null
-      print -P "  %F{green}[FIXED]%f Completion dump: compiled %B${dump_file}.zwc%b"
+      print -P "  %F{10}[FIXED]%f Completion dump: compiled %F{15}%B${dump_file}.zwc%b%f"
     else
-      print -P "  %F{green}[OK]%f Completion dump: %B$dump_file%b"
+      print -P "  %F{10}[OK]%f    Completion dump: %F{15}%B$dump_file%b%f"
     fi
   else
-    print -P "  %F{yellow}[INFO]%f Completion dump: deferred (will compile on first Tab)"
+    print -P "  %F{8}[INFO]%f  Completion dump: deferred (will compile on first Tab)"
   fi
 
   if (( do_fix )); then
     if [[ -f "${ZLOAD_HOME}/zload.zsh" && ! -f "${ZLOAD_HOME}/zload.zsh.zwc" ]]; then
       zcompile -R "${ZLOAD_HOME}/zload.zsh" 2>/dev/null
-      print -P "  %F{green}[FIXED]%f Core module: compiled %B${ZLOAD_HOME}/zload.zsh.zwc%b"
+      print -P "  %F{10}[FIXED]%f Core module: compiled %F{15}%B${ZLOAD_HOME}/zload.zsh.zwc%b%f"
     fi
   fi
 
   print ""
   if (( errors > 0 )); then
-    print -P "%F{red}zload doctor: found $errors error(s) and $warnings warning(s)%f"
+    print -P "%F{9}zload doctor%f  %F{9}✗ found $errors error(s) and $warnings warning(s)%f"
     return 1
   elif (( warnings > 0 )); then
-    print -P "%F{yellow}zload doctor: found $warnings warning(s), core features operational%f"
+    print -P "%F{11}zload doctor%f  %F{11}⚠ found $warnings warning(s), core features operational%f"
     return 0
   else
-    print -P "%F{green}zload doctor: all checks passed! System is healthy and optimized.%f"
+    print -P "%F{10}zload doctor%f  %F{10}✓ all checks passed! System is healthy and optimized.%f"
     return 0
   fi
 }
