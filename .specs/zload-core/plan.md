@@ -375,6 +375,28 @@ Immediately `source "$ZLOAD_CACHE/bundle.zsh"` and return.
 
 ---
 
+### Slice 11: Zsh Native Completions & Developer Navigation
+**Goal**: Implement comprehensive Zsh autocompletions (`_zload`) for `zload` subcommands, flags, and plugin names, along with navigation helpers (`zload which`, `zload cd`).
+**Acceptance Criteria**:
+- `functions/_zload` provides context-aware completions for subcommands, flags, and installed plugin names.
+- `zload which <name>` prints the full directory path of an installed plugin.
+- `zload cd <name>` changes working directory to the target plugin path.
+- Verification tests confirm completion generation and path inspection.
+
+#### Task 11.1: Autocompletion definition (`functions/_zload`) [3]
+**Do**: Implement standard `#compdef zload` in `functions/_zload` using `_arguments` and `_describe`.
+**Tests**: `test/test_completions.zsh`: Verify completion function structure and completion candidates.
+**Verify**: `zsh test/test_completions.zsh` -- passes.
+
+#### Task 11.2: Plugin navigation commands (`zload which`, `zload cd`) [2]
+**Do**: Implement `_zload_cmd_which` and `_zload_cmd_cd` in `functions/_zload_cmd_which` and `functions/_zload_cmd_cd`.
+**Tests**: `test/test_which_cd.zsh`: Test resolving path to installed plugins and verifying directory resolution.
+**Verify**: `zsh test/test_which_cd.zsh` -- passes.
+
+**Slice 11 Verification**: Full test suite passes including `test_completions.zsh` and `test_which_cd.zsh`.
+
+---
+
 ## Final Verification
 
 1. **Syntax Check**: `zsh -n zload.zsh` returns 0 with no errors.

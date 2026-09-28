@@ -176,6 +176,10 @@ zload compile
 zload path ~/bin /opt/homebrew/bin
 zload fpath ~/.zfunc
 
+# Inspect and navigate installed plugins
+zload which omz:git
+zload cd zsh-autosuggestions
+
 # Display help and options
 zload help
 ```

@@ -1,0 +1,62 @@
+#compdef zload
+
+_zload() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  local -a subcommands
+  subcommands=(
+    'update:Update installed plugins from remotes'
+    'clean:Remove unreferenced plugin directories'
+    'list:List all installed plugins and git status'
+    'doctor:Run system and configuration health checks'
+    'profile:Profile shell startup latency'
+    'compile:Recompile plugin bundle into bytecode'
+    'eval:Cache and evaluate shell init commands'
+    'path:Prepend directories to PATH with deduplication'
+    'fpath:Prepend directories to fpath with deduplication'
+    'which:Print directory path of an installed plugin'
+    'cd:Change directory to an installed plugin'
+    'compinit:Initialize completion system'
+    'help:Display help message'
+  )
+
+  _arguments -C \
+    '1: :->command' \
+    '*:: :->args'
+
+  case "$state" in
+    command)
+      _describe -t commands 'zload command' subcommands
+      ;;
+    args)
+      case "$words[1]" in
+        clean)
+          _arguments \
+            '(-f --force)'{-f,--force}'[Force remove unreferenced plugins]'
+          ;;
+        compinit)
+          _arguments \
+            '--lazy[Defer compinit until first Tab keystroke]'
+          ;;
+        which|cd)
+          local -a installed
+          installed=( "${ZLOAD_PLUGINS}"/*(N/:t) )
+          _describe -t plugins 'installed plugins' installed
+          ;;
+        *)
+          _arguments \
+            '--on[Lazy load on command invocation]:commands:' \
+            '--defer[Defer loading until after prompt]' \
+            '--bin[Add custom bin directory to PATH]:directory:_files -/' \
+            '--path[Target specific subpath in repository]:path:_files -/' \
+            '--build[Run post-install build hook]:command:' \
+            '--on-dir[Load on entering matching directory]:pattern:' \
+            '--from[Install source type]:source:(gh-r)'
+          ;;
+      esac
+      ;;
+  esac
+}
+
+_zload "$@"
