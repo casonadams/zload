@@ -69,5 +69,12 @@ _zload_install() {
     return $ret
   fi
 
+  if [[ -n "${_zspec[build_cmd]}" ]]; then
+    local build_dir="$dir"
+    [[ -n "${_zspec[subpath]}" && -d "$dir/${_zspec[subpath]}" ]] && build_dir="$dir/${_zspec[subpath]}"
+    print -P "%F{cyan}zload:%f running build hook %F{yellow}${_zspec[build_cmd]}%f..."
+    ( cd "$build_dir" && eval "${_zspec[build_cmd]}" ) >/dev/null 2>&1
+  fi
+
   return 0
 }

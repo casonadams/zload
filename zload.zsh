@@ -97,7 +97,7 @@ zload() {
       if (( expects_arg )); then
         current="$current ${(q)arg}"
         expects_arg=0
-      elif [[ "$arg" == --(on|bin|path|subpath) ]]; then
+      elif [[ "$arg" == --(on|bin|path|subpath|build|hook) ]]; then
         current="$current $arg"
         expects_arg=1
       elif [[ "$arg" == --* ]] && [[ -n "$current" ]]; then

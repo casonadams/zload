@@ -27,7 +27,13 @@ It is designed to give you rich plugins, themes, and completions with **< 1.0 ms
 
 ## Installation
 
-Clone `zload` to your machine:
+Install `zload` with a single command:
+
+```zsh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/casonadams/zload/main/install.sh)"
+```
+
+Or clone manually:
 
 ```zsh
 git clone --depth 1 https://github.com/casonadams/zload.git ~/.zload
@@ -84,6 +90,7 @@ Restart your shell or run `source ~/.zshrc`. On first run, `zload` downloads mis
 | **Full Git URL** | `https://gitlab.com/group/repo.git` | Arbitrary remote Git repository |
 | **Monorepo Subpath** | `user/repo --path plugins/tool` | Targets specific directory inside a repository |
 | **Remote Snippet** | `snippet:https://.../script.zsh` | Single-file script download without Git clone |
+| **Build Hook** | `user/repo --build "./install --bin"` | Executes compilation command in cloned repo |
 | **Local directory** | `~/code/my-plugin` | Local directory on your machine |
 
 ---

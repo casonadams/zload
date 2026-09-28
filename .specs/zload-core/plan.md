@@ -276,6 +276,32 @@ Immediately `source "$ZLOAD_CACHE/bundle.zsh"` and return.
 
 ---
 
+### Slice 7: Post-Install Build Hooks & Self-Optimization
+**Goal**: Support post-install build hooks (`--build "<cmd>"`) for tools requiring compilation, self-compilation of `zload` itself, and a clean bootstrap installer (`install.sh`).
+**Acceptance Criteria**:
+- `--build "<cmd>"` executes `<cmd>` in the plugin directory upon initial clone and upon git updates.
+- `zload compile` automatically byte-compiles `zload.zsh` and all internal `functions/*` in addition to `bundle.zsh`.
+- `install.sh` installs and compiles `zload` cleanly on standard systems.
+
+#### Task 7.1: Build hook parsing & execution [2]
+**Do**: Add `--build "<cmd>"` support to `_zload_parse_spec` and execute it in `_zload_install` after cloning.
+**Tests**: `test/test_build.zsh`: Define a mock plugin with `--build "touch built.txt"`, verify `built.txt` exists after install.
+**Verify**: `zsh test/test_build.zsh` -- passes.
+
+#### Task 7.2: Self-compilation engine [2]
+**Do**: Update `_zload_cmd_compile` to compile `zload.zsh` and all `functions/*` into `.zwc`.
+**Tests**: `test/test_self_compile.zsh`: Run `zload compile`, assert `.zwc` files exist for `zload.zsh` and `functions/`.
+**Verify**: `zsh test/test_self_compile.zsh` -- passes.
+
+#### Task 7.3: Standalone installer [2]
+**Do**: Create `install.sh` for one-line bootstrapping (`curl -fsSL .../install.sh | zsh`).
+**Tests**: `test/test_installer.zsh`: Run `install.sh` in isolated sandbox, verify directory structure and `.zshrc` hook.
+**Verify**: `zsh test/test_installer.zsh` -- passes.
+
+**Slice 7 Verification**: Full test suite passes including `test_build.zsh`, `test_self_compile.zsh`, and `test_installer.zsh`.
+
+---
+
 ## Final Verification
 
 1. **Syntax Check**: `zsh -n zload.zsh` returns 0 with no errors.

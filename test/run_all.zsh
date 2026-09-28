@@ -52,6 +52,12 @@ zsh test/test_snippet.zsh
 zsh test/test_subpath.zsh
 print -P "%F{green}[OK] Slice 6 passed.%f\n"
 
+print -P "%F{blue}==> Slice 7: Post-Install Build Hooks & Self-Optimization...%f"
+zsh test/test_build.zsh
+zsh test/test_self_compile.zsh
+zsh test/test_installer.zsh
+print -P "%F{green}[OK] Slice 7 passed.%f\n"
+
 print -P "%F{green}========================================%f"
 print -P "%F{green}  ALL TESTS PASSED SUCCESSFULLY!        %f"
 print -P "%F{green}========================================%f"

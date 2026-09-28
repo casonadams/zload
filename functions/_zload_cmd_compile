@@ -1,10 +1,26 @@
 _zload_cmd_compile() {
   emulate -L zsh
+  setopt null_glob
+
   print -P "%F{cyan}zload:%f compiling plugin bundle..."
   _zload_compile_bundle "$@"
   local ret=$?
+
+  if [[ -f "${ZLOAD_HOME}/zload.zsh" ]]; then
+    zcompile -R "${ZLOAD_HOME}/zload.zsh" 2>/dev/null
+  fi
+  if [[ -f "${ZLOAD_HOME}/zload.plugin.zsh" ]]; then
+    zcompile -R "${ZLOAD_HOME}/zload.plugin.zsh" 2>/dev/null
+  fi
+
+  local fn_file
+  for fn_file in "${ZLOAD_HOME}/functions"/*(N.); do
+    [[ "$fn_file" == *.zwc ]] && continue
+    zcompile -R "$fn_file" 2>/dev/null
+  done
+
   if (( ret == 0 )); then
-    print -P "%F{green}zload: bundle compiled successfully.%f"
+    print -P "%F{green}zload: bundle and core modules compiled successfully.%f"
   fi
   return $ret
 }
