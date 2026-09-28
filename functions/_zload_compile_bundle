@@ -145,6 +145,12 @@ _zload_compile_bundle() {
         print "[[ -f ${(q)info[script]} ]] && source ${(q)info[script]}"
       fi
     done
+
+    print "(( \${fpath[(Ie)\$ZLOAD_HOME/functions]} )) || fpath=(\"\$ZLOAD_HOME/functions\" \"\${fpath[@]}\")"
+    print "if (( ! \${+ZLOAD_NO_COMPINIT} )) && [[ -o interactive ]] && (( ! \${_zload_compinit_done:-0} )); then"
+    print "  autoload -Uz _zload_setup_lazy_compinit"
+    print "  _zload_setup_lazy_compinit"
+    print "fi"
   } > "$bundle_tmp"
 
   zcompile -R "$bundle_tmp" 2>/dev/null

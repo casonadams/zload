@@ -72,8 +72,8 @@ Normally, `compinit` scans `$fpath`, audits permissions, generates `.zcompdump`,
    - Restores native ZLE completion widgets.
 4. Subsequent `<Tab>` keystrokes run at native Zsh speeds.
 
-### Usage in `.zshrc`
-Place `zload compinit --lazy` immediately after your plugin declarations:
+### Automatic Out of the Box
+`zload` automatically arms lazy `<Tab>` compinit whenever you load plugins with `zload "${plugins[@]}"`. No extra command in `.zshrc` is required:
 ```zsh
 plugins=(
   omz:git
@@ -81,11 +81,22 @@ plugins=(
   zsh-users/zsh-completions
 )
 zload "${plugins[@]}"
-
-# Initialize completions lazily (defers compinit until first <Tab>)
-zload compinit --lazy
 ```
 
+### Disabling Automatic Completion
+If you manage `compinit` yourself or use an external completion framework, opt out by setting `ZLOAD_NO_COMPINIT=1` before `zload`:
+```zsh
+export ZLOAD_NO_COMPINIT=1
+```
+
+You can also manually initialize completion at any point:
+```zsh
+# Lazy (deferred to first <Tab>)
+zload compinit --lazy
+
+# Synchronous (runs immediately)
+zload compinit
+```
 ---
 
 ## 5. Interactive Menu Selection & Highlighting

@@ -37,8 +37,5 @@ plugins=(
 
 zload "${plugins[@]}"
 
-# 4. Initialize completion system (defers compinit until first <Tab> press)
-zload compinit --lazy
-
-# 5. Optional: subshell eval caching (0ms overhead)
+# 4. Optional: subshell eval caching (0ms overhead)
 # zload eval zoxide "zoxide init zsh"

@@ -142,8 +142,8 @@ source "${HOME}/.zload/zload.zsh"</code></pre>
 
         <div class="feature-card">
           <div class="feature-icon">⏳</div>
-          <div class="feature-title">Lazy Tab Compinit</div>
-          <div class="feature-text">Defers <code>compinit</code> until your first &lt;Tab&gt; press. Early <code>compdef</code> calls are automatically buffered and replayed, saving 40–100ms at startup.</div>
+          <div class="feature-title">Automatic Lazy Tab Compinit</div>
+          <div class="feature-text">Automatically armed out of the box. Defers <code>compinit</code> until your first &lt;Tab&gt; press. Early <code>compdef</code> calls are buffered and replayed, saving 40–100ms at startup.</div>
         </div>
 
         <div class="feature-card">
@@ -222,10 +222,7 @@ plugins=(
   zsh-users/zsh-autosuggestions
 )
 zload <span style="color: #38bdf8;">"${plugins[@]}"</span>
-bindkey <span style="color: #38bdf8;">'^ '</span> autosuggest-accept
-
-<span style="color: #64748b;"># 4. Lazy completion initialization</span>
-zload compinit <span style="color: #38bdf8;">--lazy</span></code></pre>
+bindkey <span style="color: #38bdf8;">'^ '</span> autosuggest-accept</code></pre>
         </div>
         <p style="margin-top: 10px; font-size: 0.88rem; color: var(--text-secondary); text-align: left;">
           💡 <strong>Prompt Recommendation:</strong> Pair with a high-performance prompt like <a href="https://github.com/romkatv/powerlevel10k" target="_blank" rel="noopener">Powerlevel10k</a> (<code>zload romkatv/powerlevel10k</code>) or <a href="https://starship.rs" target="_blank" rel="noopener">Starship</a> (<code>zload eval starship "starship init zsh"</code>) to complement zload's sub-millisecond shell startup.

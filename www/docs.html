@@ -167,8 +167,7 @@
   zsh-users/zsh-autosuggestions
 )
 
-zload <span style="color: #38bdf8;">"${plugins[@]}"</span>
-zload compinit <span style="color: #38bdf8;">--lazy</span></code></pre>
+zload <span style="color: #38bdf8;">"${plugins[@]}"</span></code></pre>
         </div>
 
         <h3>2. Multiline String Syntax</h3>
@@ -337,9 +336,9 @@ zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span></code></pre>
           If <code>~/.zfunc</code> exists on your system (standard directory for <code>uv</code>, <code>rustup</code>, <code>pipx</code> completions), <code>zload</code> automatically detects it and links it into <code>$fpath</code> and bytecode bundles with <strong>zero lines in your .zshrc</strong>.
         </p>
 
-        <h3>Lazy &lt;Tab&gt; Compinit &amp; Menu Selection</h3>
+        <h3>Automatic Lazy &lt;Tab&gt; Compinit &amp; Menu Selection</h3>
         <p>
-          Initialize completion system deferral right after your plugin array with <code>zload compinit --lazy</code>. Early <code>compdef</code> calls from plugins are buffered safely until your first <code>&lt;Tab&gt;</code> press.
+          <code>zload</code> automatically arms lazy <code>compinit</code> out of the box whenever plugins are declared. Early <code>compdef</code> calls from plugins are buffered safely until your first <code>&lt;Tab&gt;</code> press. To opt out, set <code>export ZLOAD_NO_COMPINIT=1</code>.
         </p>
         <p>
           To enable highlighted interactive menu completion navigation, add <code>omz:lib/completion.zsh</code> to your plugin declarations, or set native styles in <code>~/.zshrc</code>:

@@ -60,10 +60,6 @@ plugins=(
 )
 zload "${plugins[@]}"
 bindkey '^ ' autosuggest-accept
-
-# 4. Initialize completions (defers compinit to first <Tab> for 0ms startup)
-zload compinit --lazy
-
 > **Tip — Fast Prompts**: Pair with a high-performance prompt like [Powerlevel10k](https://github.com/romkatv/powerlevel10k) (`zload romkatv/powerlevel10k`) or [Starship](https://starship.rs) (`zload eval starship "starship init zsh"`) to complement `zload`'s sub-millisecond shell startup.
 
 ---
@@ -104,7 +100,7 @@ Comprehensive guides and technical documentation are organized in [`docs/`](docs
   - `zload path`: Auto-expands `~`, validates directory existence, filters out dead paths, and strictly deduplicates `$PATH`.
   - `zload fpath`: Prepend and deduplicate completion directories.
   - **Automatic `~/.zfunc` Discovery**: Automatically detects and links custom completion directories (for `uv`, `rustup`, `pipx`) into `$fpath` with zero configuration in `.zshrc`.
-  - **Lazy `<Tab>` Compinit**: Automatically buffers early `compdef` calls and defers `compinit` until your first `<Tab>` press (`zload compinit --lazy`).
+  - **Automatic Lazy `<Tab>` Compinit**: Automatically buffers early `compdef` calls and defers `compinit` until your first `<Tab>` press with zero config (set `ZLOAD_NO_COMPINIT=1` to opt out).
   - **Highlighted Menu Selection**: Pair with `omz:lib/completion.zsh` or native `zstyle` for interactive `<Tab>` menu navigation.
 
 - **[Zero-Subprocess Eval Caching](docs/commands.md#3-zload-eval)**

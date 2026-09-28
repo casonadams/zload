@@ -27,6 +27,7 @@ _zload_setup_lazy_compinit() {
     return 0
   fi
 
+  autoload -Uz _zload_real_compinit
   zle -N expand-or-complete _zload_lazy_compinit_widget 2>/dev/null
   zle -N complete-word _zload_lazy_complete_word_widget 2>/dev/null
 }

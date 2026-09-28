@@ -208,11 +208,13 @@ zload compile
 
 ## 12. `zload compinit [--lazy]`
 
-Initializes or defers the Zsh completion system. Place this immediately after `zload "${plugins[@]}"` in your `.zshrc`.
+Initializes or defers the Zsh completion system.
+
+> **Note**: `zload` automatically arms lazy compinit whenever plugins are declared. You only need this command if you opted out with `ZLOAD_NO_COMPINIT=1`, desire synchronous initialization, or initialize completions without plugins.
 
 ### Usage
 ```zsh
-# Lazy completion: defers compinit until first <Tab> press (recommended)
+# Lazy completion: defers compinit until first <Tab> press (default behavior)
 zload compinit --lazy
 
 # Immediate completion: runs compinit synchronously during shell startup
@@ -221,3 +223,4 @@ zload compinit
 
 - When run with `--lazy`, intercepts early `compdef` calls from plugins, draws your prompt in 0 ms, and triggers compilation and caching on your first `<Tab>` press.
 - Pair with `omz:lib/completion.zsh` or native `zstyle ':completion:*' menu select` for interactive highlighted menu navigation.
+- Set `export ZLOAD_NO_COMPINIT=1` to disable automatic completion initialization.

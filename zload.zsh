@@ -198,4 +198,9 @@ zload() {
     _zload_compile_bundle "${entries[@]}"
     print "$current_hash" > "${ZLOAD_CACHE}/bundle.hash"
   fi
+
+  if (( ! ${+ZLOAD_NO_COMPINIT} )) && [[ -o interactive ]] && (( ! _zload_compinit_done )); then
+    autoload -Uz _zload_setup_lazy_compinit
+    _zload_setup_lazy_compinit
+  fi
 }

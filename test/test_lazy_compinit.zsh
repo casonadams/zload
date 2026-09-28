@@ -38,4 +38,29 @@ DUMP_FILE="${ZLOAD_CACHE}/zcompdump-${ZSH_VERSION}"
 _zload_real_compinit
 [[ "$_zload_compinit_done" == "1" ]] || { echo "FAIL: _zload_compinit_done is not 1"; exit 1; }
 
-echo "PASS: test_lazy_compinit (compdef buffering, compinit deferral, bytecode dump)"
+# 4. Test automatic lazy compinit arming in interactive mode
+zsh -f -i -c "
+  export XDG_DATA_HOME=\"$XDG_DATA_HOME\"
+  export XDG_CACHE_HOME=\"$XDG_CACHE_HOME\"
+  source ./zload.zsh
+  mkdir -p \"$SANDBOX/p_auto\"
+  echo 'export AUTO_P=1' > \"$SANDBOX/p_auto/p_auto.plugin.zsh\"
+  zload \"$SANDBOX/p_auto\"
+  typeset -f _zload_lazy_compinit_widget >/dev/null || exit 1
+" || { echo "FAIL: automatic lazy compinit did not arm widget"; exit 1; }
+
+# 5. Test ZLOAD_NO_COMPINIT=1 opt-out prevents arming
+zsh -f -i -c "
+  export XDG_DATA_HOME=\"$XDG_DATA_HOME\"
+  export XDG_CACHE_HOME=\"$XDG_CACHE_HOME\"
+  export ZLOAD_NO_COMPINIT=1
+  source ./zload.zsh
+  mkdir -p \"$SANDBOX/p_nocomp\"
+  echo 'export NO_COMP=1' > \"$SANDBOX/p_nocomp/p_nocomp.plugin.zsh\"
+  zload \"$SANDBOX/p_nocomp\"
+  if typeset -f _zload_lazy_compinit_widget >/dev/null; then
+    exit 1
+  fi
+" || { echo "FAIL: ZLOAD_NO_COMPINIT=1 did not suppress lazy compinit arming"; exit 1; }
+
+echo "PASS: test_lazy_compinit (compdef buffering, compinit deferral, auto-arming, and opt-out)"
