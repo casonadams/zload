@@ -1,0 +1,237 @@
+.TH ZLOAD 1 "September 2026" "zload 0.1.1" "User Commands"
+.SH NAME
+zload \- ultra-fast, zero-friction Zsh plugin manager and loader
+.SH SYNOPSIS
+.B zload
+[\fIOPTIONS\fR] [\fISPEC\fR...]
+.br
+.B zload
+\fICOMMAND\fR [\fIARGS\fR...]
+.SH DESCRIPTION
+\fBzload\fR is an ultra-fast, zero-friction plugin manager and loader for Zsh.
+It is engineered to deliver sub-millisecond warm startup latency (< 0.5 ms)
+by consolidating declared plugins into a single static file, compiling it directly
+into memory-mapped Zsh wordcode (\fI.zwc\fR), automatically resolving canonical
+execution order, and completely eliminating subprocess forks during interactive shell launch.
+
+.SH DECLARATION SYNTAX
+\fBzload\fR supports multiple flexible input formats:
+.TP
+.B Native Zsh Array (Recommended)
+Store plugins in a standard Zsh array and pass by expansion:
+.RS
+.nf
+plugins=(
+  romkatv/powerlevel10k
+  omz:git
+  lukechilds/zsh-nvm --on nvm,node,npm
+  zsh-users/zsh-syntax-highlighting --defer
+  zsh-users/zsh-autosuggestions
+)
+zload "${plugins[@]}"
+.fi
+.RE
+.TP
+.B Multiline Quoted String
+Pass a block of specifications separated by linebreaks:
+.RS
+.nf
+zload "
+  romkatv/powerlevel10k
+  omz:git
+  zsh-users/zsh-syntax-highlighting --defer
+  zsh-users/zsh-autosuggestions
+"
+.fi
+.RE
+.TP
+.B Line-by-Line Invocations
+Call \fBzload\fR individually across your \fI~/.zshrc\fR:
+.RS
+.nf
+zload romkatv/powerlevel10k
+zload omz:git
+.fi
+.RE
+
+.SH SUPPORTED SOURCES
+.TP
+\fIowner\fR/\fIrepo\fR
+Standard GitHub repository, cloned shallowly via \fBgit clone --depth 1\fR.
+.TP
+\fIowner\fR/\fIrepo\fR@\fItag\fR
+Pins the repository to a specific release tag.
+.TP
+\fIowner\fR/\fIrepo\fR#\fIbranch\fR
+Tracks a specific Git branch.
+.TP
+\fBomz:\fR\fIplugin\fR
+Fetches an Oh-My-Zsh plugin from a shared shallow repository checkout. Automatically sources required library dependencies (such as \fIlib/git.zsh\fR) and adds completion directories to \fB$fpath\fR.
+.TP
+\fBomz:themes/\fR\fItheme\fR
+Loads an Oh-My-Zsh theme file and injects prompt color and git helpers.
+.TP
+\fBomz:lib/\fR\fIfile.zsh\fR
+Loads an Oh-My-Zsh core library directly.
+.TP
+\fBprezto:\fR\fImodule\fR
+Loads a Prezto module and autoloads all functions in its \fIfunctions/\fR directory.
+.TP
+\fBsnippet:\fR\fIurl\fR
+Downloads a single script file via \fBcurl\fR without cloning a Git repository, saves it in a managed directory, and byte-compiles it to \fI.zwc\fR.
+.TP
+\fIowner\fR/\fIrepo\fR \fB--from gh-r\fR
+Queries the GitHub Releases API, identifies the precompiled binary asset matching the host operating system and CPU architecture, extracts the archive, and exports the binary directly into \fB$PATH\fR.
+.TP
+\fIurl\fR
+Clones an arbitrary remote Git repository (e.g. GitLab, Bitbucket, self-hosted).
+.TP
+\fIpath\fR
+Loads a local plugin directory from disk (resolves \fB~\fR and relative paths).
+
+.SH OPTIONS
+.TP
+\fB--on\fR \fIcommand1,command2\fR
+Registers lightweight proxy stub functions for the specified commands. Startup latency is 0 ms; the plugin is sourced only when one of the commands is executed for the first time.
+.TP
+\fB--on-dir\fR \fIpattern\fR
+Defers loading until the working directory matches \fIpattern\fR or contains a signature file matching \fIpattern\fR (e.g. \fI.git\fR or \fIpackage.json\fR). Hook deregisters upon match.
+.TP
+\fB--defer\fR, \fB--idle\fR
+Schedules plugin loading immediately after the initial prompt is rendered via \fBprecmd\fR. Sources immediately in non-interactive sessions.
+.TP
+\fB--path\fR, \fB--subpath\fR \fIdir\fR
+Targets a specific subdirectory inside a mono-repository for script and completion discovery.
+.TP
+\fB--build\fR, \fB--hook\fR \fIcommand\fR
+Executes \fIcommand\fR inside the cloned directory right after installation and upon Git updates. Zero runtime overhead during normal shell startup.
+.TP
+\fB--bin\fR \fIdir\fR
+Adds a custom subdirectory to \fB$PATH\fR.
+.TP
+\fB--from\fR \fIgh-r|github-releases\fR
+Installs precompiled release binaries from GitHub Releases assets.
+
+.SH COMMANDS
+.TP
+\fBzload path\fR [\fIdirectories...\fR]
+Safely prepends directories to \fB$PATH\fR. Automatically validates that each directory exists on disk, expands \fB~\fR and variables, and applies strict global deduplication. Running with no arguments prints the active \fB$PATH\fR one entry per line.
+.TP
+\fBzload fpath\fR [\fIdirectories...\fR]
+Prepends directories to \fB$fpath\fR with validation and deduplication.
+.TP
+\fBzload eval\fR \fIname\fR \fIcommand\fR
+Caches the shell output of a subshell initializer (such as \fBstarship init zsh\fR or \fBzoxide init zsh\fR) into a compiled \fI.zwc\fR wordcode file. On subsequent launches, sources the cache in 0.2 ms with zero child process forks.
+.TP
+\fBzload update\fR
+Updates all installed Git plugins and remote snippets in parallel. Skips pinned tags and local plugins. Recompiles the wordcode bundle upon completion.
+.TP
+\fBzload clean\fR [\fB-f\fR|\fB--force\fR]
+Identifies unreferenced plugin directories on disk. Pass \fB-f\fR to delete them.
+.TP
+\fBzload list\fR
+Displays all installed plugins with active Git branch, release tag, and commit SHA.
+.TP
+\fBzload which\fR \fIplugin\fR
+Prints the full canonical filesystem directory of an installed plugin.
+.TP
+\fBzload cd\fR \fIplugin\fR
+Changes the current working directory to the target plugin repository on disk.
+.TP
+\fBzload doctor\fR [\fB--fix\fR]
+Runs comprehensive environment diagnostics. Pass \fB--fix\fR to automatically restore missing or stale \fI.zwc\fR wordcode files.
+.TP
+\fBzload profile\fR
+Measures startup latency breakdown using microsecond timers.
+.TP
+\fBzload lock\fR [\fIfile\fR]
+Exports all installed Git plugins and their resolved commit SHAs to a lockfile.
+.TP
+\fBzload sync\fR [\fIfile\fR]
+Synchronizes all installed plugins to match the exact commit SHAs recorded in the lockfile.
+.TP
+\fBzload compile\fR
+Recompiles the static bundle, core loader, and autoloaded functions into \fI.zwc\fR.
+.TP
+\fBzload compinit\fR [\fB--lazy\fR]
+Initializes the completion system. When \fB--lazy\fR is specified (default), defers compinit until the first \fB<Tab>\fR keypress.
+.TP
+\fBzload help\fR
+Displays summary usage information.
+
+.SH ENVIRONMENT VARIABLES
+.TP
+.B ZLOAD_HOME
+Root installation directory of \fBzload\fR (defaults to directory containing \fIzload.zsh\fR).
+.TP
+.B ZLOAD_DATA
+Base directory for plugin repositories (defaults to \fI$XDG_DATA_HOME/zload\fR or \fI~/.local/share/zload\fR).
+.TP
+.B ZLOAD_CACHE
+Base directory for compiled bundles and dumps (defaults to \fI$XDG_CACHE_HOME/zload\fR or \fI~/.cache/zload\fR).
+.TP
+.B ZLOAD_PLUGINS
+Directory where cloned plugins are stored (defaults to \fI$ZLOAD_DATA/plugins\fR).
+
+.SH FILES
+.TP
+.I ~/.zshrc
+Primary Zsh configuration file where \fBzload\fR is invoked.
+.TP
+.I ~/.cache/zload/bundle.zsh.zwc
+Compiled memory-mapped wordcode bundle containing all active plugins.
+.TP
+.I ~/.cache/zload/zcompdump-${ZSH_VERSION}.zwc
+Compiled completion dump cache.
+.TP
+.I ~/.zfunc/
+Standard custom completion directory. If present, automatically discovered and linked into \fB$fpath\fR by \fBzload\fR.
+
+.SH EXAMPLES
+.B Complete Recommended ~/.zshrc:
+.RS
+.nf
+# 1. Powerlevel10k Instant Prompt
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# 2. Bootstrap zload
+if [ ! -d "${HOME}/.zload" ]; then
+  git clone --depth 1 https://github.com/casonadams/zload.git "${HOME}/.zload"
+fi
+source "${HOME}/.zload/zload.zsh"
+
+# 3. PATH management
+user_paths=(
+  ~/.cargo/bin
+  ~/.local/bin
+  /opt/homebrew/bin
+  /opt/homebrew/sbin
+)
+zload path "${user_paths[@]}"
+
+# 4. Plugins
+plugins=(
+  romkatv/powerlevel10k
+  omz:git
+  casonadams/fzf.zsh
+  lukechilds/zsh-nvm --on nvm,node,npm
+  zsh-users/zsh-syntax-highlighting --defer
+  zsh-users/zsh-autosuggestions
+)
+zload "${plugins[@]}"
+bindkey '^ ' autosuggest-accept
+
+# 5. Theme configuration
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+.fi
+.RE
+
+.SH AUTHORS
+Cason Adams <https://github.com/casonadams>
+
+.SH SEE ALSO
+.BR zsh (1),
+.BR zshbuiltins (1),
+.BR git (1)
