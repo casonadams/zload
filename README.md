@@ -79,6 +79,45 @@ zload "${plugins[@]}"
 
 ---
 
+## Powerlevel10k & Instant Prompt Setup
+
+`zload` is built to be 100% leak-free. It produces **0 console output** and forks **0 child processes** on warm startup, making it the most reliable companion for Powerlevel10k's Instant Prompt (which disables itself if startup scripts write to stdout/stderr or spawn subshells prematurely).
+
+### Recommended `~/.zshrc` Order
+
+```zsh
+# 1. Enable Powerlevel10k Instant Prompt (at the very top of ~/.zshrc)
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# 2. Source or auto-clone zload
+if [ ! -d "${HOME}/.zload" ]; then
+  git clone --depth 1 https://github.com/casonadams/zload.git "${HOME}/.zload"
+fi
+source "${HOME}/.zload/zload.zsh"
+
+# 3. Load Powerlevel10k
+zload romkatv/powerlevel10k
+
+# 4. Load your plugins (canonical ordering automatically places completions first and UI hooks last)
+zload "
+  omz:lib/theme-and-appearance.zsh
+  omz:lib/key-bindings.zsh
+  omz:lib/completion.zsh
+  casonadams/walh-shell
+  lukechilds/zsh-nvm --on nvm,node,npm
+  zsh-users/zsh-syntax-highlighting --defer
+  zsh-users/zsh-autosuggestions
+"
+bindkey '^ ' autosuggest-accept
+
+# 5. Source your Powerlevel10k customization file
+[[ ! -f "${HOME}/.p10k.zsh" ]] || source "${HOME}/.p10k.zsh"
+```
+
+---
+
 ## Migrating from Zinit
 
 If you are migrating from Zinit, `zload` replaces cryptic `ice` modifiers with a clean declarative format:
