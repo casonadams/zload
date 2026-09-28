@@ -21,6 +21,7 @@ zsh test/test_bootstrap.zsh
 zsh test/test_parser.zsh
 zsh test/test_find_file.zsh
 zsh test/test_install.zsh
+zsh test/test_zfunc.zsh
 print -P "%F{green}[OK] Slice 1 passed.%f\n"
 
 print -P "%F{blue}==> Slice 2: Oh-My-Zsh & Prezto Compatibility Shims...%f"

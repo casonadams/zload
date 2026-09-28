@@ -37,6 +37,7 @@ _zload_compile_bundle() {
     print "typeset -g ZLOAD_PLUGINS=${(q)ZLOAD_PLUGINS}"
 
     local -a all_fpaths all_paths
+    [[ -d "$HOME/.zfunc" ]] && all_fpaths+=("$HOME/.zfunc")
     local has_omz=0
 
     for spec_entry in "${sorted_specs[@]}"; do
