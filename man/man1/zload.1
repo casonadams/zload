@@ -191,21 +191,16 @@ Compiled completion dump cache.
 Standard custom completion directory. If present, automatically discovered and linked into \fB$fpath\fR by \fBzload\fR.
 
 .SH EXAMPLES
-.B Complete Recommended ~/.zshrc:
+.B Clean Recommended ~/.zshrc:
 .RS
 .nf
-# 1. Powerlevel10k Instant Prompt
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-# 2. Bootstrap zload
+# 1. Bootstrap zload (auto-clones on fresh machines)
 if [ ! -d "${HOME}/.zload" ]; then
   git clone --depth 1 https://github.com/casonadams/zload.git "${HOME}/.zload"
 fi
 source "${HOME}/.zload/zload.zsh"
 
-# 3. PATH management
+# 2. PATH management
 user_paths=(
   ~/.cargo/bin
   ~/.local/bin
@@ -214,20 +209,16 @@ user_paths=(
 )
 zload path "${user_paths[@]}"
 
-# 4. Plugins
+# 3. Plugins
 plugins=(
-  romkatv/powerlevel10k
   omz:git
-  casonadams/fzf.zsh
+  casonadams/walh-shell
   lukechilds/zsh-nvm --on nvm,node,npm
   zsh-users/zsh-syntax-highlighting --defer
   zsh-users/zsh-autosuggestions
 )
 zload "${plugins[@]}"
 bindkey '^ ' autosuggest-accept
-
-# 5. Theme configuration
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 .fi
 .RE
 

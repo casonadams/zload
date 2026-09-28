@@ -31,21 +31,16 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/casonadams/zload/main/inst
 
 ## Quick Start
 
-A complete, high-performance `~/.zshrc` setup:
+A clean, high-performance `~/.zshrc` configuration:
 
 ```zsh
-# 1. Enable Powerlevel10k Instant Prompt (must stay at the very top)
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
-
-# 2. Bootstrap zload
+# 1. Bootstrap zload (auto-clones on fresh machines)
 if [ ! -d "${HOME}/.zload" ]; then
   git clone --depth 1 https://github.com/casonadams/zload.git "${HOME}/.zload"
 fi
 source "${HOME}/.zload/zload.zsh"
 
-# 3. Deduplicating PATH management
+# 2. Deduplicating PATH management
 user_paths=(
   ~/.cargo/bin
   ~/.local/bin
@@ -54,12 +49,9 @@ user_paths=(
 )
 zload path "${user_paths[@]}"
 
-# 4. Declare plugins (automatic canonical ordering & bytecode compilation)
+# 3. Declare plugins (automatic canonical ordering & bytecode compilation)
 plugins=(
-  romkatv/powerlevel10k
-  omz:lib/theme-and-appearance.zsh
-  omz:lib/key-bindings.zsh
-  omz:lib/completion.zsh
+  omz:git
   casonadams/walh-shell
   lukechilds/zsh-nvm --on nvm,node,npm
   zsh-users/zsh-syntax-highlighting --defer
@@ -67,10 +59,9 @@ plugins=(
 )
 zload "${plugins[@]}"
 bindkey '^ ' autosuggest-accept
-
-# 5. Theme customization
-[[ ! -f "${HOME}/.p10k.zsh" ]] || source "${HOME}/.p10k.zsh"
 ```
+
+> **Tip — Fast Prompts**: Pair with a high-performance prompt like [Powerlevel10k](https://github.com/romkatv/powerlevel10k) (`zload romkatv/powerlevel10k`) or [Starship](https://starship.rs) (`zload eval starship "starship init zsh"`) to complement `zload`'s sub-millisecond shell startup.
 
 ---
 

@@ -63,7 +63,7 @@
       <li><a href="#lazy-loading" class="docs-nav-link" onclick="closeDocsToc()">Lazy Loading Primitives</a></li>
       <li><a href="#paths-completions" class="docs-nav-link" onclick="closeDocsToc()">Smart PATH &amp; Completions</a></li>
       <li><a href="#commands" class="docs-nav-link" onclick="closeDocsToc()">CLI Commands Reference</a></li>
-      <li><a href="#p10k-guide" class="docs-nav-link" onclick="closeDocsToc()">Powerlevel10k Setup</a></li>
+      <li><a href="#prompts" class="docs-nav-link" onclick="closeDocsToc()">Prompts &amp; Themes</a></li>
       <li><a href="#migration" class="docs-nav-link" onclick="closeDocsToc()">Migration Guide</a></li>
     </ul>
   </div>
@@ -92,7 +92,7 @@
         <div class="docs-nav-title">Performance</div>
         <ul class="docs-nav-links">
           <li><a href="#lazy-loading" class="docs-nav-link">Lazy Loading</a></li>
-          <li><a href="#p10k-guide" class="docs-nav-link">Powerlevel10k</a></li>
+          <li><a href="#prompts" class="docs-nav-link">Prompts &amp; Themes</a></li>
         </ul>
       </div>
 
@@ -403,60 +403,16 @@ zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span></code></pre>
         </div>
       </section>
 
-      <!-- Section: Powerlevel10k Setup -->
-      <section id="p10k-guide" class="docs-section">
-        <h2>Powerlevel10k &amp; Instant Prompt Integration</h2>
+      <!-- Section: Fast Prompts -->
+      <section id="prompts" class="docs-section">
+        <h2>Fast Prompts &amp; Themes</h2>
         <p>
-          Powerlevel10k's Instant Prompt disables itself or warns if startup scripts output text to stdout/stderr or fork subshells. Because <code>zload</code> produces <strong>0 console output</strong> and <strong>0 subprocess forks</strong> during warm startup, it is 100% leak-free and the most reliable companion for Instant Prompt.
+          To complement <code>zload</code>'s sub-millisecond shell startup, pairing it with a high-performance prompt engine is recommended:
         </p>
-
-        <div class="code-preview">
-          <div class="code-header">
-            <span class="code-title">~/.zshrc (Complete Recommended Setup)</span>
-            <button class="btn-copy" onclick="copySnippet('code-full-p10k')">Copy</button>
-          </div>
-          <pre><code id="code-full-p10k"><span style="color: #64748b;"># 1. Enable Powerlevel10k Instant Prompt (at the very top)</span>
-<span style="color: #c084fc;">if</span> [[ -r <span style="color: #38bdf8;">"${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"</span> ]]; <span style="color: #c084fc;">then</span>
-  <span style="color: #818cf8;">source</span> <span style="color: #38bdf8;">"${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"</span>
-<span style="color: #c084fc;">fi</span>
-
-<span style="color: #64748b;"># 2. Bootstrap zload (auto-clones on fresh machines)</span>
-<span style="color: #c084fc;">if</span> [ ! -d <span style="color: #38bdf8;">"${HOME}/.zload"</span> ]; <span style="color: #c084fc;">then</span>
-  git clone --depth 1 https://github.com/casonadams/zload.git <span style="color: #38bdf8;">"${HOME}/.zload"</span>
-<span style="color: #c084fc;">fi</span>
-<span style="color: #818cf8;">source</span> <span style="color: #38bdf8;">"${HOME}/.zload/zload.zsh"</span>
-
-<span style="color: #64748b;"># 3. Deduplicating PATH management</span>
-user_paths=(
-  ~/.opencode/bin
-  ~/.cargo/bin
-  ~/.local/bin
-  /opt/homebrew/bin
-  /opt/homebrew/sbin
-  /usr/local/bin
-)
-zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span>
-
-<span style="color: #64748b;"># 4. Plugins & Theme (consolidated in zload for single-bundle compilation)</span>
-plugins=(
-  romkatv/powerlevel10k
-  omz:lib/theme-and-appearance.zsh
-  omz:lib/key-bindings.zsh
-  omz:lib/completion.zsh
-  casonadams/fzf.zsh
-  casonadams/walh-shell
-  lukechilds/zsh-nvm --on nvm,node,npm
-  ptavares/zsh-direnv
-  ptavares/zsh-tfswitch
-  zsh-users/zsh-syntax-highlighting --defer
-  zsh-users/zsh-autosuggestions
-)
-zload <span style="color: #38bdf8;">"${plugins[@]}"</span>
-bindkey <span style="color: #38bdf8;">'^ '</span> autosuggest-accept
-
-<span style="color: #64748b;"># 5. Source your Powerlevel10k configuration</span>
-[[ ! -f <span style="color: #38bdf8;">"${HOME}/.p10k.zsh"</span> ]] || <span style="color: #818cf8;">source</span> <span style="color: #38bdf8;">"${HOME}/.p10k.zsh"</span></code></pre>
-        </div>
+        <ul>
+          <li><a href="https://github.com/romkatv/powerlevel10k" target="_blank" rel="noopener"><strong>Powerlevel10k</strong></a>: Fast and responsive prompt. Load via <code>zload romkatv/powerlevel10k</code>. Because <code>zload</code> produces zero console output and zero subprocess forks during warm startup, it works seamlessly with Powerlevel10k's Instant Prompt.</li>
+          <li><a href="https://starship.rs" target="_blank" rel="noopener"><strong>Starship</strong></a>: Cross-shell prompt. Cache its initialization script with zero-subprocess eval caching: <code>zload eval starship "starship init zsh"</code>.</li>
+        </ul>
       </section>
 
       <!-- Section: Migration Guide -->
