@@ -751,8 +751,15 @@ footer a {
 }
 
 /* ==========================================================================
-   Documentation Page Layout & Sidebar
+   Documentation Page Layout & Sidebar (Industry Standard Spacing)
    ========================================================================== */
+
+.docs-container {
+  max-width: 1380px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 40px;
+}
 
 .docs-layout {
   display: block;
@@ -765,7 +772,7 @@ footer a {
   top: 76px;
   max-height: calc(100vh - 96px);
   overflow-y: auto;
-  padding-right: 16px;
+  padding-right: 32px;
 }
 
 .docs-sidebar::-webkit-scrollbar {
@@ -800,10 +807,10 @@ footer a {
 
 .docs-nav-link {
   display: block;
-  padding: 6px 10px;
+  padding: 7px 12px;
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   border-radius: var(--radius-sm);
   transition: all 0.15s ease;
 }
@@ -822,52 +829,54 @@ footer a {
 /* Docs Content Styling */
 .docs-content {
   min-width: 0;
+  max-width: 900px;
 }
 
 .docs-section {
-  margin-bottom: 48px;
-  scroll-margin-top: 90px;
+  margin-bottom: 60px;
+  scroll-margin-top: 100px;
 }
 
 .docs-section h1 {
-  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-size: clamp(2rem, 4.5vw, 2.75rem);
   font-weight: 800;
-  letter-spacing: -0.02em;
-  margin-bottom: 14px;
+  letter-spacing: -0.025em;
+  margin-bottom: 18px;
+  line-height: 1.2;
 }
 
 .docs-section h2 {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  margin: 32px 0 14px;
-  padding-bottom: 8px;
+  margin: 48px 0 16px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
 }
 
 .docs-section h3 {
-  font-size: 1.15rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  margin: 24px 0 10px;
+  margin: 32px 0 12px;
   color: var(--accent);
 }
 
 .docs-section p {
   color: var(--text-secondary);
-  font-size: 0.96rem;
-  line-height: 1.7;
-  margin-bottom: 16px;
+  font-size: 1.02rem;
+  line-height: 1.8;
+  margin-bottom: 20px;
 }
 
 .docs-section ul, .docs-section ol {
-  margin-left: 20px;
-  margin-bottom: 18px;
+  margin-left: 24px;
+  margin-bottom: 22px;
   color: var(--text-secondary);
-  font-size: 0.95rem;
-  line-height: 1.7;
+  font-size: 1rem;
+  line-height: 1.8;
 }
 
 .docs-section li {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .docs-section code:not(pre code) {
@@ -876,7 +885,7 @@ footer a {
   color: var(--accent);
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.85em;
+  font-size: 0.88em;
 }
 
 /* Mobile Docs Table of Contents Bar */
@@ -884,7 +893,7 @@ footer a {
   display: block;
   background: var(--bg-card);
   border-bottom: 1px solid var(--border);
-  padding: 10px 0;
+  padding: 12px 0;
   position: sticky;
   top: 61px;
   z-index: 45;
@@ -899,16 +908,17 @@ footer a {
   border: none;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
+  padding: 0 4px;
 }
 
 .docs-mobile-toc-drawer {
   display: none;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
-  padding: 16px 20px;
+  padding: 18px 24px;
   max-height: 60vh;
   overflow-y: auto;
 }
@@ -920,17 +930,39 @@ footer a {
 @media (min-width: 860px) {
   .docs-layout {
     display: grid;
-    grid-template-columns: 240px minmax(0, 1fr);
-    gap: 36px;
-    padding: 32px 0 80px;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 0;
+    padding: 40px 0 100px;
   }
 
   .docs-sidebar {
     display: block;
+    border-right: 1px solid var(--border);
+    padding-right: 36px;
+  }
+
+  .docs-content {
+    padding-left: 64px;
+    padding-right: 32px;
   }
 
   .docs-mobile-toc-bar,
   .docs-mobile-toc-drawer {
     display: none !important;
+  }
+}
+
+@media (max-width: 859px) {
+  .docs-container {
+    padding: 0 20px;
+  }
+
+  .docs-content {
+    padding: 24px 8px 80px;
+    max-width: 100%;
+  }
+
+  .docs-section {
+    margin-bottom: 44px;
   }
 }
