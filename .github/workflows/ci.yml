@@ -27,4 +27,4 @@ jobs:
           brew install zsh git || true
 
       - name: Run test suite
-        run: zsh test/run_slice2.zsh
+        run: zsh test/run_slice3.zsh

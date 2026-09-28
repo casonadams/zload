@@ -18,8 +18,9 @@ _zload_parse_spec() {
   _zparsed[defer]="0"
   _zparsed[bin]=""
 
+  local raw_input="$*"
   local -a words
-  words=($=*)
+  words=("${(@Q)${(z)raw_input}}")
 
   local spec="${words[1]}"
   _zparsed[spec]="$spec"

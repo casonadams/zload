@@ -1,0 +1,26 @@
+_zload_real_compinit() {
+  emulate -L zsh
+  (( _zload_compinit_done )) && return 0
+  _zload_compinit_done=1
+
+  unfunction compdef 2>/dev/null
+
+  local dump_file="${ZLOAD_CACHE}/zcompdump-${ZSH_VERSION}"
+  autoload -Uz compinit
+  compinit -C -d "$dump_file"
+
+  if [[ ! -f "${dump_file}.zwc" || "$dump_file" -nt "${dump_file}.zwc" ]]; then
+    zcompile -R "${dump_file}" 2>/dev/null
+  fi
+
+  for def in "${_zload_deferred_compdefs[@]}"; do
+    eval "compdef $def" 2>/dev/null
+  done
+  _zload_deferred_compdefs=()
+
+  if [[ -o interactive ]] && typeset -f zle >/dev/null 2>&1; then
+    zle -A .expand-or-complete expand-or-complete 2>/dev/null
+    zle -A .complete-word complete-word 2>/dev/null
+    zle -A .menu-complete menu-complete 2>/dev/null
+  fi
+}

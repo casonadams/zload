@@ -1,0 +1,21 @@
+_zload_lazy_compinit_widget() {
+  _zload_real_compinit
+  zle .expand-or-complete 2>/dev/null
+}
+
+_zload_lazy_complete_word_widget() {
+  _zload_real_compinit
+  zle .complete-word 2>/dev/null
+}
+
+_zload_setup_lazy_compinit() {
+  emulate -L zsh
+  (( _zload_compinit_done )) && return 0
+
+  if [[ ! -o interactive ]]; then
+    return 0
+  fi
+
+  zle -N expand-or-complete _zload_lazy_compinit_widget 2>/dev/null
+  zle -N complete-word _zload_lazy_complete_word_widget 2>/dev/null
+}

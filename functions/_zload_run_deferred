@@ -1,0 +1,13 @@
+_zload_run_deferred() {
+  emulate -L zsh
+  autoload -Uz add-zsh-hook
+  add-zsh-hook -d precmd _zload_run_deferred 2>/dev/null
+
+  local spec_entry
+  for spec_entry in "${_zload_deferred_specs[@]}"; do
+    local -A parsed
+    _zload_parse_spec parsed "$spec_entry"
+    _zload_load_plugin parsed
+  done
+  _zload_deferred_specs=()
+}

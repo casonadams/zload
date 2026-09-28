@@ -49,25 +49,7 @@ _zload_load_plugin() {
   fi
 
   if [[ -n "${_zspec[on_cmds]}" ]]; then
-    local -a cmds
-    cmds=("${(s:,:)_zspec[on_cmds]}")
-    local script_path="${_zinfo[script]}"
-    for cmd in "${cmds[@]}"; do
-      cmd="${cmd//[[:space:]]/}"
-      [[ -z "$cmd" ]] && continue
-      eval "
-        ${cmd}() {
-          for c in ${(j: :)cmds}; do
-            unfunction \"\$c\" 2>/dev/null
-          done
-          if [[ \"${_zspec[type]}\" == \"omz\" ]]; then
-            _zload_omz_shim \"${_zspec[subpath]}\" ${(q)script_path}
-          fi
-          [[ -f ${(q)script_path} ]] && source ${(q)script_path}
-          \"\$0\" \"\$@\"
-        }
-      "
-    done
+    _zload_create_stub "${_zspec[on_cmds]}" "${_zinfo[script]}" "${_zspec[type]}" "${_zspec[subpath]}"
     _zload_loaded_plugins["${_zspec[raw]}"]="stubbed"
     return 0
   fi
