@@ -16,7 +16,7 @@ _zload_cmd_update() {
   local -A job_names
   local -a failed
 
-  local dir
+  local dir branch
   for dir in "${plugin_dirs[@]}"; do
     local name="${dir:t}"
     if [[ "$name" == "_snippets" ]]; then
@@ -27,7 +27,6 @@ _zload_cmd_update() {
       continue
     fi
 
-    local branch
     branch="$(command git -C "$dir" branch --show-current 2>/dev/null)"
     if [[ -z "$branch" ]]; then
       print -P "  %F{yellow}* %f%B${name}%b (pinned ref, skipping)"

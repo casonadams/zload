@@ -18,21 +18,34 @@ _zload_find_main_file() {
   fi
 
   [[ -z "$name" ]] && name="${dir:t}"
+  local short_name="${name#*---}"
 
   if [[ -f "$dir/${name}.plugin.zsh" ]]; then
     _zfile_info[script]="$dir/${name}.plugin.zsh"
+  elif [[ -f "$dir/${short_name}.plugin.zsh" ]]; then
+    _zfile_info[script]="$dir/${short_name}.plugin.zsh"
   elif [[ -f "$dir/${name}.zsh" ]]; then
     _zfile_info[script]="$dir/${name}.zsh"
+  elif [[ -f "$dir/${short_name}.zsh" ]]; then
+    _zfile_info[script]="$dir/${short_name}.zsh"
   elif [[ -f "$dir/${name}.zsh-theme" ]]; then
     _zfile_info[script]="$dir/${name}.zsh-theme"
+  elif [[ -f "$dir/${short_name}.zsh-theme" ]]; then
+    _zfile_info[script]="$dir/${short_name}.zsh-theme"
   elif [[ -n "$dir"/*\.plugin\.zsh(#qN) ]]; then
     local -a matches
     matches=("$dir"/*\.plugin\.zsh(#qN))
+    _zfile_info[script]="${matches[1]}"
+  elif [[ -n "$dir"/*\.zsh-theme(#qN) ]]; then
+    local -a matches
+    matches=("$dir"/*\.zsh-theme(#qN))
     _zfile_info[script]="${matches[1]}"
   elif [[ -f "$dir/init.zsh" ]]; then
     _zfile_info[script]="$dir/init.zsh"
   elif [[ -f "$dir/${name}.sh" ]]; then
     _zfile_info[script]="$dir/${name}.sh"
+  elif [[ -f "$dir/${short_name}.sh" ]]; then
+    _zfile_info[script]="$dir/${short_name}.sh"
   else
     local -a candidates
     candidates=("$dir"/*\.zsh(#qN))
@@ -47,7 +60,7 @@ _zload_find_main_file() {
   fi
 
   local -a fpaths
-  if [[ -n "$dir"/_*(#qN) ]]; then
+  if [[ -n "$dir"/_*(#qN) || -n "$dir"/prompt_*_setup(#qN) ]]; then
     fpaths+=("$dir")
   fi
   for comp_sub in completions completion src; do
