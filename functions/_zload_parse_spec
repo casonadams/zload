@@ -39,11 +39,35 @@ _zload_parse_spec() {
         (( idx++ ))
         _zparsed[bin]="${words[idx]}"
         ;;
+      --path|--subpath)
+        (( idx++ ))
+        _zparsed[subpath]="${words[idx]}"
+        ;;
     esac
     (( idx++ ))
   done
 
-  if [[ "$spec" == omz:* ]]; then
+  if [[ "$spec" == snippet:* ]]; then
+    _zparsed[type]="snippet"
+    local raw_url="${spec#snippet:}"
+    _zparsed[url]="$raw_url"
+    local slug="${raw_url#*://}"
+    slug="${slug//[:\/]/---}"
+    local filename="${raw_url:t}"
+    [[ "$filename" != *.* ]] && filename="snippet.zsh"
+    _zparsed[name]="$slug"
+    _zparsed[dir]="${ZLOAD_PLUGINS}/_snippets/${slug}"
+    _zparsed[subpath]="$filename"
+  elif [[ "$spec" == (http://*|https://*|file://*) && "$spec" == *(\.zsh|\.sh) ]]; then
+    _zparsed[type]="snippet"
+    _zparsed[url]="$spec"
+    local slug="${spec#*://}"
+    slug="${slug//[:\/]/---}"
+    local filename="${spec:t}"
+    _zparsed[name]="$slug"
+    _zparsed[dir]="${ZLOAD_PLUGINS}/_snippets/${slug}"
+    _zparsed[subpath]="$filename"
+  elif [[ "$spec" == omz:* ]]; then
     _zparsed[type]="omz"
     _zparsed[name]="_omz"
     _zparsed[url]="https://github.com/ohmyzsh/ohmyzsh.git"

@@ -47,6 +47,11 @@ zsh test/test_update.zsh
 zsh test/test_doctor.zsh
 print -P "%F{green}[OK] Slice 5 passed.%f\n"
 
+print -P "%F{blue}==> Slice 6: Remote Snippets & Monorepo Subpath Loading...%f"
+zsh test/test_snippet.zsh
+zsh test/test_subpath.zsh
+print -P "%F{green}[OK] Slice 6 passed.%f\n"
+
 print -P "%F{green}========================================%f"
 print -P "%F{green}  ALL TESTS PASSED SUCCESSFULLY!        %f"
 print -P "%F{green}========================================%f"

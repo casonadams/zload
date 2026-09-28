@@ -249,6 +249,33 @@ Immediately `source "$ZLOAD_CACHE/bundle.zsh"` and return.
 
 ---
 
+### Slice 6: Remote Snippets & Monorepo Subpath Loading
+**Goal**: Support direct single-file script downloads (`snippet:https://...` or `https://.../*.zsh`) and arbitrary repository subpath targeting (`--path <subdir>`).
+**Acceptance Criteria**:
+- `snippet:https://...` or URLs ending in `.zsh`/`.sh` download the raw script file into `${ZLOAD_PLUGINS}/_snippets/` without a full Git clone.
+- Downloaded snippets are byte-compiled to `.zwc` and bundled into `bundle.zsh`.
+- `--path <subdir>` targets a specific directory within any repository for script, completion, and binary discovery.
+- `zload update` updates snippets conditionally via `curl -z`.
+
+#### Task 6.1: Snippet & subpath specification parsing [2]
+**Do**: Update `functions/_zload_parse_spec` to recognize `snippet:<url>`, URLs ending in `.zsh` or `.sh`, and parse `--path <subpath>`.
+**Tests**: `test/test_parser.zsh`: Add test cases for `snippet:https://...` and `--path`.
+**Verify**: `zsh test/test_parser.zsh` -- passes.
+
+#### Task 6.2: Snippet downloader & compiler [3]
+**Do**: Implement `_zload_install_snippet` in `functions/_zload_install`. Fetches the file via `curl -fsSL` (or file copy for `file://`), writes to `${ZLOAD_PLUGINS}/_snippets/<slug>/<filename>`, and compiles to `.zwc`.
+**Tests**: `test/test_snippet.zsh`: Download a mock snippet, verify bytecode compilation and execution.
+**Verify**: `zsh test/test_snippet.zsh` -- passes.
+
+#### Task 6.3: Monorepo subpath loader [2]
+**Do**: Update `functions/_zload_find_main_file` and `functions/_zload_compile_bundle` to honor `--path <subpath>` across any repository source.
+**Tests**: `test/test_subpath.zsh`: Load a mock repo with a plugin in a nested subdirectory using `--path`.
+**Verify**: `zsh test/test_subpath.zsh` -- passes.
+
+**Slice 6 Verification**: Full test suite passes including `test_snippet.zsh` and `test_subpath.zsh`.
+
+---
+
 ## Final Verification
 
 1. **Syntax Check**: `zsh -n zload.zsh` returns 0 with no errors.

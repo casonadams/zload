@@ -82,6 +82,8 @@ Restart your shell or run `source ~/.zshrc`. On first run, `zload` downloads mis
 | **Oh-My-Zsh theme** | `omz:themes/robbyrussell` | Loads OMZ theme and color/git dependencies |
 | **Prezto module** | `prezto:utility` | Loads Prezto module and autoloads its `functions/` |
 | **Full Git URL** | `https://gitlab.com/group/repo.git` | Arbitrary remote Git repository |
+| **Monorepo Subpath** | `user/repo --path plugins/tool` | Targets specific directory inside a repository |
+| **Remote Snippet** | `snippet:https://.../script.zsh` | Single-file script download without Git clone |
 | **Local directory** | `~/code/my-plugin` | Local directory on your machine |
 
 ---

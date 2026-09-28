@@ -22,6 +22,8 @@ _zload_cmd_clean() {
 
   local -a to_remove
   for dir in "${plugin_dirs[@]}"; do
+    local name="${dir:t}"
+    [[ "$name" == "_snippets" ]] && continue
     local cdir="${dir:A}"
     if (( ! $+active_dirs[$dir] && ! $+active_dirs[$cdir] )); then
       to_remove+=("$dir")

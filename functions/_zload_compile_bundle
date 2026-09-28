@@ -40,7 +40,9 @@ _zload_compile_bundle() {
       [[ -z "$plugin_name" ]] && plugin_name="${parsed[name]}"
 
       local -A info
-      if [[ -f "${target_dir}.zsh-theme" ]]; then
+      if [[ -f "${target_dir}" ]]; then
+        info[script]="${target_dir}"
+      elif [[ -f "${target_dir}.zsh-theme" ]]; then
         info[script]="${target_dir}.zsh-theme"
       else
         _zload_find_main_file info "$target_dir" "$plugin_name"
@@ -90,7 +92,9 @@ _zload_compile_bundle() {
       [[ -z "$plugin_name" ]] && plugin_name="${parsed[name]}"
 
       local -A info
-      if [[ -f "${target_dir}.zsh-theme" ]]; then
+      if [[ -f "${target_dir}" ]]; then
+        info[script]="${target_dir}"
+      elif [[ -f "${target_dir}.zsh-theme" ]]; then
         info[script]="${target_dir}.zsh-theme"
       else
         _zload_find_main_file info "$target_dir" "$plugin_name"

@@ -19,6 +19,9 @@ _zload_cmd_update() {
   local dir
   for dir in "${plugin_dirs[@]}"; do
     local name="${dir:t}"
+    if [[ "$name" == "_snippets" ]]; then
+      continue
+    fi
     if [[ ! -d "$dir/.git" ]]; then
       print -P "  %F{blue}* %f%B${name}%b (local plugin, skipping)"
       continue

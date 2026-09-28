@@ -19,6 +19,27 @@ _zload_install() {
     return 1
   fi
 
+  if [[ "$type" == "snippet" ]]; then
+    local target_file="${dir}/${_zspec[subpath]}"
+    [[ -f "$target_file" ]] && return 0
+    mkdir -p "$dir"
+    local label="${_zspec[raw]:-${_zspec[spec]}}"
+    print -P "%F{cyan}zload:%f fetching snippet %F{yellow}${label}%f..."
+    if [[ "$url" == file://* ]]; then
+      cp "${url#file://}" "$target_file"
+    else
+      command curl -fsSL "$url" -o "$target_file" >/dev/null 2>&1
+    fi
+    local ret=$?
+    if (( ret != 0 )) || [[ ! -f "$target_file" ]]; then
+      print -u2 -P "%F{red}zload: failed to fetch snippet ${url}%f"
+      rm -rf "$dir"
+      return 1
+    fi
+    zcompile -R "$target_file" 2>/dev/null
+    return 0
+  fi
+
   if [[ "$type" == "omz" ]]; then
     _zload_ensure_omz
     return $?

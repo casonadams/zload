@@ -76,4 +76,10 @@ TMP_LOCAL=$(mktemp -d)
 trap 'rm -rf "$TMP_LOCAL"' EXIT
 test_case "$TMP_LOCAL" "local" "local---${TMP_LOCAL:t}" "" "" "0" ""
 
-echo "PASS: test_parser (all 11 test cases)"
+# 12. Remote snippet
+test_case "snippet:https://example.com/tool.zsh" "snippet" "example.com---tool.zsh" "" "tool.zsh" "0" ""
+
+# 13. Monorepo with subpath
+test_case "owner/repo --path plugins/tool" "github" "owner---repo" "" "plugins/tool" "0" ""
+
+echo "PASS: test_parser (all 13 test cases)"

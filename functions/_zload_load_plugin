@@ -12,7 +12,9 @@ _zload_load_plugin() {
   [[ -z "$plugin_name" ]] && plugin_name="${_zspec[name]}"
 
   local -A _zinfo
-  if [[ -f "${target_dir}.zsh-theme" ]]; then
+  if [[ -f "${target_dir}" ]]; then
+    _zinfo[script]="${target_dir}"
+  elif [[ -f "${target_dir}.zsh-theme" ]]; then
     _zinfo[script]="${target_dir}.zsh-theme"
   else
     _zload_find_main_file _zinfo "$target_dir" "$plugin_name"
