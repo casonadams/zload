@@ -48,6 +48,7 @@ print -P "%F{green}[OK] Slice 4 passed.%f\n"
 print -P "%F{blue}==> Slice 5: CLI Management & Quality Assurance...%f"
 zsh test/test_cli.zsh
 zsh test/test_update.zsh
+zsh test/test_upgrade.zsh
 zsh test/test_doctor.zsh
 print -P "%F{green}[OK] Slice 5 passed.%f\n"
 

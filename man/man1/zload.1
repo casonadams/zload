@@ -123,8 +123,11 @@ Prepends directories to \fB$fpath\fR with validation and deduplication.
 \fBzload eval\fR \fIname\fR \fIcommand\fR
 Caches the shell output of a subshell initializer (such as \fBstarship init zsh\fR or \fBzoxide init zsh\fR) into a compiled \fI.zwc\fR wordcode file. On subsequent launches, sources the cache in 0.2 ms with zero child process forks.
 .TP
-\fBzload update\fR
-Updates all installed Git plugins and remote snippets in parallel. Skips pinned tags and local plugins. Recompiles the wordcode bundle upon completion.
+\fBzload update\fR [\fB--self\fR|\fB--all\fR]
+Updates installed Git plugins and remote snippets in parallel. Pass \fB--self\fR to update only \fBzload\fR itself, or \fB--all\fR to update both \fBzload\fR and all plugins. Recompiles the wordcode bundle upon completion.
+.TP
+\fBzload upgrade\fR, \fBzload self-update\fR
+Upgrades \fBzload\fR itself to the latest commit/release from upstream Git and recompiles all internal modules.
 .TP
 \fBzload clean\fR [\fB-f\fR|\fB--force\fR]
 Identifies unreferenced plugin directories on disk. Pass \fB-f\fR to delete them.

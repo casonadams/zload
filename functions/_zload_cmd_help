@@ -8,7 +8,8 @@ Usage:
   zload <command> [options]        Execute a management command
 
 Commands:
-  update                           Update installed plugins from remotes
+  update [--all|--self]            Update installed plugins from remotes
+  upgrade                          Upgrade zload itself to latest release
   clean [-f|--force]               Remove unreferenced plugin directories
   list                             List all installed plugins and git status
   doctor                           Run system and configuration health checks

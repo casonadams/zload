@@ -293,6 +293,10 @@ If `~/.zfunc` exists on your system (the standard directory for tools like `uv`,
 # Update all installed plugins in parallel from remotes and recompile
 zload update
 
+# Upgrade zload itself to latest release
+zload upgrade     # or: zload self-update
+zload update --all # updates zload + all plugins together
+
 # List installed plugins with active Git branch, tag, and commit status
 zload list
 

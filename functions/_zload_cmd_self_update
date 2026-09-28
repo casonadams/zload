@@ -1,0 +1,32 @@
+_zload_cmd_self_update() {
+  emulate -L zsh
+
+  if [[ ! -d "${ZLOAD_HOME}/.git" ]]; then
+    print -u2 -P "%F{11}zload: self-update requires a Git installation in %B${ZLOAD_HOME}%b%f"
+    return 1
+  fi
+
+  print -P "%F{14}zload%f  %F{8}upgrading zload itself in %B${ZLOAD_HOME}%b...%f\n"
+
+  local old_commit
+  old_commit="$(command git -C "$ZLOAD_HOME" rev-parse --short HEAD 2>/dev/null)"
+
+  if ! command git -C "$ZLOAD_HOME" pull --ff-only 2>/dev/null; then
+    print -u2 -P "%F{9}zload: failed to pull latest changes for zload%f"
+    return 1
+  fi
+
+  local new_commit
+  new_commit="$(command git -C "$ZLOAD_HOME" rev-parse --short HEAD 2>/dev/null)"
+
+  autoload -Uz _zload_cmd_compile
+  _zload_cmd_compile >/dev/null 2>&1
+
+  if [[ "$old_commit" == "$new_commit" ]]; then
+    print -P "  %F{10}✓%f  %F{15}%Bzload%b%f  %F{10}already up to date%f  %F{8}(${new_commit})%f\n"
+  else
+    print -P "  %F{10}✓%f  %F{15}%Bzload%b%f  %F{10}upgraded%f  %F{8}(${old_commit} -> ${new_commit})%f\n"
+  fi
+
+  return 0
+}

@@ -78,7 +78,14 @@ Updates all installed plugins and remote assets in parallel via Git background t
 
 ### Usage
 ```zsh
+# Update all installed plugins:
 zload update
+
+# Update both zload itself and all plugins:
+zload update --all
+
+# Update only zload itself:
+zload update --self
 ```
 
 - Pulls fast-forward updates across all active plugins.
@@ -87,7 +94,20 @@ zload update
 
 ---
 
-## 5. `zload clean [-f|--force]`
+## 5. `zload upgrade` / `zload self-update`
+
+Upgrades `zload` itself to the latest commit/release from upstream Git and recompiles all internal modules.
+
+### Usage
+```zsh
+zload upgrade
+# or:
+zload self-update
+```
+
+---
+
+## 6. `zload clean [-f|--force]`
 
 Prunes unreferenced plugins from disk that were removed from `.zshrc`.
 

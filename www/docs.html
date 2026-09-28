@@ -351,8 +351,12 @@ zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span></code></pre>
             </thead>
             <tbody>
               <tr>
-                <td><code>zload update</code></td>
-                <td>Updates all installed plugins in parallel from remotes and recompiles.</td>
+                <td><code>zload update [--all|--self]</code></td>
+                <td>Updates installed plugins; <code>--all</code> also updates zload itself.</td>
+              </tr>
+              <tr>
+                <td><code>zload upgrade</code></td>
+                <td>Upgrades zload itself to the latest release and recompiles modules.</td>
               </tr>
               <tr>
                 <td><code>zload clean [-f]</code></td>
