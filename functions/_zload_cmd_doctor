@@ -2,6 +2,9 @@ _zload_cmd_doctor() {
   emulate -L zsh
   autoload -Uz is-at-least
 
+  local do_fix=0
+  [[ "$1" == "--fix" ]] && do_fix=1
+
   print -P "%F{cyan}zload doctor: running environment diagnostics...%f\n"
   integer errors=0 warnings=0
 
@@ -28,8 +31,13 @@ _zload_cmd_doctor() {
       print -P "  %F{yellow}[WARN]%f $var_name: %B$path_val%b (not writable)"
       (( warnings++ ))
     else
-      print -P "  %F{yellow}[WARN]%f $var_name: %B$path_val%b (directory not found)"
-      (( warnings++ ))
+      if (( do_fix )); then
+        mkdir -p "$path_val"
+        print -P "  %F{green}[FIXED]%f $var_name: created directory %B$path_val%b"
+      else
+        print -P "  %F{yellow}[WARN]%f $var_name: %B$path_val%b (directory not found)"
+        (( warnings++ ))
+      fi
     fi
   done
 
@@ -38,8 +46,13 @@ _zload_cmd_doctor() {
   if [[ -f "$bundle_zwc" ]]; then
     print -P "  %F{green}[OK]%f Bytecode bundle: %B$bundle_zwc%b (compiled)"
   elif [[ -f "$bundle_file" ]]; then
-    print -P "  %F{yellow}[WARN]%f Bundle: %B$bundle_file%b exists but .zwc wordcode is missing"
-    (( warnings++ ))
+    if (( do_fix )); then
+      zcompile -R "$bundle_file" 2>/dev/null
+      print -P "  %F{green}[FIXED]%f Bytecode bundle: compiled %B$bundle_zwc%b"
+    else
+      print -P "  %F{yellow}[WARN]%f Bundle: %B$bundle_file%b exists but .zwc wordcode is missing"
+      (( warnings++ ))
+    fi
   else
     print -P "  %F{yellow}[INFO]%f Bundle: not yet generated (will compile on cold startup)"
   fi
@@ -48,9 +61,21 @@ _zload_cmd_doctor() {
   if [[ -f "${dump_file}.zwc" ]]; then
     print -P "  %F{green}[OK]%f Completion cache: %B${dump_file}.zwc%b (compiled)"
   elif [[ -f "$dump_file" ]]; then
-    print -P "  %F{green}[OK]%f Completion dump: %B$dump_file%b"
+    if (( do_fix )); then
+      zcompile -R "$dump_file" 2>/dev/null
+      print -P "  %F{green}[FIXED]%f Completion dump: compiled %B${dump_file}.zwc%b"
+    else
+      print -P "  %F{green}[OK]%f Completion dump: %B$dump_file%b"
+    fi
   else
     print -P "  %F{yellow}[INFO]%f Completion dump: deferred (will compile on first Tab)"
+  fi
+
+  if (( do_fix )); then
+    if [[ -f "${ZLOAD_HOME}/zload.zsh" && ! -f "${ZLOAD_HOME}/zload.zsh.zwc" ]]; then
+      zcompile -R "${ZLOAD_HOME}/zload.zsh" 2>/dev/null
+      print -P "  %F{green}[FIXED]%f Core module: compiled %B${ZLOAD_HOME}/zload.zsh.zwc%b"
+    fi
   fi
 
   print ""

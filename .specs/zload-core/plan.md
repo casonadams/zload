@@ -418,6 +418,32 @@ Immediately `source "$ZLOAD_CACHE/bundle.zsh"` and return.
 
 ---
 
+### Slice 13: Self-Healing Diagnostics (`doctor --fix`), Example Dotfiles & Final Verification
+**Goal**: Implement self-healing repairs in `zload doctor --fix`, provide a standalone example `.zshrc`, and implement a unified `verify_all.zsh` runner fulfilling all Final Verification gates.
+**Acceptance Criteria**:
+- `zload doctor --fix` automatically detects and repairs missing `.zwc` bytecode bundles, uncompiled modules, and stale caches.
+- `example/.zshrc` provides an out-of-the-box configuration demonstrating all features that can be run with `ZDOTDIR=example zsh`.
+- `test/verify_all.zsh` runs all 5 Final Verification gates and asserts exit 0.
+
+#### Task 13.1: Self-healing diagnostics (`zload doctor --fix`) [2]
+**Do**: Add `--fix` option to `_zload_cmd_doctor` in `functions/_zload_cmd_doctor`. Recompiles missing `.zwc` bundles, core modules, and stale completion dumps.
+**Tests**: `test/test_doctor_fix.zsh`: Simulate uncompiled state, run `zload doctor --fix`, assert all `.zwc` files restored.
+**Verify**: `zsh test/test_doctor_fix.zsh` -- passes.
+
+#### Task 13.2: Example dotfiles distribution [1]
+**Do**: Create `example/.zshrc` demonstrating standard plugins, OMZ plugins, themes, lazy loading, and completions.
+**Tests**: Run `zsh -f -c "ZDOTDIR=example source example/.zshrc"` in sandbox.
+**Verify**: `zsh test/test_example.zsh` -- passes.
+
+#### Task 13.3: Unified Final Verification runner [2]
+**Do**: Implement `test/verify_all.zsh` executing all 5 formal verification gates from the specification.
+**Tests**: Execute `test/verify_all.zsh`.
+**Verify**: `zsh test/verify_all.zsh` -- passes.
+
+**Slice 13 Verification**: `test/verify_all.zsh` passes 100% with exit code 0.
+
+---
+
 ## Final Verification
 
 1. **Syntax Check**: `zsh -n zload.zsh` returns 0 with no errors.

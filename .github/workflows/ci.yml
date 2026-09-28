@@ -31,3 +31,6 @@ jobs:
 
       - name: Run benchmarks
         run: zsh benchmark/bench.zsh
+
+      - name: Run final specification verification
+        run: zsh test/verify_all.zsh
