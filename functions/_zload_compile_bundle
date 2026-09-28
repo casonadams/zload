@@ -16,6 +16,17 @@ _zload_compile_bundle() {
 
   local bundle_tmp="${ZLOAD_CACHE}/bundle.zsh.tmp.$$"
   local hash_tmp="${ZLOAD_CACHE}/bundle.hash.tmp.$$"
+  local lock_dir="${ZLOAD_CACHE}/.compile.lock"
+
+  integer attempts=0
+  while ! mkdir "$lock_dir" 2>/dev/null; do
+    (( attempts++ ))
+    if (( attempts > 20 )); then
+      rm -rf "$lock_dir" 2>/dev/null
+      break
+    fi
+    sleep 0.1
+  done
 
   {
     print "# Compiled by zload"
@@ -143,5 +154,6 @@ _zload_compile_bundle() {
   [[ -f "${bundle_tmp}.zwc" ]] && mv -f "${bundle_tmp}.zwc" "${ZLOAD_CACHE}/bundle.zsh.zwc"
   mv -f "$hash_tmp" "${ZLOAD_CACHE}/bundle.hash"
 
+  rm -rf "$lock_dir" 2>/dev/null
   return 0
 }

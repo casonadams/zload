@@ -8,6 +8,7 @@ print -P "%F{cyan}========================================%f\n"
 print -P "%F{blue}==> Syntax validation (zsh -n)...%f"
 zsh -n zload.zsh zload.plugin.zsh
 for f in functions/*; do
+  [[ "$f" == *.zwc ]] && continue
   zsh -n "$f"
 done
 for t in test/*.zsh; do
@@ -57,6 +58,11 @@ zsh test/test_build.zsh
 zsh test/test_self_compile.zsh
 zsh test/test_installer.zsh
 print -P "%F{green}[OK] Slice 7 passed.%f\n"
+
+print -P "%F{blue}==> Slice 8: Hardening, Concurrency Locks & Real-World Edge Cases...%f"
+zsh test/test_edge_cases.zsh
+zsh test/test_concurrency.zsh
+print -P "%F{green}[OK] Slice 8 passed.%f\n"
 
 print -P "%F{green}========================================%f"
 print -P "%F{green}  ALL TESTS PASSED SUCCESSFULLY!        %f"

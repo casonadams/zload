@@ -17,7 +17,8 @@ ZLOAD_REPO="file://$CURRENT_REPO" \
 ./install.sh >/dev/null
 
 # Sync working tree changes into test installation
-cp -R zload.zsh zload.plugin.zsh functions "$MOCK_HOME/.zload/"
+rm -f "$MOCK_HOME/.zload/functions"/*.zwc "$MOCK_HOME/.zload"/*.zwc 2>/dev/null || true
+cp -Rf zload.zsh zload.plugin.zsh functions "$MOCK_HOME/.zload/"
 zsh -c "source '$MOCK_HOME/.zload/zload.zsh' && zload compile" >/dev/null 2>&1
 
 # Assert installation directory

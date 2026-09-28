@@ -5,6 +5,15 @@ _zload_real_compinit() {
 
   unfunction compdef 2>/dev/null
 
+  if typeset -f _main_complete >/dev/null 2>&1 || typeset -p _comps >/dev/null 2>&1; then
+    local def
+    for def in "${_zload_deferred_compdefs[@]}"; do
+      eval "compdef $def" 2>/dev/null
+    done
+    _zload_deferred_compdefs=()
+    return 0
+  fi
+
   local dump_file="${ZLOAD_CACHE}/zcompdump-${ZSH_VERSION}"
   autoload -Uz compinit
   compinit -C -d "$dump_file"

@@ -110,6 +110,7 @@ zload() {
     [[ -n "$current" ]] && entries+=("$current")
   fi
 
+  integer install_errors=0
   for entry in "${entries[@]}"; do
     entry="${entry#"${entry%%[![:space:]]*}"}"
     entry="${entry%"${entry##*[![:space:]]}"}"
@@ -122,6 +123,7 @@ zload() {
 
     if ! _zload_install parsed; then
       print -u2 "zload: failed to install $entry"
+      (( install_errors++ ))
       continue
     fi
 
@@ -132,7 +134,7 @@ zload() {
     fi
   done
 
-  if (( ${#entries} > 0 )); then
+  if (( install_errors == 0 && ${#entries} > 0 )); then
     _zload_compile_bundle "${entries[@]}"
     print "$current_hash" > "${ZLOAD_CACHE}/bundle.hash"
   fi

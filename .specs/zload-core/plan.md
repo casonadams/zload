@@ -302,6 +302,33 @@ Immediately `source "$ZLOAD_CACHE/bundle.zsh"` and return.
 
 ---
 
+### Slice 8: Hardening, Concurrency Locks & Real-World Edge Cases
+**Goal**: Safeguard multi-terminal concurrent launches via lockfiles, detect pre-existing system `compinit`, and ensure offline/error resilience.
+**Acceptance Criteria**:
+- If `compinit` is already initialized by system or prompt (e.g. `_main_complete` defined), `zload` avoids redundant invocation.
+- Concurrency lock (`${ZLOAD_CACHE}/.lock`) prevents multiple simultaneous terminal windows from racing during compilation.
+- Network or Git clone failures report clean error messages without corrupting `bundle.zsh` or `bundle.hash`.
+- Full verification suite passing.
+
+#### Task 8.1: Pre-existing compinit detection [2]
+**Do**: In `functions/_zload_setup_lazy_compinit` and `functions/_zload_real_compinit`, detect if `_main_complete` or `_comps` already exists, drain any buffered `compdef` calls immediately, and mark completion done.
+**Tests**: `test/test_edge_cases.zsh`: Simulate pre-existing compinit, verify no widget override or redundant compinit.
+**Verify**: `zsh test/test_edge_cases.zsh` -- passes.
+
+#### Task 8.2: Concurrency lock during bundle compilation [2]
+**Do**: Implement directory-based mutual exclusion lock (`mkdir "${ZLOAD_CACHE}/.lock"`) in `functions/_zload_compile_bundle`.
+**Tests**: `test/test_concurrency.zsh`: Run parallel compilations, verify lock acquisition and clean release.
+**Verify**: `zsh test/test_concurrency.zsh` -- passes.
+
+#### Task 8.3: Offline & failure resilience [2]
+**Do**: Ensure invalid clone or fetch does not remove or corrupt existing bundles.
+**Tests**: Add test cases to `test/test_edge_cases.zsh` simulating offline / failed git clone.
+**Verify**: `zsh test/test_edge_cases.zsh` -- passes.
+
+**Slice 8 Verification**: All edge case and concurrency tests passing.
+
+---
+
 ## Final Verification
 
 1. **Syntax Check**: `zsh -n zload.zsh` returns 0 with no errors.

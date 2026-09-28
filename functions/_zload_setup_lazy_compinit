@@ -12,6 +12,17 @@ _zload_setup_lazy_compinit() {
   emulate -L zsh
   (( _zload_compinit_done )) && return 0
 
+  if typeset -f _main_complete >/dev/null 2>&1 || typeset -p _comps >/dev/null 2>&1; then
+    _zload_compinit_done=1
+    unfunction compdef 2>/dev/null
+    local def
+    for def in "${_zload_deferred_compdefs[@]}"; do
+      eval "compdef $def" 2>/dev/null
+    done
+    _zload_deferred_compdefs=()
+    return 0
+  fi
+
   if [[ ! -o interactive ]]; then
     return 0
   fi
@@ -19,3 +30,5 @@ _zload_setup_lazy_compinit() {
   zle -N expand-or-complete _zload_lazy_compinit_widget 2>/dev/null
   zle -N complete-word _zload_lazy_complete_word_widget 2>/dev/null
 }
+
+_zload_setup_lazy_compinit "$@"
