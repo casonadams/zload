@@ -27,16 +27,20 @@ It is designed to give you rich plugins, themes, and completions with **< 1.0 ms
 
 ## Installation
 
-Install `zload` with a single command:
+### Automatic Bootstrapping in `~/.zshrc`
+Add this to the very top of your `~/.zshrc` to automatically clone `zload` if missing on new machines:
 
 ```zsh
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/casonadams/zload/main/install.sh)"
+### zload ###
+if [ ! -d "${HOME}/.zload" ]; then
+  git clone --depth 1 https://github.com/casonadams/zload.git "${HOME}/.zload"
+fi
+source "${HOME}/.zload/zload.zsh"
 ```
 
-Or clone manually:
-
+### Or Single-Line Installer
 ```zsh
-git clone --depth 1 https://github.com/casonadams/zload.git ~/.zload
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/casonadams/zload/main/install.sh)"
 ```
 
 ---
@@ -72,6 +76,62 @@ plugins=(
 
 zload "${plugins[@]}"
 ```
+
+---
+
+## Migrating from Zinit
+
+If you are migrating from Zinit, `zload` replaces cryptic `ice` modifiers with a clean declarative format:
+
+### Before (Zinit)
+```zsh
+# Clunky DSL with arcane ice modifiers
+autoload -Uz compinit && compinit
+autoload -Uz _zinit && ((${+_comps})) && _comps[zinit]=_zinit
+
+zinit wait lucid light-mode depth=1 for \
+  OMZL::theme-and-appearance.zsh \
+  OMZL::key-bindings.zsh \
+  OMZL::completion.zsh \
+  casonadams/walh-shell \
+  lukechilds/zsh-nvm \
+  atinit"zicompinit; zicdreplay" \
+  zsh-users/zsh-syntax-highlighting \
+  atload"_zsh_autosuggest_start; bindkey '^ ' autosuggest-accept" \
+  zsh-users/zsh-autosuggestions
+
+zinit ice depth=1
+zinit light romkatv/powerlevel10k
+```
+
+### After (zload)
+```zsh
+### zload (auto-installs if missing) ###
+if [ ! -d "${HOME}/.zload" ]; then
+  git clone --depth 1 https://github.com/casonadams/zload.git "${HOME}/.zload"
+fi
+source "${HOME}/.zload/zload.zsh"
+
+# Prompt theme
+zload romkatv/powerlevel10k
+
+# Plugins (clean, declarative, automatic canonical ordering)
+zload "
+  omz:lib/theme-and-appearance.zsh
+  omz:lib/key-bindings.zsh
+  omz:lib/completion.zsh
+  casonadams/walh-shell
+  lukechilds/zsh-nvm --on nvm,node,npm
+  zsh-users/zsh-syntax-highlighting --defer
+  zsh-users/zsh-autosuggestions
+"
+bindkey '^ ' autosuggest-accept
+```
+
+#### Key Differences:
+- **No manual `compinit`**: `zload` defers `compinit` until your first `<Tab>` press, cutting 40–100ms off startup.
+- **`OMZL::` -> `omz:lib/`**: Load Oh-My-Zsh libraries and plugins directly with standard paths.
+- **`wait` / `lucid` -> Automatic**: `zload` automatically orders your plugins canonically and compiles them into a sub-millisecond memory-mapped wordcode bundle (`bundle.zsh.zwc`).
 
 Restart your shell or run `source ~/.zshrc`. On first run, `zload` downloads missing plugins and compiles the bytecode bundle. Subsequent shells start in **under 1 millisecond**.
 

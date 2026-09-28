@@ -86,6 +86,7 @@ print -P "%F{green}[OK] Slice 12 passed.%f\n"
 print -P "%F{blue}==> Slice 13: Self-Healing Diagnostics & Example Config...%f"
 zsh test/test_doctor_fix.zsh
 zsh test/test_example.zsh
+zsh test/test_pages.zsh
 print -P "%F{green}[OK] Slice 13 passed.%f\n"
 
 print -P "%F{green}========================================%f"
