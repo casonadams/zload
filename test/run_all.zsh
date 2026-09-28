@@ -26,6 +26,7 @@ print -P "%F{green}[OK] Slice 1 passed.%f\n"
 print -P "%F{blue}==> Slice 2: Oh-My-Zsh & Prezto Compatibility Shims...%f"
 zsh test/test_omz.zsh
 zsh test/test_prezto.zsh
+zsh test/test_real_omz.zsh
 print -P "%F{green}[OK] Slice 2 passed.%f\n"
 
 print -P "%F{blue}==> Slice 3: Lazy Loading Primitives...%f"
