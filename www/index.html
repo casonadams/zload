@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=4">
+  <link rel="stylesheet" href="css/style.css?v=5">
 
   <script>
     (function() {
@@ -88,19 +88,24 @@
         Instant warm startup with memory-mapped bytecode wordcode, zero subprocess forks, automatic canonical ordering, and native Oh-My-Zsh & Powerlevel10k support.
       </p>
 
-      <!-- Install Switcher Box -->
+      <!-- Featured Self-Bootstrapping Install Box -->
       <div class="install-box">
-        <div class="install-tabs" role="tablist">
-          <button class="install-tab active" onclick="switchInstallTab(event, 'curl')">Auto Install (curl)</button>
-          <button class="install-tab" onclick="switchInstallTab(event, 'git')">Git Clone</button>
-          <button class="install-tab" onclick="switchInstallTab(event, 'zshrc')">~/.zshrc Hook</button>
-        </div>
-        <div class="install-command-bar">
-          <div class="install-code">
-            <span class="install-prompt-symbol">$</span>
-            <span id="installCodeText">sh -c "$(curl -fsSL https://raw.githubusercontent.com/casonadams/zload/main/install.sh)"</span>
+        <div class="install-header">
+          <div class="install-header-left">
+            <span class="code-dots">
+              <span class="code-dot red"></span>
+              <span class="code-dot yellow"></span>
+              <span class="code-dot green"></span>
+            </span>
+            <span class="install-title">Add to top of your ~/.zshrc (Self-Bootstrapping)</span>
           </div>
-          <button id="installCopyBtn" class="btn-copy" onclick="copyInstallText()">Copy</button>
+          <button id="installCopyBtn" class="btn-copy" onclick="copyInstallSnippet()">Copy</button>
+        </div>
+        <div class="install-snippet-wrap">
+          <pre><code id="installSnippetCode">if [ ! -d "${HOME}/.zload" ]; then
+  git clone --depth 1 https://github.com/casonadams/zload.git "${HOME}/.zload"
+fi
+source "${HOME}/.zload/zload.zsh"</code></pre>
         </div>
       </div>
 
@@ -647,21 +652,9 @@ zload <span style="color: #38bdf8;">"
   </footer>
 
   <script>
-    const installCommands = {
-      curl: 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/casonadams/zload/main/install.sh)"',
-      git: 'git clone --depth 1 https://github.com/casonadams/zload.git ~/.zload',
-      zshrc: 'source ~/.zload/zload.zsh'
-    };
-
-    function switchInstallTab(e, type) {
-      document.querySelectorAll(".install-tab").forEach(t => t.classList.remove("active"));
-      e.target.classList.add("active");
-      document.getElementById("installCodeText").innerText = installCommands[type] || installCommands.curl;
-    }
-
-    function copyInstallText() {
-      const text = document.getElementById("installCodeText").innerText;
-      navigator.clipboard.writeText(text);
+    function copyInstallSnippet() {
+      const code = document.getElementById("installSnippetCode").innerText;
+      navigator.clipboard.writeText(code);
       const btn = document.getElementById("installCopyBtn");
       const old = btn.innerText;
       btn.innerText = "Copied!";
