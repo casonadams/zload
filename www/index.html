@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=3">
 
   <script>
     (function() {
@@ -51,7 +51,23 @@
         <button id="themeToggle" class="btn-icon" aria-label="Toggle dark/light theme">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
+
+        <button id="mobileNavBtn" class="btn-icon mobile-nav-toggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
       </div>
+    </div>
+
+    <!-- Mobile Drawer Dropdown -->
+    <div id="mobileNavDrawer" class="mobile-nav-drawer">
+      <ul class="mobile-nav-links">
+        <li><a href="#benchmark" onclick="closeMobileNav()">Benchmark</a></li>
+        <li><a href="#p10k" onclick="closeMobileNav()">Powerlevel10k</a></li>
+        <li><a href="#features" onclick="closeMobileNav()">Features</a></li>
+        <li><a href="#config" onclick="closeMobileNav()">Configuration</a></li>
+        <li><a href="#matrix" onclick="closeMobileNav()">Comparison</a></li>
+        <li><a href="https://github.com/casonadams/zload" target="_blank" rel="noopener">GitHub Repository ↗</a></li>
+      </ul>
     </div>
   </nav>
 
@@ -72,9 +88,20 @@
         Instant warm startup with memory-mapped bytecode wordcode, zero subprocess forks, automatic canonical ordering, and native Oh-My-Zsh & Powerlevel10k support.
       </p>
 
+      <!-- Install Switcher Box -->
       <div class="install-box">
-        <code id="cmdInstall">sh -c "$(curl -fsSL https://raw.githubusercontent.com/casonadams/zload/main/install.sh)"</code>
-        <button class="btn-copy" onclick="copyInstall('cmdInstall')">Copy</button>
+        <div class="install-tabs" role="tablist">
+          <button class="install-tab active" onclick="switchInstallTab(event, 'curl')">Auto Install (curl)</button>
+          <button class="install-tab" onclick="switchInstallTab(event, 'git')">Git Clone</button>
+          <button class="install-tab" onclick="switchInstallTab(event, 'zshrc')">~/.zshrc Hook</button>
+        </div>
+        <div class="install-command-bar">
+          <div class="install-code">
+            <span class="install-prompt-symbol">$</span>
+            <span id="installCodeText">sh -c "$(curl -fsSL https://raw.githubusercontent.com/casonadams/zload/main/install.sh)"</span>
+          </div>
+          <button id="installCopyBtn" class="btn-copy" onclick="copyInstallText()">Copy</button>
+        </div>
       </div>
 
       <!-- Benchmark Showcase -->
@@ -307,7 +334,7 @@ zload <span style="color: #38bdf8;">"${plugins[@]}"</span></code></pre>
 #   zsh-users/zsh-syntax-highlighting \
 #   zsh-users/zsh-autosuggestions</span>
 
-<span style="color: #10b981;"># AFTER (zload - Clean, declarative, < 0.5ms warm startup)</span>
+<span style="color: #10b981;"># AFTER (zload - Clean, declarative, &lt; 0.5ms warm startup)</span>
 zload <span style="color: #38bdf8;">"
   omz:lib/theme-and-appearance.zsh
   casonadams/walh-shell
@@ -320,13 +347,14 @@ zload <span style="color: #38bdf8;">"
     </div>
   </section>
 
-  <!-- Comparison Matrix -->
+  <!-- Comparison Section -->
   <section id="matrix" class="section">
     <div class="container">
       <h2 class="section-title">Feature Comparison</h2>
       <p class="section-desc">How zload compares to existing alternatives in the Zsh ecosystem.</p>
 
-      <div class="table-responsive">
+      <!-- Desktop Table View (>= 769px) -->
+      <div class="desktop-matrix">
         <table class="matrix-table">
           <thead>
             <tr>
@@ -411,6 +439,151 @@ zload <span style="color: #38bdf8;">"
           </tbody>
         </table>
       </div>
+
+      <!-- Mobile Cards View (<= 768px) -->
+      <div class="mobile-matrix">
+        <div class="matrix-cards-grid">
+          <!-- Card 1 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">⚡ Warm Startup Overhead</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">&lt; 0.5 ms (Fastest)</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Antidote</span><span>8–15 ms</span></div>
+              <div class="matrix-competitor-row"><span>Zinit (Turbo)</span><span>15–40 ms</span></div>
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">200–500 ms</span></div>
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">🚫 Interactive Warm Subprocesses</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">0 (Zero Forks)</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Antidote</span><span>Few</span></div>
+              <div class="matrix-competitor-row"><span>Zinit</span><span>Several</span></div>
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">Many (10+)</span></div>
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">📦 Memory-Mapped Bytecode (.zwc)</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">✓ Full Native Bundle</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Zinit</span><span>Partial</span></div>
+              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ None</span></div>
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">💎 P10k Instant Prompt Safe</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">✓ 100% Leak-Free</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Antidote</span><span class="check">✓ Safe</span></div>
+              <div class="matrix-competitor-row"><span>Zinit</span><span>Complex</span></div>
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ Incompatible</span></div>
+            </div>
+          </div>
+
+          <!-- Card 5 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">🪄 Automatic Canonical Ordering</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">✓ Automatic Sorting</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ Manual order</span></div>
+              <div class="matrix-competitor-row"><span>Zinit</span><span class="cross">✕ Manual order</span></div>
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ Manual order</span></div>
+            </div>
+          </div>
+
+          <!-- Card 6 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">⏳ Built-in Lazy Tab Compinit</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">✓ Automatic &lt;Tab&gt;</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Zinit</span><span>Manual ice syntax</span></div>
+              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ Synchronous (slow)</span></div>
+            </div>
+          </div>
+
+          <!-- Card 7 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">⚡ Zero-Subprocess Eval Caching</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">✓ Built-in (0.2ms)</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
+              <div class="matrix-competitor-row"><span>Zinit</span><span class="cross">✕ None</span></div>
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ None</span></div>
+            </div>
+          </div>
+
+          <!-- Card 8 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">🐚 Oh-My-Zsh Library Auto-Shims</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">✓ Auto-injected</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="check">Native (100MB framework)</span></div>
+              <div class="matrix-competitor-row"><span>Zinit</span><span>Manual pick/as snippets</span></div>
+              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ Manual handling</span></div>
+            </div>
+          </div>
+
+          <!-- Card 9 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">📥 GitHub Release Binaries (gh-r)</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">✓ Clean --from gh-r</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Zinit</span><span class="check">✓ Complex DSL</span></div>
+              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ None</span></div>
+            </div>
+          </div>
+
+          <!-- Card 10 -->
+          <div class="matrix-card">
+            <div class="matrix-card-title">🔒 Reproducible Lockfiles</div>
+            <div class="matrix-winner">
+              <span class="winner-tag">🚀 zload</span>
+              <span class="winner-val">✓ zload lock & sync</span>
+            </div>
+            <div class="matrix-competitors">
+              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
+              <div class="matrix-competitor-row"><span>Zinit</span><span class="cross">✕ Annexes needed</span></div>
+              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ None</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -426,10 +599,22 @@ zload <span style="color: #38bdf8;">"
   </footer>
 
   <script>
-    function copyInstall(id) {
-      const text = document.getElementById(id).innerText;
+    const installCommands = {
+      curl: 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/casonadams/zload/main/install.sh)"',
+      git: 'git clone --depth 1 https://github.com/casonadams/zload.git ~/.zload',
+      zshrc: 'source ~/.zload/zload.zsh'
+    };
+
+    function switchInstallTab(e, type) {
+      document.querySelectorAll(".install-tab").forEach(t => t.classList.remove("active"));
+      e.target.classList.add("active");
+      document.getElementById("installCodeText").innerText = installCommands[type] || installCommands.curl;
+    }
+
+    function copyInstallText() {
+      const text = document.getElementById("installCodeText").innerText;
       navigator.clipboard.writeText(text);
-      const btn = event.target;
+      const btn = document.getElementById("installCopyBtn");
       const old = btn.innerText;
       btn.innerText = "Copied!";
       setTimeout(() => btn.innerText = old, 2000);
@@ -458,6 +643,31 @@ zload <span style="color: #38bdf8;">"
       document.documentElement.dataset.theme = next;
       localStorage.setItem("zload:theme", next);
     });
+
+    // Mobile nav toggle
+    const mobileNavBtn = document.getElementById("mobileNavBtn");
+    const mobileNavDrawer = document.getElementById("mobileNavDrawer");
+    if (mobileNavBtn && mobileNavDrawer) {
+      mobileNavBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = mobileNavDrawer.classList.toggle("open");
+        mobileNavBtn.setAttribute("aria-expanded", isOpen);
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!mobileNavDrawer.contains(e.target) && !mobileNavBtn.contains(e.target)) {
+          mobileNavDrawer.classList.remove("open");
+          mobileNavBtn.setAttribute("aria-expanded", "false");
+        }
+      });
+    }
+
+    function closeMobileNav() {
+      if (mobileNavDrawer) {
+        mobileNavDrawer.classList.remove("open");
+        mobileNavBtn.setAttribute("aria-expanded", "false");
+      }
+    }
   </script>
 </body>
 </html>
