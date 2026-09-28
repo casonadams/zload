@@ -1,0 +1,28 @@
+_zload_cmd_fpath() {
+  emulate -L zsh
+  typeset -g -U fpath
+
+  if (( $# == 0 )); then
+    print -l "${fpath[@]}"
+    return 0
+  fi
+
+  local -a valid_dirs
+  local p
+  for p in "$@"; do
+    local expanded="${(e)p}"
+    expanded="${expanded:A}"
+    if [[ -d "$expanded" ]]; then
+      fpath=("${(@)fpath:#$expanded}")
+      valid_dirs+=("$expanded")
+    else
+      print -u2 -P "%F{yellow}zload fpath: directory not found: $p%f"
+    fi
+  done
+
+  if (( ${#valid_dirs} > 0 )); then
+    fpath=("${valid_dirs[@]}" "${fpath[@]}")
+  fi
+
+  return 0
+}

@@ -135,6 +135,16 @@ zload eval zoxide "zoxide init zsh"
 
 `zload` executes the command once, compiles its shell output into memory-mapped wordcode (`.zwc`), and checks the binary timestamp. Subsequent shell startups source the compiled file in **0.2 ms** with **0 subshells**.
 
+### 5. Directory-Triggered Lazy Loading (`--on-dir`)
+Defer loading plugins until you `cd` into a matching directory (e.g. entering a Git repository, Node project, or Cargo workspace):
+
+```zsh
+zload "davidde/git-time-metric" --on-dir ".git"
+zload "wbinglee/zsh-wakatime" --on-dir "package.json"
+```
+
+A lightweight `chpwd` hook checks directory patterns upon `cd`, loads the plugin immediately when matched, and unregisters itself.
+
 ---
 
 ## CLI Management
@@ -160,6 +170,10 @@ zload profile
 
 # Manually force bundle recompilation
 zload compile
+
+# Add directories to PATH / fpath with automatic deduplication
+zload path ~/bin /opt/homebrew/bin
+zload fpath ~/.zfunc
 
 # Display help and options
 zload help

@@ -329,6 +329,28 @@ Immediately `source "$ZLOAD_CACHE/bundle.zsh"` and return.
 
 ---
 
+### Slice 9: Directory-Triggered Lazy Loading & Path Automation
+**Goal**: Implement event-based lazy loading triggered on directory change (`--on-dir <pattern>`) and fast deduplicated path management (`zload path`, `zload fpath`).
+**Acceptance Criteria**:
+- `zload <plugin> --on-dir <pattern>` registers a `chpwd` hook that defers loading until `cd` into a matching directory.
+- Once triggered, the plugin is loaded and the hook removes itself.
+- `zload path <dir>` prepends `<dir>` to `$PATH` with deduplication and existence check.
+- `zload fpath <dir>` prepends `<dir>` to `$fpath` with deduplication and existence check.
+
+#### Task 9.1: Directory-triggered lazy loader [3]
+**Do**: Implement `_zload_schedule_on_dir` in `functions/_zload_schedule_on_dir`. Parses `--on-dir <pattern>` and hooks into `chpwd`. Checks if current directory matches pattern or contains a file matching pattern. Loads plugin and deregisters hook once matched.
+**Tests**: `test/test_on_dir.zsh`: Test loading plugin only after `cd` into directory containing `.git`.
+**Verify**: `zsh test/test_on_dir.zsh` -- passes.
+
+#### Task 9.2: Path & fpath deduplication helpers [2]
+**Do**: Implement `zload path` and `zload fpath` subcommands in `functions/_zload_cmd_path` and `functions/_zload_cmd_fpath`.
+**Tests**: `test/test_paths.zsh`: Test adding valid/invalid paths and verifying deduplication.
+**Verify**: `zsh test/test_paths.zsh` -- passes.
+
+**Slice 9 Verification**: Full test suite passes including `test_on_dir.zsh` and `test_paths.zsh`.
+
+---
+
 ## Final Verification
 
 1. **Syntax Check**: `zsh -n zload.zsh` returns 0 with no errors.

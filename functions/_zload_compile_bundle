@@ -126,6 +126,11 @@ _zload_compile_bundle() {
         continue
       fi
 
+      if [[ -n "${parsed[on_dir]}" ]]; then
+        print "_zload_schedule_on_dir ${(q)spec_entry} ${(q)parsed[on_dir]}"
+        continue
+      fi
+
       if (( parsed[defer] )); then
         print "_zload_schedule_deferred ${(q)spec_entry}"
         continue

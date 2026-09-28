@@ -65,6 +65,11 @@ zsh test/test_edge_cases.zsh
 zsh test/test_concurrency.zsh
 print -P "%F{green}[OK] Slice 8 passed.%f\n"
 
+print -P "%F{blue}==> Slice 9: Directory-Triggered Lazy Loading & Path Automation...%f"
+zsh test/test_on_dir.zsh
+zsh test/test_paths.zsh
+print -P "%F{green}[OK] Slice 9 passed.%f\n"
+
 print -P "%F{green}========================================%f"
 print -P "%F{green}  ALL TESTS PASSED SUCCESSFULLY!        %f"
 print -P "%F{green}========================================%f"

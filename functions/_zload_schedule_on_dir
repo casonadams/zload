@@ -1,0 +1,33 @@
+_zload_schedule_on_dir() {
+  emulate -L zsh
+
+  local raw_entry="$1"
+  local pattern="$2"
+
+  # Immediate check if already inside matching directory
+  if [[ "$PWD" == ${~pattern} || -e "$PWD/$pattern" ]]; then
+    local -A parsed
+    _zload_parse_spec parsed "$raw_entry"
+    _zload_load_plugin parsed
+    return 0
+  fi
+
+  integer hook_id=$RANDOM
+  local fn_name="_zload_on_dir_${hook_id}"
+
+  eval "
+    ${fn_name}() {
+      if [[ \"\$PWD\" == \${~pattern} || -e \"\$PWD/${pattern}\" ]]; then
+        autoload -Uz add-zsh-hook
+        add-zsh-hook -d chpwd \"${fn_name}\" 2>/dev/null
+        local -A parsed
+        _zload_parse_spec parsed ${(q)raw_entry}
+        _zload_load_plugin parsed
+        unfunction \"${fn_name}\" 2>/dev/null
+      fi
+    }
+  "
+
+  autoload -Uz add-zsh-hook
+  add-zsh-hook chpwd "$fn_name"
+}

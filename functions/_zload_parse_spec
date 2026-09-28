@@ -18,6 +18,7 @@ _zload_parse_spec() {
   _zparsed[defer]="0"
   _zparsed[bin]=""
   _zparsed[build_cmd]=""
+  _zparsed[on_dir]=""
 
   local raw_input="$*"
   local -a words
@@ -47,6 +48,10 @@ _zload_parse_spec() {
       --build|--hook)
         (( idx++ ))
         _zparsed[build_cmd]="${words[idx]}"
+        ;;
+      --on-dir)
+        (( idx++ ))
+        _zparsed[on_dir]="${words[idx]}"
         ;;
     esac
     (( idx++ ))
