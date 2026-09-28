@@ -1,0 +1,143 @@
+_zload_compile_bundle() {
+  emulate -L zsh
+  setopt extended_glob
+
+  local -a specs
+  if (( $# > 0 )); then
+    specs=("$@")
+  else
+    specs=("${_zload_specs[@]}")
+  fi
+
+  (( ${#specs} == 0 )) && return 0
+
+  local -a sorted_specs
+  _zload_sort_plugins sorted_specs "${specs[@]}"
+
+  local bundle_tmp="${ZLOAD_CACHE}/bundle.zsh.tmp.$$"
+  local hash_tmp="${ZLOAD_CACHE}/bundle.hash.tmp.$$"
+
+  {
+    print "# Compiled by zload"
+    print "typeset -g _zload_bundle_loaded=1"
+    print "typeset -g ZLOAD_HOME=${(q)ZLOAD_HOME}"
+    print "typeset -g ZLOAD_DATA=${(q)ZLOAD_DATA}"
+    print "typeset -g ZLOAD_CACHE=${(q)ZLOAD_CACHE}"
+    print "typeset -g ZLOAD_PLUGINS=${(q)ZLOAD_PLUGINS}"
+
+    local -a all_fpaths all_paths
+    local has_omz=0
+
+    for spec_entry in "${sorted_specs[@]}"; do
+      local -A parsed
+      _zload_parse_spec parsed "$spec_entry"
+
+      local target_dir="${parsed[dir]}"
+      if [[ -n "${parsed[subpath]}" ]]; then
+        target_dir="${target_dir}/${parsed[subpath]}"
+      fi
+      local plugin_name="${parsed[subpath]:t}"
+      [[ -z "$plugin_name" ]] && plugin_name="${parsed[name]}"
+
+      local -A info
+      if [[ -f "${target_dir}.zsh-theme" ]]; then
+        info[script]="${target_dir}.zsh-theme"
+      else
+        _zload_find_main_file info "$target_dir" "$plugin_name"
+      fi
+
+      if [[ -n "${info[fpath]}" ]]; then
+        local -a fps
+        fps=("${(s.:.)info[fpath]}")
+        for fp in "${fps[@]}"; do
+          (( ${all_fpaths[(Ie)$fp]} )) || all_fpaths+=("$fp")
+        done
+      fi
+
+      local bin_dir="${info[bin]}"
+      [[ -n "${parsed[bin]}" ]] && bin_dir="${parsed[dir]}/${parsed[bin]}"
+      if [[ -n "$bin_dir" && -d "$bin_dir" ]]; then
+        (( ${all_paths[(Ie)$bin_dir]} )) || all_paths+=("$bin_dir")
+      fi
+
+      [[ "${parsed[type]}" == "omz" ]] && has_omz=1
+    done
+
+    for fp in "${all_fpaths[@]}"; do
+      print "(( \${fpath[(Ie)${(q)fp}]} )) || fpath=(${(q)fp} \"\${fpath[@]}\")"
+    done
+
+    for bp in "${all_paths[@]}"; do
+      print "(( \${path[(Ie)${(q)bp}]} )) || path=(${(q)bp} \"\${path[@]}\")"
+    done
+
+    if (( has_omz )); then
+      print "export ZSH=${(q)ZLOAD_PLUGINS}/_omz"
+      print "export ZSH_CACHE_DIR=${(q)ZLOAD_CACHE}/omz"
+      print "mkdir -p \"\$ZSH_CACHE_DIR\""
+      print "autoload -Uz _zload_omz_shim"
+    fi
+
+    for spec_entry in "${sorted_specs[@]}"; do
+      local -A parsed
+      _zload_parse_spec parsed "$spec_entry"
+
+      local target_dir="${parsed[dir]}"
+      if [[ -n "${parsed[subpath]}" ]]; then
+        target_dir="${target_dir}/${parsed[subpath]}"
+      fi
+      local plugin_name="${parsed[subpath]:t}"
+      [[ -z "$plugin_name" ]] && plugin_name="${parsed[name]}"
+
+      local -A info
+      if [[ -f "${target_dir}.zsh-theme" ]]; then
+        info[script]="${target_dir}.zsh-theme"
+      else
+        _zload_find_main_file info "$target_dir" "$plugin_name"
+      fi
+
+      # Prezto functions autoloading
+      if [[ "${parsed[type]}" == "prezto" && -d "$target_dir/functions" ]]; then
+        local -a funcs
+        funcs=("$target_dir/functions"/*(N:t))
+        if (( ${#funcs} > 0 )); then
+          print "fpath=(${(q)target_dir}/functions \"\${fpath[@]}\")"
+          print "autoload -Uz ${(j: :)funcs}"
+        fi
+      fi
+
+      if [[ -n "${parsed[on_cmds]}" ]]; then
+        print "_zload_create_stub ${(q)parsed[on_cmds]} ${(q)info[script]} ${(q)parsed[type]} ${(q)parsed[subpath]}"
+        continue
+      fi
+
+      if (( parsed[defer] )); then
+        print "_zload_schedule_deferred ${(q)spec_entry}"
+        continue
+      fi
+
+      if [[ "${parsed[type]}" == "omz" ]]; then
+        print "_zload_omz_shim ${(q)parsed[subpath]} ${(q)info[script]}"
+      fi
+
+      if [[ -n "${info[script]}" && -f "${info[script]}" ]]; then
+        print "[[ -f ${(q)info[script]} ]] && source ${(q)info[script]}"
+      fi
+    done
+  } > "$bundle_tmp"
+
+  zcompile -R "$bundle_tmp" 2>/dev/null
+
+  local combined="${(j:\n:)specs}"
+  integer hash=5381 i len=${#combined}
+  for (( i=1; i<=len; i++ )); do
+    (( hash = ((hash << 5) + hash) + #combined[i] ))
+  done
+  print "$hash" > "$hash_tmp"
+
+  mv -f "$bundle_tmp" "${ZLOAD_CACHE}/bundle.zsh"
+  [[ -f "${bundle_tmp}.zwc" ]] && mv -f "${bundle_tmp}.zwc" "${ZLOAD_CACHE}/bundle.zsh.zwc"
+  mv -f "$hash_tmp" "${ZLOAD_CACHE}/bundle.hash"
+
+  return 0
+}

@@ -14,13 +14,22 @@ if (( ! ${fpath[(Ie)${ZLOAD_HOME}/functions]} )); then
   fpath=("${ZLOAD_HOME}/functions" "${fpath[@]}")
 fi
 
-autoload -Uz _zload_parse_spec _zload_find_main_file _zload_install _zload_load_plugin _zload_ensure_omz _zload_omz_shim _zload_create_stub _zload_setup_lazy_compinit _zload_real_compinit _zload_schedule_deferred _zload_run_deferred
+autoload -Uz _zload_parse_spec _zload_find_main_file _zload_install _zload_load_plugin _zload_ensure_omz _zload_omz_shim _zload_create_stub _zload_setup_lazy_compinit _zload_real_compinit _zload_schedule_deferred _zload_run_deferred _zload_sort_plugins _zload_compile_bundle _zload_cmd_compile
 
 typeset -g -a _zload_specs
 typeset -g -A _zload_loaded_plugins
 typeset -g -a _zload_deferred_specs
 typeset -g -a _zload_deferred_compdefs
 typeset -g _zload_compinit_done=0
+
+_zload_hash() {
+  local str="$1"
+  integer hash=5381 i len=${#str}
+  for (( i=1; i<=len; i++ )); do
+    (( hash = ((hash << 5) + hash) + #str[i] ))
+  done
+  echo "$hash"
+}
 
 if ! typeset -f compdef >/dev/null 2>&1; then
   compdef() {
@@ -61,6 +70,16 @@ zload() {
       fi
       ;;
   esac
+
+  local raw_input="$*"
+  local current_hash="$(_zload_hash "$raw_input")"
+
+  if [[ -f "${ZLOAD_CACHE}/bundle.zsh.zwc" && -f "${ZLOAD_CACHE}/bundle.hash" ]]; then
+    if [[ "$(< "${ZLOAD_CACHE}/bundle.hash")" == "$current_hash" ]]; then
+      source "${ZLOAD_CACHE}/bundle.zsh"
+      return 0
+    fi
+  fi
 
   local -a entries
   if (( $# == 1 )) && [[ "$1" == *$'\n'* ]]; then
@@ -106,4 +125,9 @@ zload() {
       _zload_load_plugin parsed
     fi
   done
+
+  if (( ${#entries} > 0 )); then
+    _zload_compile_bundle "${entries[@]}"
+    print "$current_hash" > "${ZLOAD_CACHE}/bundle.hash"
+  fi
 }

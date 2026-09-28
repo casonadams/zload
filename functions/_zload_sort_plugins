@@ -1,0 +1,40 @@
+_zload_sort_plugins() {
+  emulate -L zsh
+  setopt extended_glob
+
+  local out_array="$1"
+  shift
+
+  local -a specs
+  specs=("$@")
+
+  local -a tagged
+  integer i=0
+  for s in "${specs[@]}"; do
+    (( i++ ))
+    local p=50
+    if [[ "$s" == *zsh-completions* ]]; then
+      p=10
+    elif [[ "$s" == *theme* || "$s" == *prompt* || "$s" == *powerlevel10k* ]]; then
+      p=20
+    elif [[ "$s" == *syntax-highlighting* ]]; then
+      p=70
+    elif [[ "$s" == *zsh-autosuggestions* ]]; then
+      p=80
+    elif [[ "$s" == *history-substring-search* ]]; then
+      p=90
+    fi
+    tagged+=("${p}_${(l:4::0:)i}:::${s}")
+  done
+
+  local -a sorted_tagged
+  sorted_tagged=("${(@o)tagged}")
+
+  local -a result
+  for t in "${sorted_tagged[@]}"; do
+    result+=("${t#*:::}")
+  done
+
+  typeset -g -a "$out_array"
+  set -A "$out_array" "${(@)result}"
+}

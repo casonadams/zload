@@ -1,0 +1,10 @@
+_zload_cmd_compile() {
+  emulate -L zsh
+  print -P "%F{cyan}zload:%f compiling plugin bundle..."
+  _zload_compile_bundle "$@"
+  local ret=$?
+  if (( ret == 0 )); then
+    print -P "%F{green}zload: bundle compiled successfully.%f"
+  fi
+  return $ret
+}
