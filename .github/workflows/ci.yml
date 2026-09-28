@@ -19,7 +19,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y zsh git
+          sudo apt-get install -y zsh git man-db
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
