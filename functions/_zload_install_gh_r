@@ -1,0 +1,127 @@
+_zload_install_gh_r() {
+  emulate -L zsh
+  setopt null_glob
+
+  local in_var="$1"
+  local -A _zspec
+  _zspec=("${(@Pkv)in_var}")
+
+  local dir="${_zspec[dir]}"
+  local bin_dir="${dir}/bin"
+
+  if [[ -d "$bin_dir" && -n "$bin_dir"/*(N*x) ]]; then
+    return 0
+  fi
+
+  mkdir -p "$bin_dir"
+  local temp_dir="${dir}.tmp.$$"
+  mkdir -p "$temp_dir/extracted"
+  trap 'rm -rf "$temp_dir"' EXIT
+
+  local url="${_zspec[url]}"
+  local asset_file=""
+
+  if [[ "$url" == file://* ]]; then
+    local src_file="${url#file://}"
+    asset_file="${temp_dir}/${src_file:t}"
+    cp "$src_file" "$asset_file"
+  else
+    local owner_repo="${_zspec[spec]%%[@#]*}"
+    local tag="${_zspec[ref]}"
+    local api_url="https://api.github.com/repos/${owner_repo}/releases/latest"
+    [[ -n "$tag" ]] && api_url="https://api.github.com/repos/${owner_repo}/releases/tags/${tag}"
+
+    local os_sys="$(uname -s | tr '[:upper:]' '[:lower:]')"
+    local arch_sys="$(uname -m | tr '[:upper:]' '[:lower:]')"
+
+    local -a os_patterns
+    if [[ "$os_sys" == darwin* ]]; then
+      os_patterns=(darwin apple macos osx)
+    else
+      os_patterns=(linux)
+    fi
+
+    local -a arch_patterns
+    if [[ "$arch_sys" == *(arm64|aarch64)* ]]; then
+      arch_patterns=(arm64 aarch64)
+    else
+      arch_patterns=(x86_64 amd64 x64)
+    fi
+
+    print -P "%F{cyan}zload:%f querying GitHub release for %F{yellow}${owner_repo}%f..."
+    local json_out
+    json_out="$(command curl -fsSL "$api_url" 2>/dev/null)" || {
+      print -u2 -P "%F{red}zload: failed to fetch release metadata from GitHub%f"
+      return 1
+    }
+
+    local -a urls
+    local line
+    for line in "${(f)json_out}"; do
+      if [[ "$line" == *\"browser_download_url\":* ]]; then
+        local u="${line#*\"browser_download_url\": \"}"
+        u="${u%\"*}"
+        urls+=("$u")
+      fi
+    done
+
+    local target_url=""
+    for u in "${urls[@]}"; do
+      local lower_u="$(echo "$u" | tr '[:upper:]' '[:lower:]')"
+      [[ "$lower_u" == *(\.sha256|\.sha256sum|\.sig|\.deb|\.rpm|\.msi|\.apk|\.txt) ]] && continue
+
+      local match_os=0 match_arch=0
+      for op in "${os_patterns[@]}"; do
+        [[ "$lower_u" == *$op* ]] && match_os=1
+      done
+      for ap in "${arch_patterns[@]}"; do
+        [[ "$lower_u" == *$ap* ]] && match_arch=1
+      done
+
+      if (( match_os && match_arch )); then
+        target_url="$u"
+        break
+      fi
+    done
+
+    [[ -z "$target_url" ]] && target_url="${urls[1]}"
+
+    if [[ -z "$target_url" ]]; then
+      print -u2 -P "%F{red}zload: no matching release binary found for ${os_sys}_${arch_sys}%f"
+      return 1
+    fi
+
+    print -P "%F{cyan}zload:%f downloading %F{yellow}${target_url:t}%f..."
+    asset_file="${temp_dir}/${target_url:t}"
+    command curl -fsSL "$target_url" -o "$asset_file" 2>/dev/null || {
+      print -u2 -P "%F{red}zload: download failed for ${target_url}%f"
+      return 1
+    }
+  fi
+
+  if [[ "$asset_file" == *(\.tar\.gz|\.tgz) ]]; then
+    command tar -xzf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null
+  elif [[ "$asset_file" == *\.tar\.xz ]]; then
+    command tar -xJf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null
+  elif [[ "$asset_file" == *\.zip ]]; then
+    command unzip -q "$asset_file" -d "$temp_dir/extracted" 2>/dev/null
+  else
+    chmod +x "$asset_file"
+    mv "$asset_file" "$bin_dir/"
+  fi
+
+  local -a found_bins
+  local f
+  for f in "$temp_dir/extracted"/**/*(N*x); do
+    [[ -f "$f" ]] && found_bins+=("$f")
+  done
+
+  if (( ${#found_bins} > 0 )); then
+    for f in "${found_bins[@]}"; do
+      mv "$f" "$bin_dir/"
+      chmod +x "$bin_dir/${f:t}"
+    done
+  fi
+
+  return 0
+}

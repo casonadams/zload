@@ -19,13 +19,14 @@ _zload_parse_spec() {
   _zparsed[bin]=""
   _zparsed[build_cmd]=""
   _zparsed[on_dir]=""
+  _zparsed[from]=""
 
   local raw_input="$*"
   local -a words
   words=("${(@Q)${(z)raw_input}}")
 
-  local spec="${words[1]}"
-  _zparsed[spec]="$spec"
+  local _zspec_val="${words[1]}"
+  _zparsed[spec]="$_zspec_val"
 
   integer idx=2
   while (( idx <= ${#words} )); do
@@ -53,13 +54,30 @@ _zload_parse_spec() {
         (( idx++ ))
         _zparsed[on_dir]="${words[idx]}"
         ;;
+      --from)
+        (( idx++ ))
+        _zparsed[from]="${words[idx]}"
+        ;;
     esac
     (( idx++ ))
   done
 
-  if [[ "$spec" == snippet:* ]]; then
+  if [[ "${_zparsed[from]}" == *(gh-r|github-releases)* ]]; then
+    _zparsed[type]="gh-r"
+    local base="${_zspec_val%%[@#]*}"
+    if [[ "$_zspec_val" == *@* ]]; then
+      _zparsed[ref]="${_zspec_val#*@}"
+    elif [[ "$_zspec_val" == *[\#]* ]]; then
+      _zparsed[ref]="${_zspec_val#*[\#]}"
+    fi
+    _zparsed[url]="https://github.com/${base}.git"
+    local slug="${base//\//---}"
+    _zparsed[name]="gh-r---${slug}"
+    _zparsed[dir]="${ZLOAD_PLUGINS}/gh-r---${slug}"
+    _zparsed[bin]="bin"
+  elif [[ "$_zspec_val" == snippet:* ]]; then
     _zparsed[type]="snippet"
-    local raw_url="${spec#snippet:}"
+    local raw_url="${_zspec_val#snippet:}"
     _zparsed[url]="$raw_url"
     local slug="${raw_url#*://}"
     slug="${slug//[:\/]/---}"
@@ -68,44 +86,44 @@ _zload_parse_spec() {
     _zparsed[name]="$slug"
     _zparsed[dir]="${ZLOAD_PLUGINS}/_snippets/${slug}"
     _zparsed[subpath]="$filename"
-  elif [[ "$spec" == (http://*|https://*|file://*) && "$spec" == *(\.zsh|\.sh) ]]; then
+  elif [[ "$_zspec_val" == (http://*|https://*|file://*) && "$_zspec_val" == *(\.zsh|\.sh) ]]; then
     _zparsed[type]="snippet"
-    _zparsed[url]="$spec"
-    local slug="${spec#*://}"
+    _zparsed[url]="$_zspec_val"
+    local slug="${_zspec_val#*://}"
     slug="${slug//[:\/]/---}"
-    local filename="${spec:t}"
+    local filename="${_zspec_val:t}"
     _zparsed[name]="$slug"
     _zparsed[dir]="${ZLOAD_PLUGINS}/_snippets/${slug}"
     _zparsed[subpath]="$filename"
-  elif [[ "$spec" == omz:* ]]; then
+  elif [[ "$_zspec_val" == omz:* ]]; then
     _zparsed[type]="omz"
     _zparsed[name]="_omz"
     _zparsed[url]="https://github.com/ohmyzsh/ohmyzsh.git"
     _zparsed[dir]="${ZLOAD_PLUGINS}/_omz"
-    local rest="${spec#omz:}"
+    local rest="${_zspec_val#omz:}"
     if [[ "$rest" == plugins/* || "$rest" == themes/* || "$rest" == lib/* ]]; then
       _zparsed[subpath]="$rest"
     else
       _zparsed[subpath]="plugins/$rest"
     fi
-  elif [[ "$spec" == prezto:* ]]; then
+  elif [[ "$_zspec_val" == prezto:* ]]; then
     _zparsed[type]="prezto"
     _zparsed[name]="_prezto"
     _zparsed[url]="https://github.com/sorin-ionescu/prezto.git"
     _zparsed[dir]="${ZLOAD_PLUGINS}/_prezto"
-    local rest="${spec#prezto:}"
+    local rest="${_zspec_val#prezto:}"
     if [[ "$rest" == modules/* ]]; then
       _zparsed[subpath]="$rest"
     else
       _zparsed[subpath]="modules/$rest"
     fi
-  elif [[ "$spec" == http://* || "$spec" == https://* || "$spec" == git@* || "$spec" == file://* ]]; then
+  elif [[ "$_zspec_val" == http://* || "$_zspec_val" == https://* || "$_zspec_val" == git@* || "$_zspec_val" == file://* ]]; then
     _zparsed[type]="git"
-    local base="${spec%%[@#]*}"
-    if [[ "$spec" == *@* ]]; then
-      _zparsed[ref]="${spec#*@}"
-    elif [[ "$spec" == *[\#]* ]]; then
-      _zparsed[ref]="${spec#*[\#]}"
+    local base="${_zspec_val%%[@#]*}"
+    if [[ "$_zspec_val" == *@* ]]; then
+      _zparsed[ref]="${_zspec_val#*@}"
+    elif [[ "$_zspec_val" == *[\#]* ]]; then
+      _zparsed[ref]="${_zspec_val#*[\#]}"
     fi
     _zparsed[url]="$base"
     local slug="${base#*://}"
@@ -114,20 +132,20 @@ _zload_parse_spec() {
     slug="${slug//[:\/]/---}"
     _zparsed[name]="$slug"
     _zparsed[dir]="${ZLOAD_PLUGINS}/${slug}"
-  elif [[ "$spec" == /* || "$spec" == ~* || "$spec" == ./* ]]; then
+  elif [[ "$_zspec_val" == /* || "$_zspec_val" == ~* || "$_zspec_val" == ./* ]]; then
     _zparsed[type]="local"
-    local expanded="${(e)spec}"
+    local expanded="${(e)_zspec_val}"
     expanded="${expanded:A}"
     local base_name="${expanded:t}"
     _zparsed[name]="local---${base_name}"
     _zparsed[dir]="$expanded"
   else
     _zparsed[type]="github"
-    local base="${spec%%[@#]*}"
-    if [[ "$spec" == *@* ]]; then
-      _zparsed[ref]="${spec#*@}"
-    elif [[ "$spec" == *[\#]* ]]; then
-      _zparsed[ref]="${spec#*[\#]}"
+    local base="${_zspec_val%%[@#]*}"
+    if [[ "$_zspec_val" == *@* ]]; then
+      _zparsed[ref]="${_zspec_val#*@}"
+    elif [[ "$_zspec_val" == *[\#]* ]]; then
+      _zparsed[ref]="${_zspec_val#*[\#]}"
     fi
     _zparsed[url]="https://github.com/${base}.git"
     local slug="${base//\//---}"

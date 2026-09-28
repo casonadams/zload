@@ -70,6 +70,10 @@ zsh test/test_on_dir.zsh
 zsh test/test_paths.zsh
 print -P "%F{green}[OK] Slice 9 passed.%f\n"
 
+print -P "%F{blue}==> Slice 10: GitHub Release Binary Management...%f"
+zsh test/test_gh_r.zsh
+print -P "%F{green}[OK] Slice 10 passed.%f\n"
+
 print -P "%F{green}========================================%f"
 print -P "%F{green}  ALL TESTS PASSED SUCCESSFULLY!        %f"
 print -P "%F{green}========================================%f"

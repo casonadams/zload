@@ -91,6 +91,7 @@ Restart your shell or run `source ~/.zshrc`. On first run, `zload` downloads mis
 | **Monorepo Subpath** | `user/repo --path plugins/tool` | Targets specific directory inside a repository |
 | **Remote Snippet** | `snippet:https://.../script.zsh` | Single-file script download without Git clone |
 | **Build Hook** | `user/repo --build "./install --bin"` | Executes compilation command in cloned repo |
+| **GitHub Releases Binary** | `user/repo --from gh-r` | Downloads precompiled binary asset and adds to PATH |
 | **Local directory** | `~/code/my-plugin` | Local directory on your machine |
 
 ---

@@ -351,6 +351,30 @@ Immediately `source "$ZLOAD_CACHE/bundle.zsh"` and return.
 
 ---
 
+### Slice 10: GitHub Release Binary Management (`--from gh-r`)
+**Goal**: Enable installing and managing precompiled executable binaries directly from GitHub Releases (`--from gh-r` / `--from github-releases`).
+**Acceptance Criteria**:
+- `zload <owner>/<repo> --from gh-r` parses the GitHub Releases API (or release assets).
+- Downloads matching OS/Arch archive (`.tar.gz`, `.tar.xz`, `.zip`, or raw binary).
+- Extracts and installs the executable into `${ZLOAD_PLUGINS}/gh-r---<owner>---<repo>/bin/`.
+- Automatically adds `bin/` to `$PATH`.
+- Supports version pinning via `@<tag>`.
+- In `zload update`, checks for latest release updates.
+
+#### Task 10.1: GitHub Releases specification parsing & installer [3]
+**Do**: Add `--from gh-r|github-releases` to `_zload_parse_spec`. Implement `_zload_install_gh_r` in `functions/_zload_install_gh_r` to download matching release assets based on system OS and architecture, extract archives, and place binaries in `bin/`.
+**Tests**: `test/test_gh_r.zsh`: Test downloading and executing a mock release archive containing an executable binary.
+**Verify**: `zsh test/test_gh_r.zsh` -- passes.
+
+#### Task 10.2: PATH integration & bundle compiling [2]
+**Do**: Ensure `gh-r` plugins automatically export `bin/` to `$PATH` in both direct execution and static compiled `bundle.zsh`.
+**Tests**: Verify that `gh-r` binary appears in `$PATH` across fresh shells.
+**Verify**: `zsh test/test_gh_r.zsh` -- passes.
+
+**Slice 10 Verification**: Full test suite passes including `test_gh_r.zsh`.
+
+---
+
 ## Final Verification
 
 1. **Syntax Check**: `zsh -n zload.zsh` returns 0 with no errors.
