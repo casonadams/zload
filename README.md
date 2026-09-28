@@ -247,6 +247,41 @@ A lightweight `chpwd` hook checks directory patterns upon `cd`, loads the plugin
 
 ---
 
+## Smart PATH & FPATH Management
+
+Managing `$PATH` manually with lines of `export PATH="$PATH:/dir"` in `.zshrc` frequently accumulates dead directories and duplicate entries every time a shell or tmux pane is opened.
+
+`zload` provides built-in, deduplicating path helpers:
+
+### 1. Prepend to `$PATH` with Auto-Deduplication
+```zsh
+zload path \
+  ~/.opencode/bin \
+  ~/.cargo/bin \
+  ~/.local/bin \
+  /opt/homebrew/bin \
+  /opt/homebrew/sbin \
+  /opt/homebrew/opt/openjdk/bin
+```
+
+- **Existence Validation**: Only directories that actually exist on disk are added. Dead or deleted paths are filtered out automatically, preventing command resolution stalls.
+- **Tilde & Variable Expansion**: Automatically expands `~`, `$HOME`, and relative paths into clean canonical paths.
+- **Strict Deduplication**: Guarantees each directory appears exactly once at the front of `$PATH`, even when `.zshrc` is re-sourced repeatedly.
+- **Inspect**: Run `zload path` with no arguments to print your clean, active `$PATH` one entry per line.
+
+### 2. Prepend to `$fpath`
+```zsh
+zload fpath ~/.my-completions /opt/homebrew/share/zsh/site-functions
+```
+
+- Deduplicates `$fpath` entries and validates directory existence.
+- Run `zload fpath` with no arguments to inspect all active completion directories.
+
+### 3. Automatic `~/.zfunc` Discovery
+If `~/.zfunc` exists on your system (the standard directory for tools like `uv`, `rustup`, `pipx`, `bwc`), `zload` automatically discovers it and links it into `$fpath` in both live sessions and the compiled `.zwc` bundle. Zero configuration required in `.zshrc`!
+
+---
+
 ## CLI Management
 
 `zload` provides built-in shell commands to inspect and maintain your plugins:

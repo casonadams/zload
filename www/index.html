@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=3">
+  <link rel="stylesheet" href="css/style.css?v=4">
 
   <script>
     (function() {
@@ -221,6 +221,18 @@
           <div class="feature-title">Seamless OMZ & Prezto</div>
           <div class="feature-text">Load <code>omz:git</code> or <code>prezto:utility</code> without 100MB framework clones. Automatically injects missing <code>lib/git.zsh</code> and theme colors.</div>
         </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🗂</div>
+          <div class="feature-title">Smart PATH &amp; FPATH</div>
+          <div class="feature-text">Deduplicates <code>$PATH</code> and <code>$fpath</code>, expands <code>~</code>, verifies directory existence, and auto-links <code>~/.zfunc</code> for custom completions.</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-title">Reproducible Lockfiles</div>
+          <div class="feature-text">Freeze exact Git commit hashes with <code>zload lock</code> and sync across machines with <code>zload sync</code> for 100% deterministic dotfiles.</div>
+        </div>
       </div>
     </div>
   </section>
@@ -234,6 +246,7 @@
       <div class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab(event, 'tab-p10k')">With Powerlevel10k</button>
         <button class="tab-btn" onclick="switchTab(event, 'tab-standard')">Clean Recommended</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tab-paths')">PATH &amp; FPATH Helpers</button>
         <button class="tab-btn" onclick="switchTab(event, 'tab-migration')">Zinit Migration</button>
       </div>
 
@@ -311,6 +324,41 @@ plugins=(
 )
 
 zload <span style="color: #38bdf8;">"${plugins[@]}"</span></code></pre>
+        </div>
+      </div>
+
+      <!-- Tab: PATH & FPATH Helpers -->
+      <div id="tab-paths" class="tab-pane">
+        <div class="code-preview">
+          <div class="code-header">
+            <div class="code-dots">
+              <span class="code-dot red"></span>
+              <span class="code-dot yellow"></span>
+              <span class="code-dot green"></span>
+            </div>
+            <span class="code-title">Smart PATH &amp; FPATH Helpers</span>
+            <button class="btn-copy" onclick="copySnippet('code-paths')">Copy</button>
+          </div>
+          <pre><code id="code-paths"><span style="color: #64748b;"># Prepend to PATH: verifies existence, expands ~, and strictly deduplicates</span>
+zload path \
+  ~/.opencode/bin \
+  ~/.cargo/bin \
+  ~/.local/bin \
+  /opt/homebrew/bin \
+  /opt/homebrew/sbin \
+  /opt/homebrew/opt/openjdk/bin \
+  /usr/local/bin
+
+<span style="color: #64748b;"># Prepend to fpath with deduplication</span>
+zload fpath ~/.my-completions /opt/homebrew/share/zsh/site-functions
+
+<span style="color: #64748b;"># Automatic ~/.zfunc discovery:</span>
+<span style="color: #64748b;"># If ~/.zfunc exists (uv, bwc, pipx completions), zload automatically</span>
+<span style="color: #64748b;"># links it into $fpath and bytecode bundles. Zero config required!</span>
+
+<span style="color: #64748b;"># Inspect active entries anytime:</span>
+<span style="color: #64748b;"># $ zload path</span>
+<span style="color: #64748b;"># $ zload fpath</span></code></pre>
         </div>
       </div>
 
