@@ -31,12 +31,14 @@ print -P "%F{blue}==> Slice 3: Lazy Loading Primitives...%f"
 zsh test/test_lazy_cmd.zsh
 zsh test/test_lazy_compinit.zsh
 zsh test/test_defer.zsh
+zsh test/test_eval.zsh
 print -P "%F{green}[OK] Slice 3 passed.%f\n"
 
 print -P "%F{blue}==> Slice 4: Bundle Compiler & Ultra-Fast Warm Startup...%f"
 zsh test/test_order.zsh
 zsh test/test_bundle.zsh
 zsh test/test_warm_startup.zsh
+zsh test/test_zero_forks.zsh
 print -P "%F{green}[OK] Slice 4 passed.%f\n"
 
 print -P "%F{blue}==> Slice 5: CLI Management & Quality Assurance...%f"

@@ -115,6 +115,17 @@ zload compinit --lazy
 
 Any calls to `compdef` made by plugins prior to `compinit` are buffered and automatically replayed once `compinit` runs.
 
+### 4. Zero-Subprocess Eval Caching (`zload eval`)
+Tools like `starship`, `zoxide`, or `direnv` normally spawn subshells on every terminal startup:
+
+```zsh
+# Instead of slow eval "$(starship init zsh)":
+zload eval starship "starship init zsh"
+zload eval zoxide "zoxide init zsh"
+```
+
+`zload` executes the command once, compiles its shell output into memory-mapped wordcode (`.zwc`), and checks the binary timestamp. Subsequent shell startups source the compiled file in **0.2 ms** with **0 subshells**.
+
 ---
 
 ## CLI Management
