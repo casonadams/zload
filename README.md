@@ -110,12 +110,6 @@ Comprehensive guides and technical documentation are organized in [`docs/`](docs
   - Freeze exact Git commit hashes across all plugins with `zload lock`.
   - Check out identical pinned environments on new machines with `zload sync`.
 
-- **[Powerlevel10k & Prompt Integration](docs/syntax.md#powerlevel10k)**
-  - Why `zload` is the ideal companion for Instant Prompt: zero stdout/stderr output and zero child forks guarantee 100% leak-free instant prompt rendering.
-
-- **[Zinit & Framework Migration Guide](docs/commands.md#migrating-from-zinit)**
-  - Simple side-by-side translation guide for converting configurations from Zinit, Oh-My-Zsh, and Antigen.
-
 ---
 
 ## UNIX Manual Page

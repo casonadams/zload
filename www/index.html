@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/style.css?v=9">
 
   <script>
     (function() {
@@ -182,7 +182,6 @@ source "${HOME}/.zload/zload.zsh"</code></pre>
       <div class="tabs-nav">
         <button class="tab-btn active" onclick="switchTab(event, 'tab-standard')">Clean Recommended (~/.zshrc)</button>
         <button class="tab-btn" onclick="switchTab(event, 'tab-paths')">PATH &amp; FPATH Helpers</button>
-        <button class="tab-btn" onclick="switchTab(event, 'tab-migration')">Zinit Migration</button>
       </div>
 
       <!-- Tab 1: Clean Recommended -->
@@ -263,37 +262,6 @@ zload fpath ~/.my-completions /opt/homebrew/share/zsh/site-functions
 <span style="color: #64748b;"># Inspect active entries anytime:</span>
 <span style="color: #64748b;"># $ zload path</span>
 <span style="color: #64748b;"># $ zload fpath</span></code></pre>
-        </div>
-      </div>
-
-      <!-- Tab 3: Zinit Migration -->
-      <div id="tab-migration" class="tab-pane">
-        <div class="code-preview">
-          <div class="code-header">
-            <div class="code-dots">
-              <span class="code-dot red"></span>
-              <span class="code-dot yellow"></span>
-              <span class="code-dot green"></span>
-            </div>
-            <span class="code-title">Before vs After (Zinit Migration)</span>
-            <button class="btn-copy" onclick="copySnippet('code-migration')">Copy</button>
-          </div>
-          <pre><code id="code-migration"><span style="color: #ef4444;"># BEFORE (Zinit - Verbose DSL & manual hooks)</span>
-<span style="color: #64748b;"># zinit wait lucid light-mode depth=1 for \
-#   OMZL::theme-and-appearance.zsh \
-#   casonadams/walh-shell \
-#   lukechilds/zsh-nvm \
-#   zsh-users/zsh-syntax-highlighting \
-#   zsh-users/zsh-autosuggestions</span>
-
-<span style="color: #10b981;"># AFTER (zload - Clean, declarative, &lt; 0.5ms warm startup)</span>
-zload <span style="color: #38bdf8;">"
-  omz:lib/theme-and-appearance.zsh
-  casonadams/walh-shell
-  lukechilds/zsh-nvm --on nvm,node,npm
-  zsh-users/zsh-syntax-highlighting --defer
-  zsh-users/zsh-autosuggestions
-"</span></code></pre>
         </div>
       </div>
     </div>

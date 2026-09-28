@@ -7,7 +7,7 @@
   <meta name="description" content="Complete documentation for zload: flexible input syntaxes, lazy loading primitives, smart path management, CLI reference, and Powerlevel10k instant prompt integration.">
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=8">
+  <link rel="stylesheet" href="css/style.css?v=9">
 
   <script>
     (function() {
@@ -64,7 +64,6 @@
       <li><a href="#paths-completions" class="docs-nav-link" onclick="closeDocsToc()">Smart PATH &amp; Completions</a></li>
       <li><a href="#commands" class="docs-nav-link" onclick="closeDocsToc()">CLI Commands Reference</a></li>
       <li><a href="#prompts" class="docs-nav-link" onclick="closeDocsToc()">Prompts &amp; Themes</a></li>
-      <li><a href="#migration" class="docs-nav-link" onclick="closeDocsToc()">Migration Guide</a></li>
     </ul>
   </div>
 
@@ -100,7 +99,6 @@
         <div class="docs-nav-title">Reference</div>
         <ul class="docs-nav-links">
           <li><a href="#commands" class="docs-nav-link">CLI Commands</a></li>
-          <li><a href="#migration" class="docs-nav-link">Migration Guide</a></li>
         </ul>
       </div>
     </aside>
@@ -413,47 +411,6 @@ zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span></code></pre>
           <li><a href="https://github.com/romkatv/powerlevel10k" target="_blank" rel="noopener"><strong>Powerlevel10k</strong></a>: Fast and responsive prompt. Load via <code>zload romkatv/powerlevel10k</code>. Because <code>zload</code> produces zero console output and zero subprocess forks during warm startup, it works seamlessly with Powerlevel10k's Instant Prompt.</li>
           <li><a href="https://starship.rs" target="_blank" rel="noopener"><strong>Starship</strong></a>: Cross-shell prompt. Cache its initialization script with zero-subprocess eval caching: <code>zload eval starship "starship init zsh"</code>.</li>
         </ul>
-      </section>
-
-      <!-- Section: Migration Guide -->
-      <section id="migration" class="docs-section">
-        <h2>Migrating from Zinit</h2>
-        <p>
-          Translating your existing Zinit configuration to <code>zload</code> is straightforward:
-        </p>
-
-        <div class="table-responsive">
-          <table class="matrix-table">
-            <thead>
-              <tr>
-                <th>Zinit Syntax</th>
-                <th>zload Equivalent</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>zinit wait lucid ... for ...</code></td>
-                <td>Standard array: <code>zload "${plugins[@]}"</code></td>
-              </tr>
-              <tr>
-                <td><code>OMZL::&lt;name&gt;.zsh</code></td>
-                <td><code>omz:lib/&lt;name&gt;.zsh</code></td>
-              </tr>
-              <tr>
-                <td><code>OMZ::plugins/&lt;name&gt;</code></td>
-                <td><code>omz:&lt;name&gt;</code></td>
-              </tr>
-              <tr>
-                <td><code>zinit ice as"program" from"gh-r"</code></td>
-                <td><code>user/repo --from gh-r</code></td>
-              </tr>
-              <tr>
-                <td><code>atinit"zicompinit; zicdreplay"</code></td>
-                <td>Delete! <code>zload</code> handles completions lazily.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
       </section>
     </main>
   </div>
