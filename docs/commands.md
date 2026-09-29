@@ -87,16 +87,18 @@ zload update --all
 # Update only zload itself:
 zload update --self
 ```
-
-- Pulls fast-forward updates across all active plugins.
-- Skips pinned release tags and local directories.
+- Pulls fast-forward updates across all active plugins in parallel.
+- Reports commit diffs (`old_commit -> new_commit`) for modified plugins and marks unchanged ones as up to date.
+- Re-runs plugin build hooks (`--build` / `--hook`) automatically whenever new commits are pulled.
+- Re-fetches and recompiles remote snippets (`snippet:...`).
 - Automatically triggers `zload compile` upon completion so the warm bytecode bundle is always in sync.
+- Invalidates completion dump caches (`zcompdump*`) when plugin changes are detected.
 
 ---
 
 ## 5. `zload upgrade` / `zload self-update`
 
-Upgrades `zload` itself to the latest commit/release from upstream Git and recompiles all internal modules.
+Upgrades `zload` itself to the latest commit/release from upstream Git, recompiles all internal modules and core entrypoints, clears the runtime cache (`~/.cache/zload`), and reloads updated functions in the active shell session while preserving your installed plugins in `$ZLOAD_DATA`.
 
 ### Usage
 ```zsh
@@ -105,20 +107,29 @@ zload upgrade
 zload self-update
 ```
 
+- Pulls fast-forward updates from the upstream Git repository.
+- Cleans stale wordcode artifacts and recompiles `zload.zsh` and all `functions/` modules into `.zwc`.
+- Wipes `~/.cache/zload` to invalidate old bytecode bundles and completion dumps.
+- Immediately re-autoloads updated functions into the active shell without requiring an `exec zsh`.
+- Preserves `$ZLOAD_DATA` (`~/.local/share/zload/plugins`), so cloned plugins are never deleted during an upgrade.
+
 ---
 
 ## 6. `zload clean [-f|--force]`
 
-Prunes unreferenced plugins from disk that were removed from `.zshrc`.
+Prunes unreferenced plugins from disk that were removed from `.zshrc`, and flushes stale bundle caches when forced.
 
 ### Usage
 ```zsh
 # Dry run: lists unreferenced directories on disk
 zload clean
 
-# Forced deletion: deletes unreferenced directories
+# Forced deletion: deletes unreferenced directories and flushes stale bundle caches
 zload clean -f
 ```
+
+- Compares active plugin declarations against `$ZLOAD_PLUGINS`.
+- When called with `-f` or `--force`, deletes unreferenced plugin directories and removes stale `bundle.*` and completion dump caches from `~/.cache/zload`.
 
 ---
 

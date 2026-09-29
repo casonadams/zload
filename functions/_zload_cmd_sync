@@ -9,17 +9,27 @@ _zload_cmd_sync() {
 
   print -P "%F{14}zload%f  %F{8}syncing plugins from ${lock_file}...%f\n"
 
+  local -A build_hooks build_subpaths
+  local spec_entry
+  for spec_entry in "${_zload_specs[@]}"; do
+    local -A parsed
+    _zload_parse_spec parsed "$spec_entry"
+    if [[ -n "${parsed[dir]}" && -n "${parsed[build_cmd]}" ]]; then
+      build_hooks[${parsed[dir]}]=${parsed[build_cmd]}
+      build_subpaths[${parsed[dir]}]=${parsed[subpath]}
+    fi
+  done
+
   integer synced=0
-  local line
+  local line name commit dir curr bdir
   for line in "${(f)"$(< "$lock_file")"}"; do
     [[ -z "$line" || "$line" == \#* ]] && continue
 
-    local name="${line%%:*}"
-    local commit="${line#*:}"
-    local dir="${ZLOAD_PLUGINS}/${name}"
+    name="${line%%:*}"
+    commit="${line#*:}"
+    dir="${ZLOAD_PLUGINS}/${name}"
 
     if [[ -d "$dir/.git" ]]; then
-      local curr
       curr="$(command git -C "$dir" rev-parse HEAD 2>/dev/null)"
       if [[ "$curr" != "$commit" ]]; then
         command git -C "$dir" checkout -q "$commit" 2>/dev/null || {
@@ -28,11 +38,21 @@ _zload_cmd_sync() {
         }
         print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}synced%f  %F{8}(${commit[1,8]})%f"
         (( synced++ ))
+        if [[ -n "${build_hooks[$dir]}" ]]; then
+          bdir="$dir"
+          [[ -n "${build_subpaths[$dir]}" && -d "$dir/${build_subpaths[$dir]}" ]] && bdir="$dir/${build_subpaths[$dir]}"
+          print -P "     %F{14}zload%f  %F{11}rebuilding%f  %F{15}%B${name}%b%f %F{8}(${build_hooks[$dir]})%f"
+          ( cd "$bdir" && eval "${build_hooks[$dir]}" ) >/dev/null 2>&1
+        fi
       else
         print -P "  %F{12}•%f  %F{15}%B${(r:35:)name}%b%f  %F{8}already at locked commit%f"
       fi
     fi
   done
+
+  if (( synced > 0 )) && [[ -d "$ZLOAD_CACHE" ]]; then
+    rm -f "${ZLOAD_CACHE}"/zcompdump*(N)
+  fi
 
   _zload_compile_bundle
   print -P "\n%F{10}zload%f  %F{10}✓ sync complete%f %F{8}($synced plugins updated)%f"

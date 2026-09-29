@@ -12,14 +12,13 @@ _zload_cmd_lock() {
   lines+=("# zload lockfile")
 
   integer count=0
-  local dir
+  local dir name commit
   for dir in "${plugin_dirs[@]}"; do
-    local name="${dir:t}"
+    name="${dir:t}"
     if [[ "$name" == "_snippets" ]]; then
       continue
     fi
     if [[ -d "$dir/.git" ]]; then
-      local commit
       commit="$(command git -C "$dir" rev-parse HEAD 2>/dev/null)"
       if [[ -n "$commit" ]]; then
         lines+=("${name}:${commit}")

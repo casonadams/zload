@@ -4,10 +4,9 @@ set -e
 SANDBOX=$(mktemp -d)
 SANDBOX="${SANDBOX:A}"
 trap 'rm -rf "$SANDBOX"' EXIT
-
+unset ZSH
 export XDG_DATA_HOME="$SANDBOX/data"
 export XDG_CACHE_HOME="$SANDBOX/cache"
-
 source ./zload.zsh
 
 # Setup Oh-My-Zsh repository structure with real upstream function implementations

@@ -40,5 +40,17 @@ zload compile >/dev/null
 unset SNIPPET_WAS_LOADED
 source "$ZLOAD_CACHE/bundle.zsh"
 [[ "$SNIPPET_WAS_LOADED" == "1" ]] || { echo "FAIL: snippet not loaded from compiled bundle"; exit 1; }
+# 3. Test snippet update via zload update
+cat << 'EOF' > "$SNIPPET_SOURCE"
+export SNIPPET_WAS_LOADED=2
+snippet_cmd() {
+  echo "snippet_cmd_v2:$1"
+}
+EOF
 
-echo "PASS: test_snippet (raw snippet fetch, bytecode compilation, and bundle integration)"
+zload update >/dev/null
+unset SNIPPET_WAS_LOADED
+source "$ZLOAD_CACHE/bundle.zsh"
+[[ "$SNIPPET_WAS_LOADED" == "2" ]] || { echo "FAIL: snippet not updated in bundle after zload update"; exit 1; }
+
+echo "PASS: test_snippet (raw snippet fetch, update, bytecode compilation, and bundle integration)"

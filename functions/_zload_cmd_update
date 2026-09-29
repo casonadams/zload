@@ -12,11 +12,21 @@ _zload_cmd_update() {
     return 0
   fi
 
-  local -A job_pids
-  local -A job_names
+  local -A job_pids job_names old_commits build_hooks build_subpaths
   local -a failed
+  integer updated_count=0
 
-  local dir name branch pid pdir ref commit
+  local dir name branch pid pdir ref commit old_commit spec_entry bdir target_file label src_file
+
+  for spec_entry in "${_zload_specs[@]}"; do
+    local -A parsed
+    _zload_parse_spec parsed "$spec_entry"
+    if [[ -n "${parsed[dir]}" && -n "${parsed[build_cmd]}" ]]; then
+      build_hooks[${parsed[dir]}]=${parsed[build_cmd]}
+      build_subpaths[${parsed[dir]}]=${parsed[subpath]}
+    fi
+  done
+
   for dir in "${plugin_dirs[@]}"; do
     name="${dir:t}"
     if [[ "$name" == "_snippets" ]]; then
@@ -33,6 +43,8 @@ _zload_cmd_update() {
       continue
     fi
 
+    old_commits[$dir]="$(command git -C "$dir" rev-parse --short HEAD 2>/dev/null)"
+
     (
       command git -C "$dir" pull --ff-only >/dev/null 2>&1
     ) &
@@ -44,17 +56,62 @@ _zload_cmd_update() {
   for pid in ${(k)job_pids}; do
     name="${job_names[$pid]}"
     pdir="${job_pids[$pid]}"
-    commit="$(command git -C "$pdir" rev-parse --short HEAD 2>/dev/null)"
-    ref="$(command git -C "$pdir" branch --show-current 2>/dev/null)"
-    [[ -z "$ref" ]] && ref="pinned"
+    old_commit="${old_commits[$pdir]}"
 
     if wait "$pid"; then
-      print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}up to date%f  %F{8}(${ref}@${commit})%f"
+      commit="$(command git -C "$pdir" rev-parse --short HEAD 2>/dev/null)"
+      ref="$(command git -C "$pdir" branch --show-current 2>/dev/null)"
+      [[ -z "$ref" ]] && ref="pinned"
+      if [[ -n "$old_commit" && "$old_commit" != "$commit" ]]; then
+        print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}updated%f      %F{8}(${old_commit} -> ${commit})%f"
+        (( updated_count++ ))
+        if [[ -n "${build_hooks[$pdir]}" ]]; then
+          bdir="$pdir"
+          [[ -n "${build_subpaths[$pdir]}" && -d "$pdir/${build_subpaths[$pdir]}" ]] && bdir="$pdir/${build_subpaths[$pdir]}"
+          print -P "     %F{14}zload%f  %F{11}rebuilding%f  %F{15}%B${name}%b%f %F{8}(${build_hooks[$pdir]})%f"
+          ( cd "$bdir" && eval "${build_hooks[$pdir]}" ) >/dev/null 2>&1
+        fi
+      else
+        print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}up to date%f   %F{8}(${ref}@${commit})%f"
+      fi
     else
       print -P "  %F{9}✗%f  %F{15}%B${(r:35:)name}%b%f  %F{9}update failed%f"
       failed+=("$name")
     fi
   done
+
+  for spec_entry in "${_zload_specs[@]}"; do
+    local -A parsed
+    _zload_parse_spec parsed "$spec_entry"
+    if [[ "${parsed[type]}" == "snippet" ]]; then
+      target_file="${parsed[dir]}/${parsed[subpath]}"
+      label="${parsed[raw]:-${parsed[spec]}}"
+      if [[ "${parsed[url]}" == file://* ]]; then
+        src_file="${parsed[url]#file://}"
+        if [[ -f "$src_file" ]]; then
+          cp -f "$src_file" "$target_file"
+          zcompile -R "$target_file" 2>/dev/null
+          print -P "  %F{10}✓%f  %F{15}%B${(r:35:)label}%b%f  %F{10}snippet updated%f"
+          (( updated_count++ ))
+        fi
+      else
+        if command curl -fsSL "${parsed[url]}" -o "${target_file}.tmp.$$" >/dev/null 2>&1; then
+          mv -f "${target_file}.tmp.$$" "$target_file"
+          zcompile -R "$target_file" 2>/dev/null
+          print -P "  %F{10}✓%f  %F{15}%B${(r:35:)label}%b%f  %F{10}snippet updated%f"
+          (( updated_count++ ))
+        else
+          rm -f "${target_file}.tmp.$$" 2>/dev/null
+          print -P "  %F{9}✗%f  %F{15}%B${(r:35:)label}%b%f  %F{9}snippet update failed%f"
+          failed+=("$label")
+        fi
+      fi
+    fi
+  done
+
+  if (( updated_count > 0 )) && [[ -d "$ZLOAD_CACHE" ]]; then
+    rm -f "${ZLOAD_CACHE}"/zcompdump*(N)
+  fi
 
   if (( ${#failed} > 0 )); then
     print -u2 -P "\n%F{11}zload:%f %F{11}warning: some plugins failed to update%f"

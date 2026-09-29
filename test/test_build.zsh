@@ -36,5 +36,20 @@ ARTIFACT="$CLONED_DIR/artifact.zsh"
 
 [[ -f "$ARTIFACT" ]] || { echo "FAIL: artifact.zsh was not created by --build hook"; exit 1; }
 [[ "$(< "$ARTIFACT")" == *"BUILT_ARTIFACT=1"* ]] || { echo "FAIL: artifact.zsh has unexpected content"; exit 1; }
+# Push new commit to test rebuild on update
+cat << 'EOF' > "$SRC_DIR/tool.plugin.zsh"
+export TOOL_INSTALLED=2
+EOF
+git -C "$SRC_DIR" commit -q -am "v2"
+git -C "$SRC_DIR" push -q "$BARE_DIR" main
 
-echo "PASS: test_build (post-install build hook execution)"
+# Remove artifact to prove update rebuilds it
+rm -f "$ARTIFACT"
+
+# Run zload update
+zload update >/dev/null
+
+[[ -f "$ARTIFACT" ]] || { echo "FAIL: artifact.zsh was not re-created on update by --build hook"; exit 1; }
+[[ "$(< "$ARTIFACT")" == *"BUILT_ARTIFACT=1"* ]] || { echo "FAIL: rebuilt artifact has unexpected content"; exit 1; }
+
+echo "PASS: test_build (post-install and post-update build hook execution)"

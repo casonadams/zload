@@ -2,7 +2,7 @@ _zload_cmd_clean() {
   emulate -L zsh
   setopt null_glob
 
-  local force=0
+  local force=0 dir name cdir pdir capdir spec_entry
   [[ "$1" == "-f" || "$1" == "--force" ]] && force=1
 
   local -A active_dirs
@@ -10,8 +10,8 @@ _zload_cmd_clean() {
     local -A parsed
     _zload_parse_spec parsed "$spec_entry"
     if [[ -n "${parsed[dir]}" ]]; then
-      local pdir="${parsed[dir]}"
-      local capdir="${parsed[dir]:A}"
+      pdir="${parsed[dir]}"
+      capdir="${parsed[dir]:A}"
       active_dirs[$pdir]=1
       active_dirs[$capdir]=1
     fi
@@ -22,21 +22,24 @@ _zload_cmd_clean() {
 
   local -a to_remove
   for dir in "${plugin_dirs[@]}"; do
-    local name="${dir:t}"
+    name="${dir:t}"
     [[ "$name" == "_snippets" ]] && continue
-    local cdir="${dir:A}"
+    cdir="${dir:A}"
     if (( ! $+active_dirs[$dir] && ! $+active_dirs[$cdir] )); then
       to_remove+=("$dir")
     fi
   done
 
   if (( ${#to_remove} == 0 )); then
+    if (( force )) && [[ -d "$ZLOAD_CACHE" ]]; then
+      rm -f "${ZLOAD_CACHE}"/bundle.*(N) "${ZLOAD_CACHE}"/zcompdump*(N)
+    fi
     print -P "%F{10}zload%f  %F{10}✓ cache and plugins are clean.%f"
     return 0
   fi
 
   for dir in "${to_remove[@]}"; do
-    local name="${dir:t}"
+    name="${dir:t}"
     if (( force )); then
       print -P "%F{14}zload%f  %F{9}removing%f       %F{15}%B${name}%b%f%F{8}...%f"
       rm -rf "$dir"
@@ -44,6 +47,8 @@ _zload_cmd_clean() {
       print -P "%F{11}zload%f  %F{11}unused%f         %F{15}%B${name}%b%f %F{8}(pass -f to delete)%f"
     fi
   done
-
+  if (( force )) && [[ -d "$ZLOAD_CACHE" ]]; then
+    rm -f "${ZLOAD_CACHE}"/bundle.*(N) "${ZLOAD_CACHE}"/zcompdump*(N)
+  fi
   return 0
 }

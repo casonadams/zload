@@ -32,10 +32,17 @@ echo 'export VER=2' > "$REMOTE_SRC/test.plugin.zsh"
 git -C "$REMOTE_SRC" commit -q -am "v2"
 git -C "$REMOTE_SRC" push -q "$REMOTE_BARE" main
 
-# Run zload update
+# Run zload update (should show updated)
 UPDATE_OUT=$(zload update)
-[[ "$UPDATE_OUT" == *"up to date"* || "$UPDATE_OUT" == *"update complete"* ]] || {
-  echo "FAIL: zload update did not report completion"
+[[ "$UPDATE_OUT" == *"updated"* && "$UPDATE_OUT" == *"update complete"* ]] || {
+  echo "FAIL: zload update did not report updated (output: $UPDATE_OUT)"
+  exit 1
+}
+
+# Run zload update again (should show up to date)
+SECOND_OUT=$(zload update)
+[[ "$SECOND_OUT" == *"up to date"* ]] || {
+  echo "FAIL: second zload update did not report up to date (output: $SECOND_OUT)"
   exit 1
 }
 
@@ -43,4 +50,4 @@ UPDATE_OUT=$(zload update)
 source "$ZLOAD_CACHE/bundle.zsh"
 [[ "$VER" == "2" ]] || { echo "FAIL: update did not pull new version into bundle"; exit 1; }
 
-echo "PASS: test_update (git pull and bundle recompile verified)"
+echo "PASS: test_update (git pull, commit diff tracking, and bundle recompile verified)"

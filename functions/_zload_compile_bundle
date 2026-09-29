@@ -35,6 +35,8 @@ _zload_compile_bundle() {
     print "typeset -g ZLOAD_DATA=${(q)ZLOAD_DATA}"
     print "typeset -g ZLOAD_CACHE=${(q)ZLOAD_CACHE}"
     print "typeset -g ZLOAD_PLUGINS=${(q)ZLOAD_PLUGINS}"
+    print "typeset -g -a _zload_specs"
+    print "_zload_specs=(${(q)specs[@]})"
 
     local -a all_fpaths all_paths
     [[ -d "$HOME/.zfunc" ]] && all_fpaths+=("$HOME/.zfunc")

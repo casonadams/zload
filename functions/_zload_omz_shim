@@ -6,8 +6,8 @@ _zload_omz_shim() {
 
   local subpath="$1"
   local script_file="$2"
-  local omz_lib="${ZSH:-${ZLOAD_PLUGINS}/_omz}/lib"
-
+  local omz_lib="${ZLOAD_PLUGINS}/_omz/lib"
+  [[ ! -d "$omz_lib" && -d "${ZSH}/lib" ]] && omz_lib="${ZSH}/lib"
   [[ ! -d "$omz_lib" ]] && return 0
 
   local need_git=0
