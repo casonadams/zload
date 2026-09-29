@@ -1,6 +1,6 @@
 _zload_cmd_update() {
   emulate -L zsh
-  setopt null_glob
+  setopt local_options null_glob no_monitor no_notify
 
   print -P "%F{14}zload%f  %F{8}updating installed plugins...%f\n"
 
@@ -49,27 +49,28 @@ _zload_cmd_update() {
       command git -C "$dir" pull --ff-only >/dev/null 2>&1
     ) &
     pid=$!
-    job_pids[$pid]="$dir"
-    job_names[$pid]="$name"
+    job_pids[$dir]="$pid"
+    job_names[$dir]="$name"
   done
 
-  for pid in ${(k)job_pids}; do
-    name="${job_names[$pid]}"
-    pdir="${job_pids[$pid]}"
-    old_commit="${old_commits[$pdir]}"
+  for dir in "${plugin_dirs[@]}"; do
+    (( ! $+job_pids[$dir] )) && continue
+    pid="${job_pids[$dir]}"
+    name="${job_names[$dir]}"
+    old_commit="${old_commits[$dir]}"
 
     if wait "$pid"; then
-      commit="$(command git -C "$pdir" rev-parse --short HEAD 2>/dev/null)"
-      ref="$(command git -C "$pdir" branch --show-current 2>/dev/null)"
+      commit="$(command git -C "$dir" rev-parse --short HEAD 2>/dev/null)"
+      ref="$(command git -C "$dir" branch --show-current 2>/dev/null)"
       [[ -z "$ref" ]] && ref="pinned"
       if [[ -n "$old_commit" && "$old_commit" != "$commit" ]]; then
         print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}updated%f      %F{8}(${old_commit} -> ${commit})%f"
         (( updated_count++ ))
-        if [[ -n "${build_hooks[$pdir]}" ]]; then
-          bdir="$pdir"
-          [[ -n "${build_subpaths[$pdir]}" && -d "$pdir/${build_subpaths[$pdir]}" ]] && bdir="$pdir/${build_subpaths[$pdir]}"
-          print -P "     %F{14}zload%f  %F{11}rebuilding%f  %F{15}%B${name}%b%f %F{8}(${build_hooks[$pdir]})%f"
-          ( cd "$bdir" && eval "${build_hooks[$pdir]}" ) >/dev/null 2>&1
+        if [[ -n "${build_hooks[$dir]}" ]]; then
+          bdir="$dir"
+          [[ -n "${build_subpaths[$dir]}" && -d "$dir/${build_subpaths[$dir]}" ]] && bdir="$dir/${build_subpaths[$dir]}"
+          print -P "     %F{14}zload%f  %F{11}rebuilding%f  %F{15}%B${name}%b%f %F{8}(${build_hooks[$dir]})%f"
+          ( cd "$bdir" && eval "${build_hooks[$dir]}" ) >/dev/null 2>&1
         fi
       else
         print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}up to date%f   %F{8}(${ref}@${commit})%f"
