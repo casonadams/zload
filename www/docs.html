@@ -156,6 +156,7 @@
 
         <div class="code-preview">
           <pre><code>plugins=(
+  casonadams/zline
   romkatv/powerlevel10k
   omz:lib/theme-and-appearance.zsh
   omz:lib/key-bindings.zsh
@@ -427,6 +428,7 @@ zstyle <span style="color: #38bdf8;">':completion:*'</span> list-colors <span st
           To complement <code>zload</code>'s sub-millisecond shell startup, pairing it with a high-performance prompt engine is recommended:
         </p>
         <ul>
+          <li><a href="https://github.com/casonadams/zline" target="_blank" rel="noopener"><strong>zline</strong></a>: Fast, modern pure-Zsh prompt engine. Renders in &lt; 0.7 ms with zero subshell forks and declarative configuration. Recommended default prompt for <code>zload</code>: load via <code>zload casonadams/zline</code>.</li>
           <li><a href="https://github.com/romkatv/powerlevel10k" target="_blank" rel="noopener"><strong>Powerlevel10k</strong></a>: Fast and responsive prompt. Load via <code>zload romkatv/powerlevel10k</code>. Because <code>zload</code> produces zero console output and zero subprocess forks during warm startup, it works seamlessly with Powerlevel10k's Instant Prompt.</li>
           <li><a href="https://starship.rs" target="_blank" rel="noopener"><strong>Starship</strong></a>: Cross-shell prompt. Cache its initialization script with zero-subprocess eval caching: <code>zload eval starship "starship init zsh"</code>.</li>
         </ul>

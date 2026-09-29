@@ -51,6 +51,7 @@ zload path "${user_paths[@]}"
 
 # 3. Declare plugins (automatic canonical ordering & bytecode compilation)
 plugins=(
+  casonadams/zline
   omz:git
   omz:lib/completion.zsh
   casonadams/walh-shell
@@ -60,7 +61,7 @@ plugins=(
 )
 zload "${plugins[@]}"
 bindkey '^ ' autosuggest-accept
-> **Tip — Fast Prompts**: Pair with a high-performance prompt like [Powerlevel10k](https://github.com/romkatv/powerlevel10k) (`zload romkatv/powerlevel10k`) or [Starship](https://starship.rs) (`zload eval starship "starship init zsh"`) to complement `zload`'s sub-millisecond shell startup.
+> **Tip — Fast Prompts**: Pair with a high-performance prompt like [zline](https://github.com/casonadams/zline) (`zload casonadams/zline`), [Powerlevel10k](https://github.com/romkatv/powerlevel10k) (`zload romkatv/powerlevel10k`), or [Starship](https://starship.rs) (`zload eval starship "starship init zsh"`) to complement `zload`'s sub-millisecond shell startup.
 
 ---
 

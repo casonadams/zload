@@ -25,7 +25,7 @@ When adding, modifying, or removing observable features, CLI subcommands, flags,
    - Keep the landing page and documentation site synchronized with current CLI behavior.
    - Whenever CSS updates occur, increment the cache-busting query parameter (e.g. `css/style.css?v=N`).
 5. **Array-First Convention**: Always feature native Zsh array syntax first in examples and documentation (`user_paths=( ... ); zload path "${user_paths[@]}"` and `plugins=( ... ); zload "${plugins[@]}"`).
-6. **Prompt Recommendations**: Recommend pairing with fast prompts like Powerlevel10k or Starship to complement speed, without embedding full prompt installation guides into `zload`.
+6. **Prompt Recommendations**: Recommend pairing with fast prompts like zline, Powerlevel10k, or Starship to complement speed, without embedding full prompt installation guides into `zload`.
 
 ---
 

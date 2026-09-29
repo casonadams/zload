@@ -10,6 +10,7 @@ Storing plugins in an array is the cleanest and most idiomatic format in Zsh:
 
 ```zsh
 plugins=(
+  casonadams/zline
   romkatv/powerlevel10k
   omz:lib/theme-and-appearance.zsh
   omz:lib/key-bindings.zsh

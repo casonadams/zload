@@ -24,8 +24,9 @@ plugins=(
   omz:git
   omz:extract
 
-  # Prompts & Themes
-  romkatv/powerlevel10k
+  # Prompts & Themes (e.g. zline, Powerlevel10k)
+  casonadams/zline
+  # romkatv/powerlevel10k
 
   # Syntax Highlighting & Autosuggestions (ordered canonically)
   zsh-users/zsh-syntax-highlighting --defer

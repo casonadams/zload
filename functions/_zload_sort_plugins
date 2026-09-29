@@ -15,7 +15,7 @@ _zload_sort_plugins() {
     local p=50
     if [[ "$s" == *zsh-completions* ]]; then
       p=10
-    elif [[ "$s" == *theme* || "$s" == *prompt* || "$s" == *powerlevel10k* ]]; then
+    elif [[ "$s" == *theme* || "$s" == *prompt* || "$s" == *powerlevel10k* || "$s" == *zline* ]]; then
       p=20
     elif [[ "$s" == *syntax-highlighting* ]]; then
       p=70

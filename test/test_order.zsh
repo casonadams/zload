@@ -9,6 +9,7 @@ input_specs=(
   "omz:git"
   "zsh-users/zsh-syntax-highlighting"
   "romkatv/powerlevel10k"
+  "casonadams/zline"
   "zsh-users/zsh-completions"
   "omz:plugins/docker"
 )
@@ -19,6 +20,7 @@ _zload_sort_plugins sorted_specs "${input_specs[@]}"
 expected_specs=(
   "zsh-users/zsh-completions"
   "romkatv/powerlevel10k"
+  "casonadams/zline"
   "omz:git"
   "omz:plugins/docker"
   "zsh-users/zsh-syntax-highlighting"
