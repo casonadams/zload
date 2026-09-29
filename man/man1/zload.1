@@ -126,7 +126,8 @@ Caches the shell output of a subshell initializer (such as \fBstarship init zsh\
 \fBzload update\fR [\fB--self\fR|\fB--all\fR|\fB-f\fR|\fB--force\fR]
 Updates installed Git plugins and remote snippets in parallel, reporting commit diffs and re-running build hooks when changes are pulled. Pass \fB-f\fR to discard local working tree modifications and force updates. Pass \fB--self\fR to update only \fBzload\fR itself, or \fB--all\fR to update both \fBzload\fR and all plugins. Recompiles the wordcode bundle upon completion.
 .TP
-\fBzload upgrade\fR, \fBzload self-update\fR
+\fBzload upgrade\fR [\fB-f\fR|\fB--force\fR], \fBzload self-update\fR [\fB-f\fR|\fB--force\fR]
+Upgrades \fBzload\fR itself to the latest commit from upstream Git, recompiles internal modules into wordcode, clears the runtime cache, and reloads updated functions in the active shell. Pass \fB-f\fR to discard local working tree changes before pulling.
 .TP
 \fBzload clean\fR [\fB-f\fR|\fB--force\fR]
 Identifies unreferenced plugin directories on disk. Pass \fB-f\fR to delete unreferenced directories and flush stale bundle and completion caches from \fI~/.cache/zload\fR.

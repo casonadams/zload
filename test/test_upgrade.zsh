@@ -85,4 +85,40 @@ UPDATED_COMMIT="$(git -C "$LOCAL_ZLOAD" rev-parse --short HEAD)"
   exit 1
 }
 
+# Test dirty working tree and force upgrade (-f)
+echo 'export ZLOAD_VERSION="0.2.0-dirty"' > "$LOCAL_ZLOAD/version.zsh"
+echo 'export ZLOAD_VERSION="0.2.0"' > "$MOCK_SRC/version.zsh"
+git -C "$MOCK_SRC" commit -q -am "v0.2.0"
+git -C "$MOCK_SRC" push -q "$MOCK_BARE" main
+
+# Upgrade without -f should fail due to local modification
+FAIL_OUT=$(ZLOAD_HOME="$LOCAL_ZLOAD" zsh -c "
+  unset ZSH
+  export XDG_DATA_HOME=\"$XDG_DATA_HOME\"
+  export XDG_CACHE_HOME=\"$XDG_CACHE_HOME\"
+  source \"$LOCAL_ZLOAD/zload.zsh\"
+  zload upgrade 2>&1
+" || true)
+
+[[ "$FAIL_OUT" == *"failed to pull latest changes for zload"* ]] || {
+  echo "FAIL: expected upgrade to fail on dirty working tree (output: $FAIL_OUT)"
+  exit 1
+}
+
+# Upgrade with -f should succeed by discarding dirty state
+ZLOAD_HOME="$LOCAL_ZLOAD" zsh -c "
+  unset ZSH
+  export XDG_DATA_HOME=\"$XDG_DATA_HOME\"
+  export XDG_CACHE_HOME=\"$XDG_CACHE_HOME\"
+  source \"$LOCAL_ZLOAD/zload.zsh\"
+  zload upgrade -f >/dev/null
+"
+
+V2_COMMIT="$(git -C "$MOCK_SRC" rev-parse --short HEAD)"
+LOCAL_V2_COMMIT="$(git -C "$LOCAL_ZLOAD" rev-parse --short HEAD)"
+[[ "$LOCAL_V2_COMMIT" == "$V2_COMMIT" ]] || {
+  echo "FAIL: zload upgrade -f did not advance to new commit ($LOCAL_V2_COMMIT != $V2_COMMIT)"
+  exit 1
+}
+
 echo "PASS: test_upgrade (self-upgrade, module recompilation, cache wipe, and live reload verified)"

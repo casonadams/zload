@@ -2,7 +2,10 @@ _zload_cmd_self_update() {
   emulate -L zsh
   setopt null_glob
 
-  local old_commit new_commit fn_file fn
+  local old_commit new_commit fn_file fn force=0 arg pull_err line
+  for arg in "$@"; do
+    [[ "$arg" == "-f" || "$arg" == "--force" ]] && force=1
+  done
 
   if [[ ! -d "${ZLOAD_HOME}/.git" ]]; then
     print -u2 -P "%F{11}zload: self-update requires a Git installation in %B${ZLOAD_HOME}%b%f"
@@ -13,11 +16,18 @@ _zload_cmd_self_update() {
 
   old_commit="$(command git -C "$ZLOAD_HOME" rev-parse --short HEAD 2>/dev/null)"
 
-  if ! command git -C "$ZLOAD_HOME" pull --ff-only 2>/dev/null; then
-    print -u2 -P "%F{9}zload: failed to pull latest changes for zload%f"
-    return 1
+  if (( force )); then
+    command git -C "$ZLOAD_HOME" reset --hard HEAD >/dev/null 2>&1
+    command git -C "$ZLOAD_HOME" clean -df >/dev/null 2>&1
   fi
 
+  if ! pull_err="$(command git -C "$ZLOAD_HOME" pull --ff-only 2>&1)"; then
+    print -u2 -P "%F{9}zload: failed to pull latest changes for zload%f"
+    for line in "${(@f)pull_err}"; do
+      [[ -n "$line" ]] && print -u2 -P "  %F{8}${line}%f"
+    done
+    return 1
+  fi
   new_commit="$(command git -C "$ZLOAD_HOME" rev-parse --short HEAD 2>/dev/null)"
 
   rm -f "${ZLOAD_HOME}"/*.zwc(N) "${ZLOAD_HOME}/functions"/*.zwc(N)

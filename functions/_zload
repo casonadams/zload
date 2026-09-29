@@ -41,6 +41,10 @@ _zload() {
             '--all[Update zload and all installed plugins]' \
             '(-f --force)'{-f,--force}'[Force update, discarding local working tree changes]'
           ;;
+        upgrade|self-update)
+          _arguments \
+            '(-f --force)'{-f,--force}'[Force upgrade, discarding local working tree changes]'
+          ;;
         clean)
           _arguments \
             '(-f --force)'{-f,--force}'[Force remove unreferenced plugins]'

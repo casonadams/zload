@@ -9,7 +9,7 @@ Usage:
 
 Commands:
   update [--all|--self|-f|--force] Update installed plugins from remotes
-  upgrade                          Upgrade zload itself to latest release
+  upgrade [-f|--force]             Upgrade zload itself to latest release
   clean [-f|--force]               Remove unreferenced plugin directories
   list                             List all installed plugins and git status
   doctor                           Run system and configuration health checks

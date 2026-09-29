@@ -364,12 +364,12 @@ zstyle <span style="color: #38bdf8;">':completion:*'</span> list-colors <span st
             </thead>
             <tbody>
               <tr>
-                <td><code>zload update [--all|--self]</code></td>
-                <td>Updates installed plugins; <code>--all</code> also updates zload itself.</td>
+                <td><code>zload update [--all|--self|-f]</code></td>
+                <td>Updates installed plugins; <code>--all</code> also updates zload; <code>-f</code> discards local modifications.</td>
               </tr>
               <tr>
-                <td><code>zload upgrade</code></td>
-                <td>Upgrades zload to latest release, recompiles modules, wipes runtime cache, and reloads active shell.</td>
+                <td><code>zload upgrade [-f]</code></td>
+                <td>Upgrades zload to latest release, recompiles modules, wipes runtime cache, and reloads active shell. Pass <code>-f</code> to force.</td>
               </tr>
               <tr>
                 <td><code>zload clean [-f]</code></td>

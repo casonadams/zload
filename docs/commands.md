@@ -109,11 +109,15 @@ Upgrades `zload` itself to the latest commit/release from upstream Git, recompil
 zload upgrade
 # or:
 zload self-update
+
+# Force upgrade (discards local dirty changes in zload working tree):
+zload upgrade -f
 ```
 
 - Pulls fast-forward updates from the upstream Git repository.
 - Cleans stale wordcode artifacts and recompiles `zload.zsh` and all `functions/` modules into `.zwc`.
 - Wipes `~/.cache/zload` to invalidate old bytecode bundles and completion dumps.
+- Pass `-f` or `--force` to reset local modifications and discard untracked files before pulling.
 - Immediately re-autoloads updated functions into the active shell without requiring an `exec zsh`.
 - Preserves `$ZLOAD_DATA` (`~/.local/share/zload/plugins`), so cloned plugins are never deleted during an upgrade.
 
