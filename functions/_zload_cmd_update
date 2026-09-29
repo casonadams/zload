@@ -11,13 +11,16 @@ _zload_cmd_update() {
     print -P "  %F{8}(no plugins installed)%f"
     return 0
   fi
-
   local -A job_pids job_names old_commits build_hooks build_subpaths
   local -a failed
   integer updated_count=0
+  local force=0 arg
+
+  for arg in "$@"; do
+    [[ "$arg" == "-f" || "$arg" == "--force" ]] && force=1
+  done
 
   local dir name branch pid pdir ref commit old_commit spec_entry bdir target_file label src_file
-
   for spec_entry in "${_zload_specs[@]}"; do
     local -A parsed
     _zload_parse_spec parsed "$spec_entry"
@@ -46,6 +49,10 @@ _zload_cmd_update() {
     old_commits[$dir]="$(command git -C "$dir" rev-parse --short HEAD 2>/dev/null)"
 
     (
+      if (( force )); then
+        command git -C "$dir" reset --hard HEAD >/dev/null 2>&1
+        command git -C "$dir" clean -df >/dev/null 2>&1
+      fi
       command git -C "$dir" pull --ff-only >/dev/null 2>&1
     ) &
     pid=$!

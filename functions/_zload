@@ -38,7 +38,8 @@ _zload() {
         update)
           _arguments \
             '--self[Update only zload itself]' \
-            '--all[Update zload and all installed plugins]'
+            '--all[Update zload and all installed plugins]' \
+            '(-f --force)'{-f,--force}'[Force update, discarding local working tree changes]'
           ;;
         clean)
           _arguments \

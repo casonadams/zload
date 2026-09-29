@@ -49,5 +49,31 @@ SECOND_OUT=$(zload update)
 # Verify bundle recompiled with new version
 source "$ZLOAD_CACHE/bundle.zsh"
 [[ "$VER" == "2" ]] || { echo "FAIL: update did not pull new version into bundle"; exit 1; }
+# Test dirty working tree and force update (-f)
+installed_dirs=("${ZLOAD_PLUGINS}"/*(N/))
+target_plugin="${installed_dirs[1]}"
+echo 'export VER=local_dirty' > "$target_plugin/test.plugin.zsh"
 
-echo "PASS: test_update (git pull, commit diff tracking, and bundle recompile verified)"
+# Push v3 to remote
+echo 'export VER=3' > "$REMOTE_SRC/test.plugin.zsh"
+git -C "$REMOTE_SRC" commit -q -am "v3"
+git -C "$REMOTE_SRC" push -q "$REMOTE_BARE" main
+
+# Normal update without -f fails
+DIRTY_OUT=$(zload update 2>&1)
+[[ "$DIRTY_OUT" == *"update failed"* ]] || {
+  echo "FAIL: update on dirty repo should have failed (output: $DIRTY_OUT)"
+  exit 1
+}
+
+# Forced update with -f succeeds
+FORCE_OUT=$(zload update -f)
+[[ "$FORCE_OUT" == *"updated"* ]] || {
+  echo "FAIL: forced update with -f did not succeed (output: $FORCE_OUT)"
+  exit 1
+}
+
+source "$ZLOAD_CACHE/bundle.zsh"
+[[ "$VER" == "3" ]] || { echo "FAIL: force update did not pull v3 into bundle"; exit 1; }
+
+echo "PASS: test_update (git pull, commit diff tracking, force update, and bundle recompile verified)"

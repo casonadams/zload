@@ -81,6 +81,9 @@ Updates all installed plugins and remote assets in parallel via Git background t
 # Update all installed plugins:
 zload update
 
+# Force update (discards local dirty changes in plugin working trees):
+zload update -f
+
 # Update both zload itself and all plugins:
 zload update --all
 
@@ -88,6 +91,7 @@ zload update --all
 zload update --self
 ```
 - Pulls fast-forward updates across all active plugins in parallel.
+- Pass `-f` or `--force` to reset local modifications and discard untracked files before pulling.
 - Reports commit diffs (`old_commit -> new_commit`) for modified plugins and marks unchanged ones as up to date.
 - Re-runs plugin build hooks (`--build` / `--hook`) automatically whenever new commits are pulled.
 - Re-fetches and recompiles remote snippets (`snippet:...`).
