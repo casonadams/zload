@@ -5,6 +5,8 @@ _zload_create_stub() {
   local script_path="$2"
   local plugin_type="$3"
   local subpath="$4"
+  local emit_mode=0
+  [[ "$5" == "--emit" ]] && emit_mode=1
 
   local -a cmds clean_cmds
   cmds=("${(s:,:)raw_cmds}")
@@ -14,7 +16,7 @@ _zload_create_stub() {
   done
 
   for cmd in "${clean_cmds[@]}"; do
-    eval "
+    local fn_code="
       ${cmd}() {
         for c in ${(j: :)clean_cmds}; do
           unfunction \"\$c\" 2>/dev/null
@@ -36,5 +38,10 @@ _zload_create_stub() {
         fi
       }
     "
+    if ((emit_mode)); then
+      print -r -- "$fn_code"
+    else
+      eval "$fn_code"
+    fi
   done
 }

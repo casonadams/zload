@@ -94,6 +94,7 @@ _zload_compile_bundle() {
       print "[[ -d \"\$ZSH_CACHE_DIR\" ]] || mkdir -p \"\$ZSH_CACHE_DIR\""
       print "autoload -Uz _zload_omz_shim"
     fi
+    local -a deferred_specs
     for spec_entry in "${sorted_specs[@]}"; do
       local -A parsed
       _zload_parse_spec parsed "$spec_entry"
@@ -125,7 +126,7 @@ _zload_compile_bundle() {
       fi
 
       if [[ -n "${parsed[on_cmds]}" ]]; then
-        print "_zload_create_stub ${(q)parsed[on_cmds]} ${(q)info[script]} ${(q)parsed[type]} ${(q)parsed[subpath]}"
+        _zload_create_stub "${parsed[on_cmds]}" "${info[script]}" "${parsed[type]}" "${parsed[subpath]}" --emit
         continue
       fi
 
@@ -135,7 +136,7 @@ _zload_compile_bundle() {
       fi
 
       if ((parsed[defer])); then
-        print "_zload_schedule_deferred ${(q)spec_entry}"
+        deferred_specs+=("$spec_entry")
         continue
       fi
 
@@ -147,6 +148,16 @@ _zload_compile_bundle() {
         print "[[ -f ${(q)info[script]} ]] && source ${(q)info[script]}"
       fi
     done
+    if ((${#deferred_specs} > 0)); then
+      print "_zload_deferred_specs+=(${(q)deferred_specs[@]})"
+      print "if [[ ! -o interactive ]]; then"
+      print "  autoload -Uz _zload_run_deferred"
+      print "  _zload_run_deferred"
+      print "else"
+      print "  autoload -Uz add-zsh-hook _zload_run_deferred"
+      print "  add-zsh-hook precmd _zload_run_deferred"
+      print "fi"
+    fi
 
     print "if (( ! \${+ZLOAD_NO_COMPINIT} )) && [[ -o interactive ]] && (( ! \${_zload_compinit_done:-0} )); then"
     print "  autoload -Uz _zload_setup_lazy_compinit"
