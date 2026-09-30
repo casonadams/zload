@@ -78,6 +78,7 @@ _zload_compile_bundle() {
 
       [[ "${parsed[type]}" == "omz" ]] && has_omz=1
     done
+    print "(( \${fpath[(Ie)\$ZLOAD_HOME/functions]} )) || fpath=(\"\$ZLOAD_HOME/functions\" \"\${fpath[@]}\")"
 
     for fp in "${all_fpaths[@]}"; do
       print "(( \${fpath[(Ie)${(q)fp}]} )) || fpath=(${(q)fp} \"\${fpath[@]}\")"
@@ -90,10 +91,9 @@ _zload_compile_bundle() {
     if ((has_omz)); then
       print "export ZSH=${(q)ZLOAD_PLUGINS}/_omz"
       print "export ZSH_CACHE_DIR=${(q)ZLOAD_CACHE}/omz"
-      print "mkdir -p \"\$ZSH_CACHE_DIR\""
+      print "[[ -d \"\$ZSH_CACHE_DIR\" ]] || mkdir -p \"\$ZSH_CACHE_DIR\""
       print "autoload -Uz _zload_omz_shim"
     fi
-
     for spec_entry in "${sorted_specs[@]}"; do
       local -A parsed
       _zload_parse_spec parsed "$spec_entry"
@@ -148,7 +148,6 @@ _zload_compile_bundle() {
       fi
     done
 
-    print "(( \${fpath[(Ie)\$ZLOAD_HOME/functions]} )) || fpath=(\"\$ZLOAD_HOME/functions\" \"\${fpath[@]}\")"
     print "if (( ! \${+ZLOAD_NO_COMPINIT} )) && [[ -o interactive ]] && (( ! \${_zload_compinit_done:-0} )); then"
     print "  autoload -Uz _zload_setup_lazy_compinit"
     print "  _zload_setup_lazy_compinit"

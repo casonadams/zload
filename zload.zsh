@@ -37,7 +37,7 @@ _zload_hash() {
   for ((i = 1; i <= len; i++)); do
     ((hash = ((hash << 5) + hash) + "#str[i]"))
   done
-  echo "$hash"
+  REPLY="$hash"
 }
 
 if ! typeset -f compdef >/dev/null 2>&1; then
@@ -136,7 +136,9 @@ zload() {
   esac
 
   local raw_input="$*"
-  local current_hash="$(_zload_hash "$raw_input")"
+  local current_hash
+  _zload_hash "$raw_input"
+  current_hash="$REPLY"
 
   if [[ -f "${ZLOAD_CACHE}/bundle.zsh.zwc" && -f "${ZLOAD_CACHE}/bundle.hash" ]]; then
     if [[ "$(<"${ZLOAD_CACHE}/bundle.hash")" == "$current_hash" ]]; then
