@@ -17,21 +17,29 @@ _zload_cmd_profile() {
 
   print -P "  %F{14}%BComponent%b%f                          %F{14}%BLatency%b%f     %F{14}%BStatus%b%f"
   print -P "  %F{8}------------------------------------------------------------%f"
+  local lat name
+  name="Memory-mapped bundle (.zwc)"
   if [[ -f "$bundle_zwc" ]]; then
-    printf "  %-35s %%F{10}%10.3f ms%%f   %%F{10}active%%f\n" "Memory-mapped bundle (.zwc)" "$t_bundle"
+    printf -v lat "%10.3f ms" "$t_bundle"
+    print -P "  ${(r:35:)name} %F{10}${lat}%f   %F{10}active%f"
   else
-    printf "  %-35s %%F{8}%12s%%f   %%F{8}uncompiled%%f\n" "Memory-mapped bundle (.zwc)" "N/A"
+    print -P "  ${(r:35:)name} %F{8}         N/A%f   %F{8}uncompiled%f"
   fi
 
+  name="Completion system (compinit)"
   if ((_zload_compinit_done)); then
-    printf "  %-35s %%F{10}%12s%%f   %%F{10}initialized%%f\n" "Completion system (compinit)" "< 1 ms"
+    print -P "  ${(r:35:)name} %F{10}      < 1 ms%f   %F{10}initialized%f"
   else
-    printf "  %-35s %%F{8}%12s%%f   %%F{8}deferred to <Tab>%%f\n" "Completion system (compinit)" "0.000 ms"
+    print -P "  ${(r:35:)name} %F{8}    0.000 ms%f   %F{8}deferred to <Tab>%f"
   fi
 
-  printf "  %-35s %%F{8}%12s%%f   %%F{8}%d registered%%f\n" "Command stubs (--on)" "0.000 ms" "${#_zload_loaded_plugins}"
+  name="Command stubs (--on)"
+  local stub_status="${#_zload_loaded_plugins} registered"
+  print -P "  ${(r:35:)name} %F{8}    0.000 ms%f   %F{8}${stub_status}%f"
   print -P "  %F{8}------------------------------------------------------------%f"
-  printf "  %%F{15}%%B%-35s%%b%%f %%F{10}%%B%10.3f ms%%b%%f\n\n" "Total warm interactive overhead" "$t_bundle"
+  name="Total warm interactive overhead"
+  printf -v lat "%10.3f ms" "$t_bundle"
+  print -P "  %F{15}%B${(r:35:)name}%b%f %F{10}%B${lat}%b%f\n"
 
   return 0
 }
