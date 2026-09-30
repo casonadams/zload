@@ -145,6 +145,7 @@ _zload_compile_bundle() {
       fi
 
       if [[ -n "${info[script]}" && -f "${info[script]}" ]]; then
+        zcompile -R "${info[script]}" 2>/dev/null
         print "[[ -f ${(q)info[script]} ]] && source ${(q)info[script]}"
       fi
     done

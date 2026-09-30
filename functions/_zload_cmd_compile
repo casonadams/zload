@@ -2,7 +2,7 @@ _zload_cmd_compile() {
   emulate -L zsh
   setopt null_glob
 
-  local fn_file ret
+  local fn_file ret pdir pfile
 
   print -P "%F{14}zload%f  %F{11}compiling%f        %F{15}%Bbytecode bundle (.zwc)%b%f%F{8}...%f"
   _zload_compile_bundle "$@"
@@ -18,6 +18,13 @@ _zload_cmd_compile() {
   for fn_file in "${ZLOAD_HOME}/functions"/*(N.); do
     [[ "$fn_file" == *.zwc ]] && continue
     zcompile -R "$fn_file" 2>/dev/null
+  done
+
+  for pdir in "${ZLOAD_PLUGINS}"/*(N/); do
+    for pfile in "$pdir"/*.(zsh|sh)(N.); do
+      [[ "$pfile" == *.zwc ]] && continue
+      zcompile -R "$pfile" 2>/dev/null
+    done
   done
 
   if ((ret == 0)); then
