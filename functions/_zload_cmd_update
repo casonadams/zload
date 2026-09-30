@@ -1,6 +1,6 @@
 _zload_cmd_update() {
   emulate -L zsh
-  setopt local_options null_glob no_monitor no_notify
+  setopt local_options null_glob no_monitor no_notify extended_glob
 
   print -P "%F{14}zload%f  %F{8}updating installed plugins...%f\n"
 
@@ -126,6 +126,14 @@ _zload_cmd_update() {
   fi
 
   _zload_compile_bundle
+  if ((updated_count > 0)); then
+    for dir in "${plugin_dirs[@]}"; do
+      for pfile in "$dir"/*.(zsh|sh)(N.); do
+        [[ "$pfile" == *.zwc ]] && continue
+        zcompile -R "$pfile" 2>/dev/null
+      done
+    done
+  fi
   print -P "\n%F{10}zload%f  %F{10}✓ update complete and bundle recompiled.%f"
   return 0
 }
