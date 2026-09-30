@@ -31,8 +31,8 @@ _zload_install_gh_r() {
     local api_url="https://api.github.com/repos/${owner_repo}/releases/latest"
     [[ -n "$tag" ]] && api_url="https://api.github.com/repos/${owner_repo}/releases/tags/${tag}"
 
-    local os_sys="$(uname -s | tr '[:upper:]' '[:lower:]')"
-    local arch_sys="$(uname -m | tr '[:upper:]' '[:lower:]')"
+    local os_sys="${(L)OSTYPE}"
+    local arch_sys="${(L)CPUTYPE}"
 
     local -a os_patterns
     if [[ "$os_sys" == darwin* ]]; then
@@ -67,7 +67,7 @@ _zload_install_gh_r() {
 
     local target_url=""
     for u in "${urls[@]}"; do
-      local lower_u="$(echo "$u" | tr '[:upper:]' '[:lower:]')"
+      local lower_u="${(L)u}"
       [[ "$lower_u" == *(\.sha256|\.sha256sum|\.sig|\.deb|\.rpm|\.msi|\.apk|\.txt) ]] && continue
 
       local match_os=0 match_arch=0
