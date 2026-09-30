@@ -11,7 +11,7 @@ _zload_eval() {
   fi
 
   local eval_dir="${ZLOAD_CACHE}/eval"
-  mkdir -p "$eval_dir"
+  [[ -d "$eval_dir" ]] || mkdir -p "$eval_dir"
   local cache_file="${eval_dir}/${name}.zsh"
   local zwc_file="${cache_file}.zwc"
 
