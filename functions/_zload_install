@@ -41,7 +41,7 @@ _zload_install() {
       command curl -fsSL "$url" -o "$target_file" >/dev/null 2>&1
     fi
     local ret=$?
-    if (( ret != 0 )) || [[ ! -f "$target_file" ]]; then
+    if ((ret != 0)) || [[ ! -f "$target_file" ]]; then
       print -u2 -P "%F{9}zload: failed to fetch snippet ${url}%f"
       rm -rf "$dir"
       return 1
@@ -68,7 +68,7 @@ _zload_install() {
   command git "${git_opts[@]}" "$url" "$dir" >/dev/null 2>&1
   local ret=$?
 
-  if (( ret != 0 )); then
+  if ((ret != 0)); then
     print -u2 -P "%F{9}zload: failed to clone ${url}%f"
     rm -rf "$dir"
     return $ret
@@ -78,7 +78,7 @@ _zload_install() {
     local build_dir="$dir"
     [[ -n "${_zspec[subpath]}" && -d "$dir/${_zspec[subpath]}" ]] && build_dir="$dir/${_zspec[subpath]}"
     print -P "%F{14}zload%f  %F{11}building%f          %F{15}%B${label}%b%f %F{8}(${_zspec[build_cmd]})%f"
-    ( cd "$build_dir" && eval "${_zspec[build_cmd]}" ) >/dev/null 2>&1
+    (cd "$build_dir" && eval "${_zspec[build_cmd]}") >/dev/null 2>&1
   fi
 
   return 0

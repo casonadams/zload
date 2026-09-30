@@ -18,17 +18,20 @@ git -C "$REMOTE_SRC" init -q -b main
 git -C "$REMOTE_SRC" config user.email "test@zload.test"
 git -C "$REMOTE_SRC" config user.name "Zload Test"
 
-echo 'export VER=1' > "$REMOTE_SRC/test.plugin.zsh"
+echo 'export VER=1' >"$REMOTE_SRC/test.plugin.zsh"
 git -C "$REMOTE_SRC" add .
 git -C "$REMOTE_SRC" commit -q -m "v1"
 git clone --bare -q "$REMOTE_SRC" "$REMOTE_BARE"
 
 # Install plugin
 zload "file://$REMOTE_BARE"
-[[ "$VER" == "1" ]] || { echo "FAIL: initial version not 1"; exit 1; }
+[[ "$VER" == "1" ]] || {
+  echo "FAIL: initial version not 1"
+  exit 1
+}
 
 # Push update to remote
-echo 'export VER=2' > "$REMOTE_SRC/test.plugin.zsh"
+echo 'export VER=2' >"$REMOTE_SRC/test.plugin.zsh"
 git -C "$REMOTE_SRC" commit -q -am "v2"
 git -C "$REMOTE_SRC" push -q "$REMOTE_BARE" main
 
@@ -48,14 +51,17 @@ SECOND_OUT=$(zload update)
 
 # Verify bundle recompiled with new version
 source "$ZLOAD_CACHE/bundle.zsh"
-[[ "$VER" == "2" ]] || { echo "FAIL: update did not pull new version into bundle"; exit 1; }
+[[ "$VER" == "2" ]] || {
+  echo "FAIL: update did not pull new version into bundle"
+  exit 1
+}
 # Test dirty working tree and force update (-f)
 installed_dirs=("${ZLOAD_PLUGINS}"/*(N/))
 target_plugin="${installed_dirs[1]}"
-echo 'export VER=local_dirty' > "$target_plugin/test.plugin.zsh"
+echo 'export VER=local_dirty' >"$target_plugin/test.plugin.zsh"
 
 # Push v3 to remote
-echo 'export VER=3' > "$REMOTE_SRC/test.plugin.zsh"
+echo 'export VER=3' >"$REMOTE_SRC/test.plugin.zsh"
 git -C "$REMOTE_SRC" commit -q -am "v3"
 git -C "$REMOTE_SRC" push -q "$REMOTE_BARE" main
 
@@ -74,6 +80,9 @@ FORCE_OUT=$(zload update -f)
 }
 
 source "$ZLOAD_CACHE/bundle.zsh"
-[[ "$VER" == "3" ]] || { echo "FAIL: force update did not pull v3 into bundle"; exit 1; }
+[[ "$VER" == "3" ]] || {
+  echo "FAIL: force update did not pull v3 into bundle"
+  exit 1
+}
 
 echo "PASS: test_update (git pull, commit diff tracking, force update, and bundle recompile verified)"

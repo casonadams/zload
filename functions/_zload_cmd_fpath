@@ -1,40 +1,4 @@
 _zload_cmd_fpath() {
-  emulate -L zsh
-  typeset -g -U fpath
-
-  if (( $# == 0 )); then
-    print -l "${fpath[@]}"
-    return 0
-  fi
-
-  local -a entries
-  if (( $# == 1 )) && [[ "$1" == *$'\n'* ]]; then
-    entries=("${(f)1}")
-  else
-    entries=("$@")
-  fi
-
-  local -a valid_dirs
-  local p
-  for p in "${entries[@]}"; do
-    p="${p#"${p%%[![:space:]]*}"}"
-    p="${p%"${p##*[![:space:]]}"}"
-    [[ -z "$p" || "$p" == \#* ]] && continue
-
-    p="${p/#\~/$HOME}"
-    local expanded="${(e)p}"
-    expanded="${expanded:A}"
-    if [[ -d "$expanded" ]]; then
-      fpath=("${(@)fpath:#$expanded}")
-      valid_dirs+=("$expanded")
-    else
-      print -u2 -P "%F{11}zload fpath: directory not found: $p%f"
-    fi
-  done
-
-  if (( ${#valid_dirs} > 0 )); then
-    fpath=("${valid_dirs[@]}" "${fpath[@]}")
-  fi
-
-  return 0
+  autoload -Uz _zload_add_paths
+  _zload_add_paths fpath "$@"
 }

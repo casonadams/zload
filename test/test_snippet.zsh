@@ -12,7 +12,7 @@ source ./zload.zsh
 
 # Create mock snippet file
 SNIPPET_SOURCE="$SANDBOX/remote_script.zsh"
-cat << 'EOF' > "$SNIPPET_SOURCE"
+cat <<'EOF' >"$SNIPPET_SOURCE"
 export SNIPPET_WAS_LOADED=1
 snippet_cmd() {
   echo "snippet_cmd_works:$1"
@@ -22,26 +22,44 @@ EOF
 # 1. Load via snippet: URL
 zload "snippet:file://$SNIPPET_SOURCE"
 
-[[ "$SNIPPET_WAS_LOADED" == "1" ]] || { echo "FAIL: snippet script not loaded"; exit 1; }
-typeset -f snippet_cmd >/dev/null || { echo "FAIL: snippet_cmd not defined"; exit 1; }
+[[ "$SNIPPET_WAS_LOADED" == "1" ]] || {
+  echo "FAIL: snippet script not loaded"
+  exit 1
+}
+typeset -f snippet_cmd >/dev/null || {
+  echo "FAIL: snippet_cmd not defined"
+  exit 1
+}
 
 RES=$(snippet_cmd "test")
-[[ "$RES" == "snippet_cmd_works:test" ]] || { echo "FAIL: snippet_cmd output '$RES'"; exit 1; }
+[[ "$RES" == "snippet_cmd_works:test" ]] || {
+  echo "FAIL: snippet_cmd output '$RES'"
+  exit 1
+}
 
 # Verify snippet file and .zwc exist on disk
 SNIPPET_DIR="${ZLOAD_PLUGINS}/_snippets"
-[[ -d "$SNIPPET_DIR" ]] || { echo "FAIL: _snippets directory not created"; exit 1; }
+[[ -d "$SNIPPET_DIR" ]] || {
+  echo "FAIL: _snippets directory not created"
+  exit 1
+}
 
 ZWC_COUNT=$(find "$SNIPPET_DIR" -name "*.zwc" | wc -l)
-(( ZWC_COUNT > 0 )) || { echo "FAIL: snippet was not compiled to .zwc"; exit 1; }
+((ZWC_COUNT > 0)) || {
+  echo "FAIL: snippet was not compiled to .zwc"
+  exit 1
+}
 
 # 2. Test bundle compilation with snippet
 zload compile >/dev/null
 unset SNIPPET_WAS_LOADED
 source "$ZLOAD_CACHE/bundle.zsh"
-[[ "$SNIPPET_WAS_LOADED" == "1" ]] || { echo "FAIL: snippet not loaded from compiled bundle"; exit 1; }
+[[ "$SNIPPET_WAS_LOADED" == "1" ]] || {
+  echo "FAIL: snippet not loaded from compiled bundle"
+  exit 1
+}
 # 3. Test snippet update via zload update
-cat << 'EOF' > "$SNIPPET_SOURCE"
+cat <<'EOF' >"$SNIPPET_SOURCE"
 export SNIPPET_WAS_LOADED=2
 snippet_cmd() {
   echo "snippet_cmd_v2:$1"
@@ -51,6 +69,9 @@ EOF
 zload update >/dev/null
 unset SNIPPET_WAS_LOADED
 source "$ZLOAD_CACHE/bundle.zsh"
-[[ "$SNIPPET_WAS_LOADED" == "2" ]] || { echo "FAIL: snippet not updated in bundle after zload update"; exit 1; }
+[[ "$SNIPPET_WAS_LOADED" == "2" ]] || {
+  echo "FAIL: snippet not updated in bundle after zload update"
+  exit 1
+}
 
 echo "PASS: test_snippet (raw snippet fetch, update, bytecode compilation, and bundle integration)"

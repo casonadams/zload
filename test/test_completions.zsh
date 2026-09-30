@@ -12,7 +12,10 @@ source ./zload.zsh
 
 # 1. Assert _zload completion file exists in functions/ and has #compdef
 COMP_FILE="${ZLOAD_HOME}/functions/_zload"
-[[ -f "$COMP_FILE" ]] || { echo "FAIL: functions/_zload does not exist"; exit 1; }
+[[ -f "$COMP_FILE" ]] || {
+  echo "FAIL: functions/_zload does not exist"
+  exit 1
+}
 
 FIRST_LINE="$(head -n 1 "$COMP_FILE")"
 [[ "$FIRST_LINE" == *"#compdef zload"* ]] || {

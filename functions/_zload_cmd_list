@@ -7,7 +7,7 @@ _zload_cmd_list() {
   local -a plugin_dirs
   plugin_dirs=("${ZLOAD_PLUGINS}"/*(N/))
 
-  if (( ${#plugin_dirs} == 0 )); then
+  if ((${#plugin_dirs} == 0)); then
     print -P "  %F{8}(no plugins installed)%f"
     return 0
   fi

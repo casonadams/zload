@@ -17,7 +17,7 @@ git -C "$MOCK_SRC" config user.email "test@zload.test"
 git -C "$MOCK_SRC" config user.name "Zload Test"
 cp -R functions "$MOCK_SRC/"
 cp zload.zsh "$MOCK_SRC/"
-echo 'export ZLOAD_VERSION="0.1.0"' > "$MOCK_SRC/version.zsh"
+echo 'export ZLOAD_VERSION="0.1.0"' >"$MOCK_SRC/version.zsh"
 git -C "$MOCK_SRC" add .
 git -C "$MOCK_SRC" commit -q -m "v0.1.0"
 git clone --bare -q "$MOCK_SRC" "$MOCK_BARE"
@@ -28,11 +28,11 @@ git clone -q "file://$MOCK_BARE" "$LOCAL_ZLOAD"
 
 # Create pre-existing cache file to assert it gets cleared
 mkdir -p "$XDG_CACHE_HOME/zload"
-echo "old-cache" > "$XDG_CACHE_HOME/zload/bundle.zsh"
-echo "old-hash" > "$XDG_CACHE_HOME/zload/bundle.hash"
+echo "old-cache" >"$XDG_CACHE_HOME/zload/bundle.zsh"
+echo "old-hash" >"$XDG_CACHE_HOME/zload/bundle.hash"
 
-echo 'export ZLOAD_VERSION="0.1.1"' > "$MOCK_SRC/version.zsh"
-cat << 'EOF' > "$MOCK_SRC/functions/_zload_cmd_help"
+echo 'export ZLOAD_VERSION="0.1.1"' >"$MOCK_SRC/version.zsh"
+cat <<'EOF' >"$MOCK_SRC/functions/_zload_cmd_help"
 _zload_cmd_help() {
   echo "zload v2 help message"
 }
@@ -86,8 +86,8 @@ UPDATED_COMMIT="$(git -C "$LOCAL_ZLOAD" rev-parse --short HEAD)"
 }
 
 # Test dirty working tree and force upgrade (-f)
-echo 'export ZLOAD_VERSION="0.2.0-dirty"' > "$LOCAL_ZLOAD/version.zsh"
-echo 'export ZLOAD_VERSION="0.2.0"' > "$MOCK_SRC/version.zsh"
+echo 'export ZLOAD_VERSION="0.2.0-dirty"' >"$LOCAL_ZLOAD/version.zsh"
+echo 'export ZLOAD_VERSION="0.2.0"' >"$MOCK_SRC/version.zsh"
 git -C "$MOCK_SRC" commit -q -am "v0.2.0"
 git -C "$MOCK_SRC" push -q "$MOCK_BARE" main
 

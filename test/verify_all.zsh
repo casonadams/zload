@@ -5,18 +5,10 @@ print -P "%F{cyan}==============================================================
 print -P "%F{cyan}            zload Specification Final Verification              %f"
 print -P "%F{cyan}================================================================%f\n"
 
-# Gate 1: Syntax Check
-print -P "%F{blue}[Gate 1/5] Syntax validation across all core modules...%f"
-zsh -n zload.zsh zload.plugin.zsh example/.zshrc
-for f in functions/*; do
-  [[ "$f" == *.zwc ]] && continue
-  zsh -n "$f"
-done
-for t in test/*.zsh; do
-  zsh -n "$t"
-done
-zsh -n benchmark/bench.zsh
-print -P "%F{green}✓ Gate 1 Passed: 100%% clean syntax validation.%f\n"
+# Gate 1: Lint & Quality Gate
+print -P "%F{blue}[Gate 1/5] Running lint, syntax, and Ripwire quality checks...%f"
+./scripts/lint
+print -P "%F{green}✓ Gate 1 Passed: 100%% clean syntax and quality gates.%f\n"
 
 # Gate 2: Full Test Suite
 print -P "%F{blue}[Gate 2/5] Running complete test suite (all slices)...%f"

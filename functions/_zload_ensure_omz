@@ -15,7 +15,7 @@ _zload_ensure_omz() {
   command git clone --depth 1 https://github.com/ohmyzsh/ohmyzsh.git "$omz_dir" >/dev/null 2>&1
   local ret=$?
 
-  if (( ret != 0 )); then
+  if ((ret != 0)); then
     print -u2 -P "%F{9}zload: failed to clone Oh-My-Zsh repository%f"
     rm -rf "$omz_dir"
     return $ret

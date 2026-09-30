@@ -29,37 +29,37 @@ _zload_parse_spec() {
   _zparsed[spec]="$_zspec_val"
 
   integer idx=2
-  while (( idx <= ${#words} )); do
+  while ((idx <= ${#words})); do
     case "${words[idx]}" in
       --on)
-        (( idx++ ))
+        ((idx++))
         _zparsed[on_cmds]="${words[idx]}"
         ;;
-      --defer|--idle)
+      --defer | --idle)
         _zparsed[defer]="1"
         ;;
       --bin)
-        (( idx++ ))
+        ((idx++))
         _zparsed[bin]="${words[idx]}"
         ;;
-      --path|--subpath)
-        (( idx++ ))
+      --path | --subpath)
+        ((idx++))
         _zparsed[subpath]="${words[idx]}"
         ;;
-      --build|--hook)
-        (( idx++ ))
+      --build | --hook)
+        ((idx++))
         _zparsed[build_cmd]="${words[idx]}"
         ;;
       --on-dir)
-        (( idx++ ))
+        ((idx++))
         _zparsed[on_dir]="${words[idx]}"
         ;;
       --from)
-        (( idx++ ))
+        ((idx++))
         _zparsed[from]="${words[idx]}"
         ;;
     esac
-    (( idx++ ))
+    ((idx++))
   done
 
   if [[ "${_zparsed[from]}" == *(gh-r|github-releases)* ]]; then

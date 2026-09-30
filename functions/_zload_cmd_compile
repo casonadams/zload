@@ -20,7 +20,7 @@ _zload_cmd_compile() {
     zcompile -R "$fn_file" 2>/dev/null
   done
 
-  if (( ret == 0 )); then
+  if ((ret == 0)); then
     print -P "%F{10}zload%f  %F{10}✓ compiled%f         %F{15}%Bbundle and modules ready%b%f"
   fi
   return $ret

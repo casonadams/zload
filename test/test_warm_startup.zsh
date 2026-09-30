@@ -10,9 +10,9 @@ export XDG_CACHE_HOME="$SANDBOX/cache"
 
 # Create mock plugins
 mkdir -p "$SANDBOX/p1" "$SANDBOX/p2" "$SANDBOX/p3"
-echo 'export P1_LOADED=1' > "$SANDBOX/p1/p1.plugin.zsh"
-echo 'export P2_LOADED=1' > "$SANDBOX/p2/p2.plugin.zsh"
-echo 'export P3_LOADED=1' > "$SANDBOX/p3/p3.plugin.zsh"
+echo 'export P1_LOADED=1' >"$SANDBOX/p1/p1.plugin.zsh"
+echo 'export P2_LOADED=1' >"$SANDBOX/p2/p2.plugin.zsh"
+echo 'export P3_LOADED=1' >"$SANDBOX/p3/p3.plugin.zsh"
 
 LIST_INITIAL="$SANDBOX/p1
 $SANDBOX/p2"
@@ -43,15 +43,24 @@ WARM_RESULT=$(zsh -c "
   echo \"\$P1_LOADED:\$P2_LOADED:\$_zload_bundle_loaded:\$diff\"
 ")
 
-IFS=':' read -r p1 p2 loaded duration <<< "$WARM_RESULT"
-[[ "$p1" == "1" ]] || { echo "FAIL: P1 not loaded on warm run"; exit 1; }
-[[ "$p2" == "1" ]] || { echo "FAIL: P2 not loaded on warm run"; exit 1; }
-[[ "$loaded" == "1" ]] || { echo "FAIL: bundle was not loaded on warm run"; exit 1; }
+IFS=':' read -r p1 p2 loaded duration <<<"$WARM_RESULT"
+[[ "$p1" == "1" ]] || {
+  echo "FAIL: P1 not loaded on warm run"
+  exit 1
+}
+[[ "$p2" == "1" ]] || {
+  echo "FAIL: P2 not loaded on warm run"
+  exit 1
+}
+[[ "$loaded" == "1" ]] || {
+  echo "FAIL: bundle was not loaded on warm run"
+  exit 1
+}
 
 printf "Warm startup time (including sourcing zload.zsh): %.3f ms\n" "$duration"
 
 # Assert duration is well under budget (< 5ms on any machine, typically < 1ms)
-if (( duration > 10.0 )); then
+if ((duration > 10.0)); then
   echo "FAIL: warm startup took too long ($duration ms > 10.0 ms)"
   exit 1
 fi
@@ -69,7 +78,7 @@ INVALIDATION_RESULT=$(zsh -c "
   echo \"\$P1_LOADED:\$P2_LOADED:\$P3_LOADED\"
 ")
 
-IFS=':' read -r ip1 ip2 ip3 <<< "$INVALIDATION_RESULT"
+IFS=':' read -r ip1 ip2 ip3 <<<"$INVALIDATION_RESULT"
 [[ "$ip1" == "1" && "$ip2" == "1" && "$ip3" == "1" ]] || {
   echo "FAIL: cache invalidation did not load all 3 plugins ($ip1, $ip2, $ip3)"
   exit 1

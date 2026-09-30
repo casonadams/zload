@@ -28,7 +28,7 @@ expected_specs=(
   "zsh-users/zsh-history-substring-search"
 )
 
-for (( i=1; i<=${#expected_specs}; i++ )); do
+for ((i = 1; i <= ${#expected_specs}; i++)); do
   if [[ "${sorted_specs[i]}" != "${expected_specs[i]}" ]]; then
     echo "FAIL at position $i:"
     echo "  Expected: ${expected_specs[i]}"

@@ -11,7 +11,7 @@ _zload_sort_plugins() {
   local -a tagged
   integer i=0
   for s in "${specs[@]}"; do
-    (( i++ ))
+    ((i++))
     local p=50
     if [[ "$s" == *zsh-completions* ]]; then
       p=10

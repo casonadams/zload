@@ -19,6 +19,9 @@ OUT=$(zsh -c "
   echo \"SUCCESS:ZLOAD_LOADED:\$_zload_compinit_done\"
 " 2>/dev/null || true)
 
-[[ -n "$OUT" ]] || { echo "FAIL: example/.zshrc failed to parse"; exit 1; }
+[[ -n "$OUT" ]] || {
+  echo "FAIL: example/.zshrc failed to parse"
+  exit 1
+}
 
 echo "PASS: test_example (example/.zshrc syntax and execution verified)"

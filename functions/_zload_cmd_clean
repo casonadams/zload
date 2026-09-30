@@ -25,13 +25,13 @@ _zload_cmd_clean() {
     name="${dir:t}"
     [[ "$name" == "_snippets" ]] && continue
     cdir="${dir:A}"
-    if (( ! $+active_dirs[$dir] && ! $+active_dirs[$cdir] )); then
+    if ((! $+active_dirs[$dir] && ! $+active_dirs[$cdir])); then
       to_remove+=("$dir")
     fi
   done
 
-  if (( ${#to_remove} == 0 )); then
-    if (( force )) && [[ -d "$ZLOAD_CACHE" ]]; then
+  if ((${#to_remove} == 0)); then
+    if ((force)) && [[ -d "$ZLOAD_CACHE" ]]; then
       rm -f "${ZLOAD_CACHE}"/bundle.*(N) "${ZLOAD_CACHE}"/zcompdump*(N)
     fi
     print -P "%F{10}zload%f  %F{10}✓ cache and plugins are clean.%f"
@@ -40,14 +40,14 @@ _zload_cmd_clean() {
 
   for dir in "${to_remove[@]}"; do
     name="${dir:t}"
-    if (( force )); then
+    if ((force)); then
       print -P "%F{14}zload%f  %F{9}removing%f       %F{15}%B${name}%b%f%F{8}...%f"
       rm -rf "$dir"
     else
       print -P "%F{11}zload%f  %F{11}unused%f         %F{15}%B${name}%b%f %F{8}(pass -f to delete)%f"
     fi
   done
-  if (( force )) && [[ -d "$ZLOAD_CACHE" ]]; then
+  if ((force)) && [[ -d "$ZLOAD_CACHE" ]]; then
     rm -f "${ZLOAD_CACHE}"/bundle.*(N) "${ZLOAD_CACHE}"/zcompdump*(N)
   fi
   return 0

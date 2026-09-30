@@ -7,7 +7,7 @@ _zload_cmd_update() {
   local -a plugin_dirs
   plugin_dirs=("${ZLOAD_PLUGINS}"/*(N/))
 
-  if (( ${#plugin_dirs} == 0 )); then
+  if ((${#plugin_dirs} == 0)); then
     print -P "  %F{8}(no plugins installed)%f"
     return 0
   fi
@@ -49,7 +49,7 @@ _zload_cmd_update() {
     old_commits[$dir]="$(command git -C "$dir" rev-parse --short HEAD 2>/dev/null)"
 
     (
-      if (( force )); then
+      if ((force)); then
         command git -C "$dir" reset --hard HEAD >/dev/null 2>&1
         command git -C "$dir" clean -df >/dev/null 2>&1
       fi
@@ -61,7 +61,7 @@ _zload_cmd_update() {
   done
 
   for dir in "${plugin_dirs[@]}"; do
-    (( ! $+job_pids[$dir] )) && continue
+    ((! $+job_pids[$dir])) && continue
     pid="${job_pids[$dir]}"
     name="${job_names[$dir]}"
     old_commit="${old_commits[$dir]}"
@@ -72,12 +72,12 @@ _zload_cmd_update() {
       [[ -z "$ref" ]] && ref="pinned"
       if [[ -n "$old_commit" && "$old_commit" != "$commit" ]]; then
         print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}updated%f      %F{8}(${old_commit} -> ${commit})%f"
-        (( updated_count++ ))
+        ((updated_count++))
         if [[ -n "${build_hooks[$dir]}" ]]; then
           bdir="$dir"
           [[ -n "${build_subpaths[$dir]}" && -d "$dir/${build_subpaths[$dir]}" ]] && bdir="$dir/${build_subpaths[$dir]}"
           print -P "     %F{14}zload%f  %F{11}rebuilding%f  %F{15}%B${name}%b%f %F{8}(${build_hooks[$dir]})%f"
-          ( cd "$bdir" && eval "${build_hooks[$dir]}" ) >/dev/null 2>&1
+          (cd "$bdir" && eval "${build_hooks[$dir]}") >/dev/null 2>&1
         fi
       else
         print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}up to date%f   %F{8}(${ref}@${commit})%f"
@@ -100,14 +100,14 @@ _zload_cmd_update() {
           cp -f "$src_file" "$target_file"
           zcompile -R "$target_file" 2>/dev/null
           print -P "  %F{10}✓%f  %F{15}%B${(r:35:)label}%b%f  %F{10}snippet updated%f"
-          (( updated_count++ ))
+          ((updated_count++))
         fi
       else
         if command curl -fsSL "${parsed[url]}" -o "${target_file}.tmp.$$" >/dev/null 2>&1; then
           mv -f "${target_file}.tmp.$$" "$target_file"
           zcompile -R "$target_file" 2>/dev/null
           print -P "  %F{10}✓%f  %F{15}%B${(r:35:)label}%b%f  %F{10}snippet updated%f"
-          (( updated_count++ ))
+          ((updated_count++))
         else
           rm -f "${target_file}.tmp.$$" 2>/dev/null
           print -P "  %F{9}✗%f  %F{15}%B${(r:35:)label}%b%f  %F{9}snippet update failed%f"
@@ -117,11 +117,11 @@ _zload_cmd_update() {
     fi
   done
 
-  if (( updated_count > 0 )) && [[ -d "$ZLOAD_CACHE" ]]; then
+  if ((updated_count > 0)) && [[ -d "$ZLOAD_CACHE" ]]; then
     rm -f "${ZLOAD_CACHE}"/zcompdump*(N)
   fi
 
-  if (( ${#failed} > 0 )); then
+  if ((${#failed} > 0)); then
     print -u2 -P "\n%F{11}zload:%f %F{11}warning: some plugins failed to update%f"
   fi
 

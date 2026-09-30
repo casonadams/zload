@@ -18,7 +18,7 @@ git -C "$SRC_DIR" init -q -b main
 git -C "$SRC_DIR" config user.email "test@zload.test"
 git -C "$SRC_DIR" config user.name "Zload Test"
 
-cat << 'EOF' > "$SRC_DIR/tool.plugin.zsh"
+cat <<'EOF' >"$SRC_DIR/tool.plugin.zsh"
 export TOOL_INSTALLED=1
 EOF
 
@@ -34,10 +34,16 @@ _zload_parse_spec spec_info "file://$BARE_DIR"
 CLONED_DIR="${spec_info[dir]}"
 ARTIFACT="$CLONED_DIR/artifact.zsh"
 
-[[ -f "$ARTIFACT" ]] || { echo "FAIL: artifact.zsh was not created by --build hook"; exit 1; }
-[[ "$(< "$ARTIFACT")" == *"BUILT_ARTIFACT=1"* ]] || { echo "FAIL: artifact.zsh has unexpected content"; exit 1; }
+[[ -f "$ARTIFACT" ]] || {
+  echo "FAIL: artifact.zsh was not created by --build hook"
+  exit 1
+}
+[[ "$(<"$ARTIFACT")" == *"BUILT_ARTIFACT=1"* ]] || {
+  echo "FAIL: artifact.zsh has unexpected content"
+  exit 1
+}
 # Push new commit to test rebuild on update
-cat << 'EOF' > "$SRC_DIR/tool.plugin.zsh"
+cat <<'EOF' >"$SRC_DIR/tool.plugin.zsh"
 export TOOL_INSTALLED=2
 EOF
 git -C "$SRC_DIR" commit -q -am "v2"
@@ -49,7 +55,13 @@ rm -f "$ARTIFACT"
 # Run zload update
 zload update >/dev/null
 
-[[ -f "$ARTIFACT" ]] || { echo "FAIL: artifact.zsh was not re-created on update by --build hook"; exit 1; }
-[[ "$(< "$ARTIFACT")" == *"BUILT_ARTIFACT=1"* ]] || { echo "FAIL: rebuilt artifact has unexpected content"; exit 1; }
+[[ -f "$ARTIFACT" ]] || {
+  echo "FAIL: artifact.zsh was not re-created on update by --build hook"
+  exit 1
+}
+[[ "$(<"$ARTIFACT")" == *"BUILT_ARTIFACT=1"* ]] || {
+  echo "FAIL: rebuilt artifact has unexpected content"
+  exit 1
+}
 
 echo "PASS: test_build (post-install and post-update build hook execution)"

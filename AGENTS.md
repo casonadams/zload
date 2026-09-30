@@ -53,19 +53,23 @@ Run all quality checks before committing:
    ```sh
    rm -f functions/*.zwc *.zwc
    ```
-2. **ShellSpec BDD Suite**:
+2. **Lint & Ripwire Quality Gates**:
+   ```sh
+   ./scripts/lint
+   # Pass -f / --fix to auto-format with shfmt; -j / --json for machine output
+   ```
+3. **ShellSpec BDD Suite**:
    ```sh
    shellspec
    ```
-3. **Full 5-Gate Specification Verification Runner**:
+4. **Full 5-Gate Specification Verification Runner**:
    ```sh
    zsh test/verify_all.zsh
    ```
    Ensures:
-   - Gate 1: 100% clean syntax validation across all files (`zsh -n`).
+   - Gate 1: 100% clean linting, syntax (`zsh -n`), and Ripwire quality gates (metrics, clones, dead code, doc drift, quality delta).
    - Gate 2: Full unit and integration test suite passes.
    - Gate 3: High-resolution benchmark proves warm startup latency < 2.0 ms (target < 0.5 ms).
    - Gate 4: Zero-subprocess poison test confirms 0 child processes spawned in warm path.
    - Gate 5: Real-world Oh-My-Zsh git branch and dirty status extraction verified.
-
 Never bypass or weaken these gates to make a build pass.

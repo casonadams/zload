@@ -24,7 +24,7 @@ _zload_load_plugin() {
   if [[ "${_zspec[type]}" == "prezto" && -d "$target_dir/functions" ]]; then
     local -a funcs
     funcs=("$target_dir/functions"/*(N:t))
-    if (( ${#funcs} > 0 )); then
+    if ((${#funcs} > 0)); then
       fpath=("$target_dir/functions" "${fpath[@]}")
       autoload -Uz "${funcs[@]}"
     fi
@@ -34,7 +34,7 @@ _zload_load_plugin() {
     local -a fps
     fps=("${(s.:.)_zinfo[fpath]}")
     for fp in "${fps[@]}"; do
-      if [[ -d "$fp" ]] && (( ! ${fpath[(Ie)$fp]} )); then
+      if [[ -d "$fp" ]] && ((! ${fpath[(Ie)$fp]})); then
         fpath=("$fp" "${fpath[@]}")
       fi
     done
@@ -45,7 +45,7 @@ _zload_load_plugin() {
     bin_dir="${_zspec[dir]}/${_zspec[bin]}"
   fi
   if [[ -n "$bin_dir" && -d "$bin_dir" ]]; then
-    if (( ! ${path[(Ie)$bin_dir]} )); then
+    if ((! ${path[(Ie)$bin_dir]})); then
       path=("$bin_dir" "${path[@]}")
     fi
   fi

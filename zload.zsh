@@ -10,11 +10,11 @@ typeset -g ZLOAD_PLUGINS="${ZLOAD_DATA}/plugins"
 
 mkdir -p "$ZLOAD_CACHE" "$ZLOAD_PLUGINS"
 
-if (( ! ${fpath[(Ie)${ZLOAD_HOME}/functions]} )); then
+if ((! ${fpath[(Ie)${ZLOAD_HOME}/functions]})); then
   fpath=("${ZLOAD_HOME}/functions" "${fpath[@]}")
 fi
 
-if [[ -d "$HOME/.zfunc" ]] && (( ! ${fpath[(Ie)$HOME/.zfunc]} )); then
+if [[ -d "$HOME/.zfunc" ]] && ((! ${fpath[(Ie)$HOME/.zfunc]})); then
   fpath=("$HOME/.zfunc" "${fpath[@]}")
 fi
 
@@ -34,8 +34,8 @@ typeset -g _zload_compinit_done=0
 _zload_hash() {
   local str="$1"
   integer hash=5381 i len=${#str}
-  for (( i=1; i<=len; i++ )); do
-    (( hash = ((hash << 5) + hash) + #str[i] ))
+  for ((i = 1; i <= len; i++)); do
+    ((hash = ((hash << 5) + hash) + "#str[i]"))
   done
   echo "$hash"
 }
@@ -50,7 +50,7 @@ zload() {
   emulate -L zsh
   setopt extended_glob
 
-  if (( $# == 0 )); then
+  if (($# == 0)); then
     print "Usage: zload <plugin> [options] | zload <command>"
     return 1
   fi
@@ -96,7 +96,7 @@ zload() {
       _zload_cmd_cd "$@"
       return $?
       ;;
-    self-update|upgrade)
+    self-update | upgrade)
       shift
       autoload -Uz _zload_cmd_self_update
       _zload_cmd_self_update "$@"
@@ -121,7 +121,7 @@ zload() {
         return $?
       fi
       ;;
-    clean|list|doctor|profile|compile|lock|sync|help)
+    clean | list | doctor | profile | compile | lock | sync | help)
       local cmd="$1"
       shift
       autoload -Uz "_zload_cmd_${cmd}" 2>/dev/null
@@ -139,20 +139,20 @@ zload() {
   local current_hash="$(_zload_hash "$raw_input")"
 
   if [[ -f "${ZLOAD_CACHE}/bundle.zsh.zwc" && -f "${ZLOAD_CACHE}/bundle.hash" ]]; then
-    if [[ "$(< "${ZLOAD_CACHE}/bundle.hash")" == "$current_hash" ]]; then
+    if [[ "$(<"${ZLOAD_CACHE}/bundle.hash")" == "$current_hash" ]]; then
       source "${ZLOAD_CACHE}/bundle.zsh"
       return 0
     fi
   fi
 
   local -a entries
-  if (( $# == 1 )) && [[ "$1" == *$'\n'* ]]; then
+  if (($# == 1)) && [[ "$1" == *$'\n'* ]]; then
     entries=("${(f)1}")
   else
     local current=""
     local expects_arg=0
     for arg in "$@"; do
-      if (( expects_arg )); then
+      if ((expects_arg)); then
         current="$current ${(q)arg}"
         expects_arg=0
       elif [[ "$arg" == --(on|bin|path|subpath|build|hook|on-dir|from) ]]; then
@@ -181,25 +181,25 @@ zload() {
 
     if ! _zload_install parsed; then
       print -u2 "zload: failed to install $entry"
-      (( install_errors++ ))
+      ((install_errors++))
       continue
     fi
 
     if [[ -n "${parsed[on_dir]}" ]]; then
       _zload_schedule_on_dir "$entry" "${parsed[on_dir]}"
-    elif (( parsed[defer] )); then
+    elif ((parsed[defer])); then
       _zload_schedule_deferred "$entry"
     else
       _zload_load_plugin parsed
     fi
   done
 
-  if (( install_errors == 0 && ${#entries} > 0 )); then
+  if ((install_errors == 0 && ${#entries} > 0)); then
     _zload_compile_bundle "${entries[@]}"
-    print "$current_hash" > "${ZLOAD_CACHE}/bundle.hash"
+    print "$current_hash" >"${ZLOAD_CACHE}/bundle.hash"
   fi
 
-  if (( ! ${+ZLOAD_NO_COMPINIT} )) && [[ -o interactive ]] && (( ! _zload_compinit_done )); then
+  if ((! ${+ZLOAD_NO_COMPINIT})) && [[ -o interactive ]] && ((! _zload_compinit_done)); then
     autoload -Uz _zload_setup_lazy_compinit
     _zload_setup_lazy_compinit
   fi

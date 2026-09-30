@@ -12,7 +12,7 @@ _zload_cmd_profile() {
     t0=$EPOCHREALTIME
     source "$bundle_file"
     t1=$EPOCHREALTIME
-    t_bundle=$(( (t1 - t0) * 1000 ))
+    t_bundle=$(((t1 - t0) * 1000))
   fi
 
   print -P "  %F{14}%BComponent%b%f                          %F{14}%BLatency%b%f     %F{14}%BStatus%b%f"
@@ -23,7 +23,7 @@ _zload_cmd_profile() {
     printf "  %-35s %%F{8}%12s%%f   %%F{8}uncompiled%%f\n" "Memory-mapped bundle (.zwc)" "N/A"
   fi
 
-  if (( _zload_compinit_done )); then
+  if ((_zload_compinit_done)); then
     printf "  %-35s %%F{10}%12s%%f   %%F{10}initialized%%f\n" "Completion system (compinit)" "< 1 ms"
   else
     printf "  %-35s %%F{8}%12s%%f   %%F{8}deferred to <Tab>%%f\n" "Completion system (compinit)" "0.000 ms"

@@ -1,6 +1,6 @@
 _zload_real_compinit() {
   emulate -L zsh
-  (( _zload_compinit_done )) && return 0
+  ((_zload_compinit_done)) && return 0
   _zload_compinit_done=1
 
   unfunction compdef 2>/dev/null

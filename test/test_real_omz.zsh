@@ -12,7 +12,7 @@ source ./zload.zsh
 # Setup Oh-My-Zsh repository structure with real upstream function implementations
 mkdir -p "$ZLOAD_PLUGINS/_omz/lib" "$ZLOAD_PLUGINS/_omz/plugins/git"
 
-cat << 'EOF' > "$ZLOAD_PLUGINS/_omz/lib/git.zsh"
+cat <<'EOF' >"$ZLOAD_PLUGINS/_omz/lib/git.zsh"
 function current_branch() {
   git rev-parse --abbrev-ref HEAD 2>/dev/null
 }
@@ -26,7 +26,7 @@ function parse_git_dirty() {
 }
 EOF
 
-cat << 'EOF' > "$ZLOAD_PLUGINS/_omz/plugins/git/git.plugin.zsh"
+cat <<'EOF' >"$ZLOAD_PLUGINS/_omz/plugins/git/git.plugin.zsh"
 alias gst="git status"
 alias gcb="current_branch"
 alias gl="git pull"
@@ -36,7 +36,7 @@ EOF
 TEST_REPO="$SANDBOX/real_repo"
 mkdir -p "$TEST_REPO"
 git -C "$TEST_REPO" init -q -b "feature-omz-integration"
-echo "data" > "$TEST_REPO/tracked.txt"
+echo "data" >"$TEST_REPO/tracked.txt"
 git -C "$TEST_REPO" config user.email "test@zload.test"
 git -C "$TEST_REPO" config user.name "Zload Test"
 git -C "$TEST_REPO" add .
@@ -60,7 +60,7 @@ CLEAN_STATUS=$(parse_git_dirty)
 }
 
 # Dirty the repository
-echo "uncommitted change" >> "$TEST_REPO/tracked.txt"
+echo "uncommitted change" >>"$TEST_REPO/tracked.txt"
 DIRTY_STATUS=$(parse_git_dirty)
 [[ "$DIRTY_STATUS" == "dirty" ]] || {
   echo "FAIL: parse_git_dirty returned '$DIRTY_STATUS', expected 'dirty'"

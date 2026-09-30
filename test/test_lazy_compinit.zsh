@@ -26,17 +26,32 @@ compdef _git g
 _zload_real_compinit
 
 # Verify real compdef is active (not our stub)
-typeset -f compdef >/dev/null || { echo "FAIL: real compdef not defined"; exit 1; }
-[[ "${#_zload_deferred_compdefs}" == "0" ]] || { echo "FAIL: deferred compdefs not drained"; exit 1; }
+typeset -f compdef >/dev/null || {
+  echo "FAIL: real compdef not defined"
+  exit 1
+}
+[[ "${#_zload_deferred_compdefs}" == "0" ]] || {
+  echo "FAIL: deferred compdefs not drained"
+  exit 1
+}
 
 # Verify zcompdump and zcompdump.zwc are generated
 DUMP_FILE="${ZLOAD_CACHE}/zcompdump-${ZSH_VERSION}"
-[[ -f "$DUMP_FILE" ]] || { echo "FAIL: dump file $DUMP_FILE was not created"; exit 1; }
-[[ -f "${DUMP_FILE}.zwc" ]] || { echo "FAIL: dump file zwc was not created"; exit 1; }
+[[ -f "$DUMP_FILE" ]] || {
+  echo "FAIL: dump file $DUMP_FILE was not created"
+  exit 1
+}
+[[ -f "${DUMP_FILE}.zwc" ]] || {
+  echo "FAIL: dump file zwc was not created"
+  exit 1
+}
 
 # 3. Verify idempotency
 _zload_real_compinit
-[[ "$_zload_compinit_done" == "1" ]] || { echo "FAIL: _zload_compinit_done is not 1"; exit 1; }
+[[ "$_zload_compinit_done" == "1" ]] || {
+  echo "FAIL: _zload_compinit_done is not 1"
+  exit 1
+}
 
 # 4. Test automatic lazy compinit arming in interactive mode
 zsh -f -i -c "
@@ -47,7 +62,10 @@ zsh -f -i -c "
   echo 'export AUTO_P=1' > \"$SANDBOX/p_auto/p_auto.plugin.zsh\"
   zload \"$SANDBOX/p_auto\"
   typeset -f _zload_lazy_compinit_widget >/dev/null || exit 1
-" || { echo "FAIL: automatic lazy compinit did not arm widget"; exit 1; }
+" || {
+  echo "FAIL: automatic lazy compinit did not arm widget"
+  exit 1
+}
 
 # 5. Test ZLOAD_NO_COMPINIT=1 opt-out prevents arming
 zsh -f -i -c "
@@ -61,6 +79,9 @@ zsh -f -i -c "
   if typeset -f _zload_lazy_compinit_widget >/dev/null; then
     exit 1
   fi
-" || { echo "FAIL: ZLOAD_NO_COMPINIT=1 did not suppress lazy compinit arming"; exit 1; }
+" || {
+  echo "FAIL: ZLOAD_NO_COMPINIT=1 did not suppress lazy compinit arming"
+  exit 1
+}
 
 echo "PASS: test_lazy_compinit (compdef buffering, compinit deferral, auto-arming, and opt-out)"

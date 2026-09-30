@@ -1,5 +1,5 @@
 _zload_cmd_help() {
-  cat << 'EOF'
+  cat <<'EOF'
 zload - Ultra-fast, zero-friction Zsh plugin manager
 
 Usage:

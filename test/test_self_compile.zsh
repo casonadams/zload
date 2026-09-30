@@ -19,11 +19,20 @@ source "$SANDBOX_HOME/zload.zsh"
 zload compile >/dev/null
 
 # Assert zload.zsh.zwc exists
-[[ -f "$SANDBOX_HOME/zload.zsh.zwc" ]] || { echo "FAIL: zload.zsh.zwc not created"; exit 1; }
-[[ -f "$SANDBOX_HOME/zload.plugin.zsh.zwc" ]] || { echo "FAIL: zload.plugin.zsh.zwc not created"; exit 1; }
+[[ -f "$SANDBOX_HOME/zload.zsh.zwc" ]] || {
+  echo "FAIL: zload.zsh.zwc not created"
+  exit 1
+}
+[[ -f "$SANDBOX_HOME/zload.plugin.zsh.zwc" ]] || {
+  echo "FAIL: zload.plugin.zsh.zwc not created"
+  exit 1
+}
 
 # Assert functions have .zwc
 FN_COUNT=$(ls -1 "$SANDBOX_HOME/functions"/*.zwc 2>/dev/null | wc -l)
-(( FN_COUNT > 5 )) || { echo "FAIL: functions not compiled to .zwc (count=$FN_COUNT)"; exit 1; }
+((FN_COUNT > 5)) || {
+  echo "FAIL: functions not compiled to .zwc (count=$FN_COUNT)"
+  exit 1
+}
 
 echo "PASS: test_self_compile (self-compilation of core loader and modules)"

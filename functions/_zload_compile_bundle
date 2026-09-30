@@ -3,13 +3,13 @@ _zload_compile_bundle() {
   setopt extended_glob
 
   local -a specs
-  if (( $# > 0 )); then
+  if (($# > 0)); then
     specs=("$@")
   else
     specs=("${_zload_specs[@]}")
   fi
 
-  (( ${#specs} == 0 )) && return 0
+  ((${#specs} == 0)) && return 0
 
   local -a sorted_specs
   _zload_sort_plugins sorted_specs "${specs[@]}"
@@ -20,8 +20,8 @@ _zload_compile_bundle() {
 
   integer attempts=0
   while ! mkdir "$lock_dir" 2>/dev/null; do
-    (( attempts++ ))
-    if (( attempts > 20 )); then
+    ((attempts++))
+    if ((attempts > 20)); then
       rm -rf "$lock_dir" 2>/dev/null
       break
     fi
@@ -66,14 +66,14 @@ _zload_compile_bundle() {
         local -a fps
         fps=("${(s.:.)info[fpath]}")
         for fp in "${fps[@]}"; do
-          (( ${all_fpaths[(Ie)$fp]} )) || all_fpaths+=("$fp")
+          ((${all_fpaths[(Ie)$fp]})) || all_fpaths+=("$fp")
         done
       fi
 
       local bin_dir="${info[bin]}"
       [[ -n "${parsed[bin]}" ]] && bin_dir="${parsed[dir]}/${parsed[bin]}"
       if [[ -n "$bin_dir" && -d "$bin_dir" ]]; then
-        (( ${all_paths[(Ie)$bin_dir]} )) || all_paths+=("$bin_dir")
+        ((${all_paths[(Ie)$bin_dir]})) || all_paths+=("$bin_dir")
       fi
 
       [[ "${parsed[type]}" == "omz" ]] && has_omz=1
@@ -87,7 +87,7 @@ _zload_compile_bundle() {
       print "(( \${path[(Ie)${(q)bp}]} )) || path=(${(q)bp} \"\${path[@]}\")"
     done
 
-    if (( has_omz )); then
+    if ((has_omz)); then
       print "export ZSH=${(q)ZLOAD_PLUGINS}/_omz"
       print "export ZSH_CACHE_DIR=${(q)ZLOAD_CACHE}/omz"
       print "mkdir -p \"\$ZSH_CACHE_DIR\""
@@ -118,7 +118,7 @@ _zload_compile_bundle() {
       if [[ "${parsed[type]}" == "prezto" && -d "$target_dir/functions" ]]; then
         local -a funcs
         funcs=("$target_dir/functions"/*(N:t))
-        if (( ${#funcs} > 0 )); then
+        if ((${#funcs} > 0)); then
           print "fpath=(${(q)target_dir}/functions \"\${fpath[@]}\")"
           print "autoload -Uz ${(j: :)funcs}"
         fi
@@ -134,7 +134,7 @@ _zload_compile_bundle() {
         continue
       fi
 
-      if (( parsed[defer] )); then
+      if ((parsed[defer])); then
         print "_zload_schedule_deferred ${(q)spec_entry}"
         continue
       fi
@@ -153,16 +153,16 @@ _zload_compile_bundle() {
     print "  autoload -Uz _zload_setup_lazy_compinit"
     print "  _zload_setup_lazy_compinit"
     print "fi"
-  } > "$bundle_tmp"
+  } >"$bundle_tmp"
 
   zcompile -R "$bundle_tmp" 2>/dev/null
 
   local combined="${(j:\n:)specs}"
   integer hash=5381 i len=${#combined}
-  for (( i=1; i<=len; i++ )); do
-    (( hash = ((hash << 5) + hash) + #combined[i] ))
+  for ((i = 1; i <= len; i++)); do
+    ((hash = ((hash << 5) + hash) + "#combined[i]"))
   done
-  print "$hash" > "$hash_tmp"
+  print "$hash" >"$hash_tmp"
 
   mv -f "$bundle_tmp" "${ZLOAD_CACHE}/bundle.zsh"
   [[ -f "${bundle_tmp}.zwc" ]] && mv -f "${bundle_tmp}.zwc" "${ZLOAD_CACHE}/bundle.zsh.zwc"

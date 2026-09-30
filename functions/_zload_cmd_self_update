@@ -16,7 +16,7 @@ _zload_cmd_self_update() {
 
   old_commit="$(command git -C "$ZLOAD_HOME" rev-parse --short HEAD 2>/dev/null)"
 
-  if (( force )); then
+  if ((force)); then
     command git -C "$ZLOAD_HOME" reset --hard HEAD >/dev/null 2>&1
     command git -C "$ZLOAD_HOME" clean -df >/dev/null 2>&1
   fi

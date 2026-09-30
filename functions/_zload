@@ -41,7 +41,7 @@ _zload() {
             '--all[Update zload and all installed plugins]' \
             '(-f --force)'{-f,--force}'[Force update, discarding local working tree changes]'
           ;;
-        upgrade|self-update)
+        upgrade | self-update)
           _arguments \
             '(-f --force)'{-f,--force}'[Force upgrade, discarding local working tree changes]'
           ;;
@@ -49,7 +49,7 @@ _zload() {
           _arguments \
             '(-f --force)'{-f,--force}'[Force remove unreferenced plugins]'
           ;;
-        lock|sync)
+        lock | sync)
           _arguments \
             '1:lockfile:_files'
           ;;
@@ -57,9 +57,9 @@ _zload() {
           _arguments \
             '--lazy[Defer compinit until first Tab keystroke]'
           ;;
-        which|cd)
+        which | cd)
           local -a installed
-          installed=( "${ZLOAD_PLUGINS}"/*(N/:t) )
+          installed=("${ZLOAD_PLUGINS}"/*(N/:t))
           _describe -t plugins 'installed plugins' installed
           ;;
         *)

@@ -18,15 +18,18 @@ jobs:
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y zsh git man-db
+          sudo apt-get update && sudo apt-get install -y zsh git man-db jq curl
           curl -fsSL https://git.io/shellspec | sudo sh -s -- --yes -p /usr/local
+          ./scripts/setup-ci
 
       - name: Install dependencies (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew install zsh git shellspec || true
+          brew install zsh git shellspec jq curl || true
+          ./scripts/setup-ci
 
+      - name: Run lint & quality gate
+        run: ./scripts/lint
       - name: Run ShellSpec BDD suite
         run: shellspec
 

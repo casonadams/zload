@@ -10,7 +10,7 @@ _zload_lazy_complete_word_widget() {
 
 _zload_setup_lazy_compinit() {
   emulate -L zsh
-  (( _zload_compinit_done )) && return 0
+  ((_zload_compinit_done)) && return 0
 
   if typeset -f _main_complete >/dev/null 2>&1 || typeset -p _comps >/dev/null 2>&1; then
     _zload_compinit_done=1

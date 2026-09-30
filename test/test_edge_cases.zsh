@@ -23,17 +23,20 @@ zload compinit --lazy
 
 # 2. Test offline / failed install resilience
 mkdir -p "$SANDBOX/p1"
-echo "export P1=1" > "$SANDBOX/p1/p1.plugin.zsh"
+echo "export P1=1" >"$SANDBOX/p1/p1.plugin.zsh"
 zload "$SANDBOX/p1"
 
-[[ -f "$ZLOAD_CACHE/bundle.zsh.zwc" ]] || { echo "FAIL: initial bundle missing"; exit 1; }
-ORIG_HASH="$(< "$ZLOAD_CACHE/bundle.hash")"
+[[ -f "$ZLOAD_CACHE/bundle.zsh.zwc" ]] || {
+  echo "FAIL: initial bundle missing"
+  exit 1
+}
+ORIG_HASH="$(<"$ZLOAD_CACHE/bundle.hash")"
 
 # Now try to load an invalid repo that fails to clone
 zload "https://invalid-nonexistent-domain-12345.com/fail.git" 2>/dev/null || true
 
 # Assert existing valid bundle and hash are preserved intact
-NEW_HASH="$(< "$ZLOAD_CACHE/bundle.hash")"
+NEW_HASH="$(<"$ZLOAD_CACHE/bundle.hash")"
 [[ "$ORIG_HASH" == "$NEW_HASH" ]] || {
   echo "FAIL: failed install corrupted existing bundle.hash"
   exit 1

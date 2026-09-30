@@ -1,0 +1,47 @@
+_zload_add_paths() {
+  emulate -L zsh
+  local target_var="$1"
+  shift
+  typeset -g -U "$target_var"
+
+  if (($# == 0)); then
+    print -l "${(P)target_var}"
+    return 0
+  fi
+
+  local -a entries
+  if (($# == 1)) && [[ "$1" == *$'\n'* ]]; then
+    entries=("${(f)1}")
+  else
+    entries=("$@")
+  fi
+
+  local -a valid_dirs
+  local p
+  for p in "${entries[@]}"; do
+    p="${p#"${p%%[![:space:]]*}"}"
+    p="${p%"${p##*[![:space:]]}"}"
+    [[ -z "$p" || "$p" == \#* ]] && continue
+
+    p="${p/#\~/$HOME}"
+    local expanded="${(e)p}"
+    expanded="${expanded:A}"
+    if [[ -d "$expanded" ]]; then
+      local -a cur_arr
+      cur_arr=("${(P@)target_var}")
+      cur_arr=("${(@)cur_arr:#$expanded}")
+      set -A "$target_var" "${cur_arr[@]}"
+      valid_dirs+=("$expanded")
+    else
+      print -u2 -P "%F{11}zload ${target_var}: directory not found: $p%f"
+    fi
+  done
+
+  if ((${#valid_dirs} > 0)); then
+    local -a cur_arr
+    cur_arr=("${(P@)target_var}")
+    set -A "$target_var" "${valid_dirs[@]}" "${cur_arr[@]}"
+  fi
+
+  return 0
+}

@@ -9,8 +9,8 @@ export XDG_DATA_HOME="$SANDBOX/data"
 export XDG_CACHE_HOME="$SANDBOX/cache"
 
 mkdir -p "$SANDBOX/p1" "$SANDBOX/p2"
-echo "export P1=1" > "$SANDBOX/p1/p1.plugin.zsh"
-echo "export P2=1" > "$SANDBOX/p2/p2.plugin.zsh"
+echo "export P1=1" >"$SANDBOX/p1/p1.plugin.zsh"
+echo "export P2=1" >"$SANDBOX/p2/p2.plugin.zsh"
 
 LIST_PLUGINS="$SANDBOX/p1
 $SANDBOX/p2"
@@ -26,7 +26,7 @@ zsh -c "
 # 2. Setup poison bin directory with failing shims for all common external tools
 mkdir -p "$SANDBOX/poison_bin"
 for tool in git sed grep uname which find cut awk tr wc cat; do
-  cat << EOF > "$SANDBOX/poison_bin/$tool"
+  cat <<EOF >"$SANDBOX/poison_bin/$tool"
 #!/bin/sh
 echo "FORK_DETECTED: \$0 was invoked during warm startup!" >&2
 exit 99

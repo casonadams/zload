@@ -78,7 +78,7 @@ _zload_install_gh_r() {
         [[ "$lower_u" == *$ap* ]] && match_arch=1
       done
 
-      if (( match_os && match_arch )); then
+      if ((match_os && match_arch)); then
         target_url="$u"
         break
       fi
@@ -116,7 +116,7 @@ _zload_install_gh_r() {
     [[ -f "$f" ]] && found_bins+=("$f")
   done
 
-  if (( ${#found_bins} > 0 )); then
+  if ((${#found_bins} > 0)); then
     for f in "${found_bins[@]}"; do
       mv "$f" "$bin_dir/"
       chmod +x "$bin_dir/${f:t}"

@@ -22,7 +22,7 @@ _zload_cmd_sync() {
 
   integer synced=0
   local line name commit dir curr bdir
-  for line in "${(f)"$(< "$lock_file")"}"; do
+  for line in "${(f)"$(<"$lock_file")"}"; do
     [[ -z "$line" || "$line" == \#* ]] && continue
 
     name="${line%%:*}"
@@ -37,12 +37,12 @@ _zload_cmd_sync() {
           command git -C "$dir" checkout -q "$commit" 2>/dev/null || true
         }
         print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}synced%f  %F{8}(${commit[1,8]})%f"
-        (( synced++ ))
+        ((synced++))
         if [[ -n "${build_hooks[$dir]}" ]]; then
           bdir="$dir"
           [[ -n "${build_subpaths[$dir]}" && -d "$dir/${build_subpaths[$dir]}" ]] && bdir="$dir/${build_subpaths[$dir]}"
           print -P "     %F{14}zload%f  %F{11}rebuilding%f  %F{15}%B${name}%b%f %F{8}(${build_hooks[$dir]})%f"
-          ( cd "$bdir" && eval "${build_hooks[$dir]}" ) >/dev/null 2>&1
+          (cd "$bdir" && eval "${build_hooks[$dir]}") >/dev/null 2>&1
         fi
       else
         print -P "  %F{12}•%f  %F{15}%B${(r:35:)name}%b%f  %F{8}already at locked commit%f"
@@ -50,7 +50,7 @@ _zload_cmd_sync() {
     fi
   done
 
-  if (( synced > 0 )) && [[ -d "$ZLOAD_CACHE" ]]; then
+  if ((synced > 0)) && [[ -d "$ZLOAD_CACHE" ]]; then
     rm -f "${ZLOAD_CACHE}"/zcompdump*(N)
   fi
 

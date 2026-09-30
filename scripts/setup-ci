@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+
+mkdir -p "$HOME/.local/bin" /tmp/rw
+rw_arch="linux-x64"
+shfmt_arch="linux_amd64"
+
+if [ "$(uname -s)" = "Darwin" ]; then
+  rw_arch="macos-arm64"
+  shfmt_arch="darwin_arm64"
+fi
+
+curl -fsSL "https://github.com/mvdan/sh/releases/download/v3.14.1/shfmt_v3.14.1_${shfmt_arch}" -o "$HOME/.local/bin/shfmt"
+curl -fsSL "https://github.com/redhat-et/ripwire/releases/download/v0.6.5/ripwire-0.6.5-${rw_arch}.tar.gz" | tar -xz -C /tmp/rw
+mv /tmp/rw/*/ripwire "$HOME/.local/bin/ripwire"
+chmod +x "$HOME/.local/bin/shfmt" "$HOME/.local/bin/ripwire"
+rm -rf /tmp/rw
+
+if [ -n "$GITHUB_PATH" ]; then
+  echo "$HOME/.local/bin" >>"$GITHUB_PATH"
+fi

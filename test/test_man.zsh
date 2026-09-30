@@ -3,7 +3,10 @@ set -e
 
 # 1. Assert man file exists and contains valid troff macro header
 MAN_FILE="man/man1/zload.1"
-[[ -f "$MAN_FILE" ]] || { echo "FAIL: man/man1/zload.1 missing"; exit 1; }
+[[ -f "$MAN_FILE" ]] || {
+  echo "FAIL: man/man1/zload.1 missing"
+  exit 1
+}
 
 FIRST_LINE="$(head -n 1 "$MAN_FILE")"
 [[ "$FIRST_LINE" == *".TH ZLOAD 1"* ]] || {
@@ -14,13 +17,13 @@ FIRST_LINE="$(head -n 1 "$MAN_FILE")"
 # 2. Test manpath registration and man page resolution
 source ./zload.zsh
 
-if (( ! ${manpath[(Ie)${ZLOAD_HOME}/man]} )); then
+if ((! ${manpath[(Ie)${ZLOAD_HOME}/man]})); then
   echo "FAIL: ZLOAD_HOME/man not added to manpath"
   exit 1
 fi
 
 # 3. Assert man finds zload if man is available
-if (( $+commands[man] )); then
+if (($+commands[man])); then
   RESOLVED_MAN="$(man -w zload 2>/dev/null || man -M "${ZLOAD_HOME}/man" -w zload 2>/dev/null || true)"
   if [[ -n "$RESOLVED_MAN" ]]; then
     [[ "$RESOLVED_MAN" == *"$MAN_FILE"* ]] || {
