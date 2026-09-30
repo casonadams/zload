@@ -1,6 +1,6 @@
 _zload_cmd_compile() {
   emulate -L zsh
-  setopt null_glob
+  setopt null_glob extended_glob
 
   local fn_file ret pdir pfile
 
