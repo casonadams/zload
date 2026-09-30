@@ -69,8 +69,8 @@ Normally, `compinit` scans `$fpath`, audits permissions, generates `.zcompdump`,
    - Runs `compinit -C` against the cached dump.
    - Byte-compiles the dump file (`.zcompdump.zwc`).
    - Replays all buffered `compdef` calls.
-   - Restores native ZLE completion widgets.
-4. Subsequent `<Tab>` keystrokes run at native Zsh speeds.
+   - Immediately executes the registered completion widget so completion completes seamlessly on the first press.
+4. Subsequent `<Tab>` keystrokes run directly at native Zsh speeds.
 
 ### Automatic Out of the Box
 `zload` automatically arms lazy `<Tab>` compinit whenever you load plugins with `zload "${plugins[@]}"`. No extra command in `.zshrc` is required:

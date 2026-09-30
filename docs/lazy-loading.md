@@ -40,6 +40,12 @@ Plugins that are only needed in specific directories (e.g. Git repositories, Nod
 With `--on-dir`, `zload` defers loading until you navigate into a matching directory:
 
 ```zsh
+# Defer direnv until entering a workspace with .envrc
+zload "ptavares/zsh-direnv" --on-dir ".envrc"
+
+# Defer tfswitch until entering a directory with .tfswitchrc
+zload "ptavares/zsh-tfswitch" --on-dir ".tfswitchrc"
+
 # Load only when entering a Git repository
 zload "davidde/git-time-metric" --on-dir ".git"
 
@@ -78,7 +84,11 @@ zload zsh-users/zsh-syntax-highlighting --defer
 For plugins that require a compilation or install step before first use (e.g. `fzf`, `pure` prompt):
 
 ```zsh
+# Run install binary for fzf
 zload "junegunn/fzf" --build "./install --bin" --bin "bin"
+
+# Pre-compile prompt wordcode on install and update
+zload "casonadams/zline" --build "zline compile"
 ```
 
 ### How it Works:
