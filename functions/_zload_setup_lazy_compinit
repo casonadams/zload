@@ -1,11 +1,11 @@
 _zload_lazy_compinit_widget() {
   _zload_real_compinit
-  zle .expand-or-complete 2>/dev/null
+  zle expand-or-complete 2>/dev/null
 }
 
 _zload_lazy_complete_word_widget() {
   _zload_real_compinit
-  zle .complete-word 2>/dev/null
+  zle complete-word 2>/dev/null
 }
 
 _zload_setup_lazy_compinit() {

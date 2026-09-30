@@ -27,9 +27,4 @@ _zload_real_compinit() {
   done
   _zload_deferred_compdefs=()
 
-  if [[ -o interactive ]] && typeset -f zle >/dev/null 2>&1; then
-    zle -A .expand-or-complete expand-or-complete 2>/dev/null
-    zle -A .complete-word complete-word 2>/dev/null
-    zle -A .menu-complete menu-complete 2>/dev/null
-  fi
 }

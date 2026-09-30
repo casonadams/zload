@@ -83,5 +83,25 @@ zsh -f -i -c "
   echo "FAIL: ZLOAD_NO_COMPINIT=1 did not suppress lazy compinit arming"
   exit 1
 }
+# 6. Test that lazy completion widgets forward to non-dot widgets
+zsh -f -i -c "
+  export XDG_DATA_HOME=\"$XDG_DATA_HOME\"
+  export XDG_CACHE_HOME=\"$XDG_CACHE_HOME\"
+  source ./zload.zsh
+  zload compinit --lazy
+  autoload -Uz _zload_setup_lazy_compinit
+  fn_body=\$(functions _zload_lazy_compinit_widget)
+  if [[ \"\$fn_body\" == *'.expand-or-complete'* ]]; then
+    echo 'FAIL: _zload_lazy_compinit_widget contains dot-prefixed .expand-or-complete'
+    exit 1
+  fi
+  if [[ \"\$fn_body\" != *'zle expand-or-complete'* ]]; then
+    echo 'FAIL: _zload_lazy_compinit_widget does not call zle expand-or-complete'
+    exit 1
+  fi
+" || {
+  echo "FAIL: lazy widget verification failed"
+  exit 1
+}
 
 echo "PASS: test_lazy_compinit (compdef buffering, compinit deferral, auto-arming, and opt-out)"
