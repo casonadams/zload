@@ -8,7 +8,7 @@ typeset -g ZLOAD_DATA="${XDG_DATA_HOME:-$HOME/.local/share}/zload"
 typeset -g ZLOAD_CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/zload"
 typeset -g ZLOAD_PLUGINS="${ZLOAD_DATA}/plugins"
 
-mkdir -p "$ZLOAD_CACHE" "$ZLOAD_PLUGINS"
+[[ -d "$ZLOAD_CACHE" && -d "$ZLOAD_PLUGINS" ]] || mkdir -p "$ZLOAD_CACHE" "$ZLOAD_PLUGINS"
 
 if ((! ${fpath[(Ie)${ZLOAD_HOME}/functions]})); then
   fpath=("${ZLOAD_HOME}/functions" "${fpath[@]}")
