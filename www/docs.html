@@ -339,7 +339,7 @@ zload path <span style="color: #38bdf8;">"${user_paths[@]}"</span></code></pre>
 
         <h3>Automatic Lazy &lt;Tab&gt; Compinit &amp; Menu Selection</h3>
         <p>
-          <code>zload</code> automatically arms lazy <code>compinit</code> out of the box whenever plugins are declared. Early <code>compdef</code> calls from plugins are buffered safely until your first <code>&lt;Tab&gt;</code> press. To opt out, set <code>export ZLOAD_NO_COMPINIT=1</code>.
+          <code>zload</code> automatically arms lazy <code>compinit</code> out of the box whenever plugins are declared. Early <code>compdef</code> calls from plugins are buffered safely until your first <code>&lt;Tab&gt;</code> press, executing completion seamlessly on that first press with zero dropped keystrokes. To opt out, set <code>export ZLOAD_NO_COMPINIT=1</code>.
         </p>
         <p>
           To enable highlighted interactive menu completion navigation, add <code>omz:lib/completion.zsh</code> to your plugin declarations, or set native styles in <code>~/.zshrc</code>:
@@ -410,7 +410,7 @@ zstyle <span style="color: #38bdf8;">':completion:*'</span> list-colors <span st
               </tr>
               <tr>
                 <td><code>zload compile</code></td>
-                <td>Manually forces bundle and core module bytecode recompilation.</td>
+                <td>Manually forces bundle, core module, and installed plugin bytecode recompilation (.zwc).</td>
               </tr>
               <tr>
                 <td><code>zload compinit [--lazy]</code></td>

@@ -95,6 +95,7 @@ zload update --self
 - Reports commit diffs (`old_commit -> new_commit`) for modified plugins and marks unchanged ones as up to date.
 - Re-runs plugin build hooks (`--build` / `--hook`) automatically whenever new commits are pulled.
 - Re-fetches and recompiles remote snippets (`snippet:...`).
+- Automatically byte-compiles all updated plugin scripts into memory-mapped `.zwc` wordcode in-place.
 - Automatically triggers `zload compile` upon completion so the warm bytecode bundle is always in sync.
 - Invalidates completion dump caches (`zcompdump*`) when plugin changes are detected.
 
@@ -216,8 +217,10 @@ zload sync ~/dotfiles/zload.lock
 
 ## 11. `zload compile`
 
-Manually recompiles the static plugin bundle (`bundle.zsh`), `zload.zsh`, and all internal helper modules into memory-mapped wordcode (`.zwc`).
+Manually recompiles the static plugin bundle (`bundle.zsh`), `zload.zsh`, all internal helper modules, and all installed plugin scripts in `$ZLOAD_PLUGINS` into memory-mapped wordcode (`.zwc`).
 
+- Inlines command proxy stubs (`--on`) directly into `bundle.zsh` bytecode so warm startups execute with zero subshells, string splitting, or `eval`.
+- Recursively locates and compiles top-level `*.zsh` and `*.sh` scripts across all active plugins in `$ZLOAD_PLUGINS`.
 ### Usage
 ```zsh
 zload compile

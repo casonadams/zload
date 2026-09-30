@@ -125,7 +125,7 @@ Prepends directories to \fB$fpath\fR with validation and deduplication.
 Caches the shell output of a subshell initializer (such as \fBstarship init zsh\fR or \fBzoxide init zsh\fR) into a compiled \fI.zwc\fR wordcode file. On subsequent launches, sources the cache in 0.2 ms with zero child process forks.
 .TP
 \fBzload update\fR [\fB--self\fR|\fB--all\fR|\fB-f\fR|\fB--force\fR]
-Updates installed Git plugins and remote snippets in parallel, reporting commit diffs and re-running build hooks when changes are pulled. Pass \fB-f\fR to discard local working tree modifications and force updates. Pass \fB--self\fR to update only \fBzload\fR itself, or \fB--all\fR to update both \fBzload\fR and all plugins. Recompiles the wordcode bundle upon completion.
+Updates installed Git plugins and remote snippets in parallel, reporting commit diffs and re-running build hooks when changes are pulled. Pass \fB-f\fR to discard local working tree modifications and force updates. Pass \fB--self\fR to update only \fBzload\fR itself, or \fB--all\fR to update both \fBzload\fR and all plugins. Recompiles the wordcode bundle and all updated plugin scripts into \fI.zwc\fR upon completion.
 .TP
 \fBzload upgrade\fR [\fB-f\fR|\fB--force\fR], \fBzload self-update\fR [\fB-f\fR|\fB--force\fR]
 Upgrades \fBzload\fR itself to the latest commit from upstream Git, recompiles internal modules into wordcode, clears the runtime cache, and reloads updated functions in the active shell. Pass \fB-f\fR to discard local working tree changes before pulling.
@@ -155,10 +155,10 @@ Exports all installed Git plugins and their resolved commit SHAs to a lockfile.
 Synchronizes all installed plugins to match the exact commit SHAs recorded in the lockfile.
 .TP
 \fBzload compile\fR
-Recompiles the static bundle, core loader, and autoloaded functions into \fI.zwc\fR.
+Recompiles the static bundle, core loader, autoloaded functions, and installed plugin scripts into \fI.zwc\fR.
 .TP
 \fBzload compinit\fR [\fB--lazy\fR]
-Initializes the completion system. Enabled automatically by default on plugin declarations unless \fBZLOAD_NO_COMPINIT\fR is set. When \fB--lazy\fR is specified (default), defers compinit until the first \fB<Tab>\fR keypress.
+Initializes the completion system. Enabled automatically by default on plugin declarations unless \fBZLOAD_NO_COMPINIT\fR is set. When \fB--lazy\fR is specified (default), defers compinit until the first \fB<Tab>\fR keypress, executing completion seamlessly on that initial press.
 .TP
 \fBzload help\fR
 Displays summary usage information.

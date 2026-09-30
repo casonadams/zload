@@ -92,18 +92,17 @@ Comprehensive guides and technical documentation are organized in [`docs/`](docs
   - Self-healing diagnostics (`zload doctor --fix`) to automatically repair missing wordcode caches.
 
 - **[Lazy Loading Primitives](docs/lazy-loading.md)**
-  - **Command Proxy Stubs (`--on`)**: Defers heavy CLI runtimes (like `nvm`, `pyenv`, `tfswitch`) until command invocation in 0.02ms.
-  - **Directory-Triggered Loading (`--on-dir`)**: Loads plugins only upon entering matching directories (e.g. `.git` or `package.json`).
+  - **Command Proxy Stubs (`--on`)**: Inlines instant proxy functions directly into bundle wordcode, deferring heavy CLI runtimes (like `nvm`, `pyenv`, `tfswitch`) until invocation in 0.00ms with zero runtime `eval`.
+  - **Directory-Triggered Loading (`--on-dir`)**: Loads plugins only upon entering matching directories (e.g. `.envrc`, `.tfswitchrc`, `.git`).
   - **Post-Prompt Idle Deferral (`--defer`)**: Schedules visual highlighting plugins immediately after the prompt draws via `precmd`.
   - **Post-Install Build Hooks (`--build`)**: Executes compilation scripts after cloning without runtime shell startup overhead.
 
 - **[Smart PATH & Completion Management](docs/paths-and-completions.md)**
-  - `zload path`: Auto-expands `~`, validates directory existence, filters out dead paths, and strictly deduplicates `$PATH`.
+  - `zload path`: Auto-expands `~`, validates directory existence, filters out dead paths, and applies instant O(1) deduplication to `$PATH`.
   - `zload fpath`: Prepend and deduplicate completion directories.
   - **Automatic `~/.zfunc` Discovery**: Automatically detects and links custom completion directories (for `uv`, `rustup`, `pipx`) into `$fpath` with zero configuration in `.zshrc`.
-  - **Automatic Lazy `<Tab>` Compinit**: Automatically buffers early `compdef` calls and defers `compinit` until your first `<Tab>` press with zero config (set `ZLOAD_NO_COMPINIT=1` to opt out).
+  - **Automatic Lazy `<Tab>` Compinit**: Automatically buffers early `compdef` calls, defers `compinit` until your first `<Tab>` press, and executes completion seamlessly on that first press with zero dropped keystrokes.
   - **Highlighted Menu Selection**: Pair with `omz:lib/completion.zsh` or native `zstyle` for interactive `<Tab>` menu navigation.
-
 - **[Zero-Subprocess Eval Caching](docs/commands.md#3-zload-eval)**
   - Replaces slow `eval "$(starship init zsh)"` or `eval "$(zoxide init zsh)"` subshells by compiling shell output into memory-mapped `.zwc` files, loading in 0.2ms with zero subprocesses.
 

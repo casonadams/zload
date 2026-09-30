@@ -24,13 +24,13 @@ zload ptavares/zsh-tfswitch --on tfswitch,terraform
      "$0" "$@"
    }
    ```
-2. Startup cost: **0.02 ms**.
-3. When you run `nvm use 20` or `node -v`:
+2. **Zero-Eval Bytecode Inlining**: When compiling `bundle.zsh`, `zload` inlines these stub definitions directly into wordcode (`.zwc`), eliminating runtime `eval`, string splitting, or subshell calls.
+3. Startup cost: **0.00 ms**.
+4. When you run `nvm use 20` or `node -v`:
    - All related stubs are unfunctioned.
    - The plugin is sourced.
    - The real command executes with all original arguments preserved.
    - Subsequent calls execute directly with zero proxy overhead.
-
 ---
 
 ## 2. Directory-Triggered Lazy Loading (`--on-dir`)
