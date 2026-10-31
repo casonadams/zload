@@ -110,12 +110,31 @@ for f in "${function_files[@]}"; do
   fi
 done
 
+# Every helper must be in zload.zsh's autoload line (and vice versa); a missing
+# name only fails when that function is first called.
+local autoload_line="$(grep -m1 '^autoload -Uz' zload.zsh)"
+local -a registered=(${=${autoload_line#autoload -Uz }})
+local -a on_disk=(${function_files:t})
+on_disk=(${on_disk:#_zload})
+for fn in "${on_disk[@]}"; do
+  if ((! ${registered[(Ie)$fn]})); then
+    autoload_failures+=("functions/$fn is not in the zload.zsh autoload line")
+    ((errors++))
+  fi
+done
+for fn in "${registered[@]}"; do
+  if ((! ${on_disk[(Ie)$fn]})); then
+    autoload_failures+=("zload.zsh autoloads $fn but functions/$fn does not exist")
+    ((errors++))
+  fi
+done
+
 if ((json_mode == 0)); then
   if ((${#autoload_failures} == 0)); then
-    print -P "  %F{10}✓%f %F{15}Autoload functions cleanly encapsulated (zero naked statements).%f"
+    print -P "  %F{10}✓%f %F{15}Autoload functions encapsulated (zero naked statements) and all registered in zload.zsh.%f"
   else
     for line in "${autoload_failures[@]}"; do
-      print -P "  %F{9}✗%f Unencapsulated top-level code: %F{15}$line%f"
+      print -P "  %F{9}✗%f Autoload problem: %F{15}$line%f"
     done
   fi
   print ""
