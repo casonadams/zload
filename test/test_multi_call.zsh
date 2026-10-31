@@ -52,4 +52,14 @@ out="$(zsh -c "source ${(q)PWD}/zload.zsh; zload $SANDBOX/pa; zload $SANDBOX/pc"
 [[ "$out" == *load-a* && "$out" == *load-c* && "$out" != *load-b* ]] || fail "changed second call not honored: $out"
 [[ "$(stat -f %m "$CACHE/bundle.zsh")" == "$m3" ]] || fail "unchanged first slot was rebuilt"
 
+# 5. Re-sourcing the whole config in one shell (a "reload" alias) reuses the same bundles.
+rm -rf "$CACHE"
+RESOURCED="$(zsh -c "
+  rc() { source ${(q)PWD}/zload.zsh; zload $SANDBOX/pa; zload $SANDBOX/pb; }
+  rc; rc; rc
+  print -r -- \$_zload_call_n
+" 2>&1)"
+[[ "${RESOURCED##*$'\n'}" == 2 ]] || fail "call counter not reset on re-source: $RESOURCED"
+[[ "$(print -l "$CACHE"/bundle*.zsh | wc -l | tr -d ' ')" == 2 ]] || fail "re-sourcing created extra bundle slots: $(ls "$CACHE")"
+
 echo "PASS: test_multi_call (per-call bundle slots stay warm across separate zload calls)"
