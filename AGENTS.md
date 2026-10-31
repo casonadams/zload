@@ -2,7 +2,7 @@
 
 ## Core Architecture & Performance Invariants
 
-- **Warm Startup Overhead Target**: Warm interactive startup must strictly remain **< 0.5 ms** (hard ceiling < 2.0 ms on any hardware).
+- **Warm Startup Overhead Target**: Warm interactive startup (`zsh benchmark/bench.zsh`: sourcing `zload.zsh` plus 10 plugins) must stay **< 1.0 ms** (currently ~0.6 ms on Apple Silicon; the compiled bundle alone is ~0.35 ms). Hard ceiling < 2.0 ms on any hardware.
 - **Zero Subprocess Invariant**: Interactive warm startup must never fork any external processes (`git`, `sed`, `grep`, `uname`, `which`, `find`, `cut`, `awk`, or `$(...)` subshells). All warm path logic must rely 100% on internal Zsh builtins, parameter expansions, and memory-mapped bytecode wordcode (`bundle.zsh.zwc`).
 - **Entrypoint Simplicity**: Keep `zload.zsh` lean and fast. Autoload subcommands and helpers from `functions/` (prefixed with `_zload_`) so they are parsed into memory only when invoked.
 - **Autoload Function Cleanliness**: Files in `functions/` must not contain unencapsulated top-level commands outside function definitions. Naked statements outside function blocks break Zsh's autoload mechanism on first call.
@@ -69,7 +69,7 @@ Run all quality checks before committing:
    Ensures:
    - Gate 1: 100% clean linting, syntax (`zsh -n`), and Ripwire quality gates (metrics, clones, dead code, doc drift, quality delta).
    - Gate 2: Full unit and integration test suite passes.
-   - Gate 3: High-resolution benchmark proves warm startup latency < 2.0 ms (target < 0.5 ms).
+   - Gate 3: High-resolution benchmark proves warm startup latency < 2.0 ms (target < 1.0 ms).
    - Gate 4: Zero-subprocess poison test confirms 0 child processes spawned in warm path.
    - Gate 5: Real-world Oh-My-Zsh git branch and dirty status extraction verified.
 Never bypass or weaken these gates to make a build pass.
