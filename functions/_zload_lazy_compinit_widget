@@ -1,0 +1,10 @@
+_zload_lazy_compinit_widget() {
+  emulate -L zsh
+
+  _zload_real_compinit
+  # compinit rebinds the completion widgets; restore the builtin if ours survived.
+  if [[ "${widgets[$WIDGET]}" == "user:_zload_lazy_compinit_widget" ]]; then
+    zle -A ".${WIDGET}" "$WIDGET"
+  fi
+  zle "$WIDGET"
+}

@@ -1,36 +1,50 @@
 _zload_cmd_help() {
-  cat <<'EOF'
+  cat <<'EOF2'
 zload - Ultra-fast, zero-friction Zsh plugin manager
 
 Usage:
-  zload <plugin> [options]         Declare and load a plugin
-  zload ( ... )                    Declare a batch of plugins
+  zload <plugin> [options] ...     Declare and load plugins (several per call is fine)
+  zload "${plugins[@]}"            Declare plugins from a Zsh array
   zload <command> [options]        Execute a management command
 
 Commands:
   update [--all|--self|-f|--force] Update installed plugins from remotes
-  upgrade [-f|--force]             Upgrade zload itself to latest release
+  upgrade [-f|--force]             Upgrade zload itself (alias: self-update)
   clean [-f|--force]               Remove unreferenced plugin directories
   list                             List all installed plugins and git status
-  doctor                           Run system and configuration health checks
+  which <plugin>                   Print the directory of an installed plugin
+  cd <plugin>                      Change directory to an installed plugin
+  path [dir...]                    Prepend directories to PATH (deduplicated)
+  fpath [dir...]                   Prepend directories to fpath (deduplicated)
+  eval <name> <command>            Cache and source the output of an init command
+  doctor [--fix]                   Run system and configuration health checks
   profile                          Profile shell startup latency
-  compile                          Recompile plugin bundle into bytecode (.zwc)
+  compile                          Recompile bundles and modules into bytecode (.zwc)
   lock [file]                      Generate lockfile pinning exact Git commits
-  sync [file]                      Checkout exact commits from lockfile
+  sync [file]                      Check out the commits recorded in a lockfile
   compinit [--lazy]                Initialize completion system (deferred by default)
   help                             Display this help message
 
-Options:
+Options (follow the plugin they apply to):
   --on <cmd1,cmd2>                 Lazy load plugin on command invocation
-  --defer                          Defer loading until after prompt display
-  --bin <path>                     Add custom bin directory to PATH
+  --on-dir <pattern>               Load when entering a matching directory
+  --defer, --idle                  Load right after the first prompt is drawn
+  --path, --subpath <dir>          Use a subdirectory of the plugin as its root
+  --bin <dir>                      Add a directory (relative to the plugin) to PATH
+  --build, --hook <command>        Run a command after install and update
+  --from gh-r                      Install a GitHub release binary into PATH
+  --sha256 <hash>                  Require a matching SHA-256 for downloads
 
 Sources:
-  user/repo[@tag|#branch]          GitHub repository
+  user/repo[@tag|@commit|#branch]  GitHub repository
   omz:<plugin>                     Oh-My-Zsh plugin (e.g. omz:git)
   omz:themes/<theme>               Oh-My-Zsh theme (e.g. omz:themes/robbyrussell)
+  omz:lib/<file>.zsh               Oh-My-Zsh library file
   prezto:<module>                  Prezto module (e.g. prezto:utility)
-  https://*.git                    Full Git repository URL
-  /path/to/local                   Local plugin directory
-EOF
+  snippet:<url>                    Single script downloaded with curl
+  https://*.git, git@host:path     Full Git repository URL (HTTPS or SSH)
+  /path, ~/path, ./path, ../path   Local plugin directory
+
+Docs: man zload, or https://casonadams.github.io/zload/docs.html
+EOF2
 }

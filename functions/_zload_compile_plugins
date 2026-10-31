@@ -1,0 +1,12 @@
+_zload_compile_plugins() {
+  emulate -L zsh
+  setopt null_glob extended_glob
+
+  local pdir pfile
+  for pdir in "${ZLOAD_PLUGINS}"/*(N/); do
+    for pfile in "$pdir"/*.(zsh|sh)(N.); do
+      [[ "$pfile" == *.zwc ]] || zcompile -R "$pfile" 2>/dev/null
+    done
+  done
+  return 0
+}

@@ -1,4 +1,4 @@
-.TH ZLOAD 1 "September 2026" "zload 0.1.1" "User Commands"
+.TH ZLOAD 1 "September 2026" "zload 0.1.0" "User Commands"
 .SH NAME
 zload \- ultra-fast, zero-friction Zsh plugin manager and loader
 .SH SYNOPSIS
@@ -9,7 +9,7 @@ zload \- ultra-fast, zero-friction Zsh plugin manager and loader
 \fICOMMAND\fR [\fIARGS\fR...]
 .SH DESCRIPTION
 \fBzload\fR is an ultra-fast, zero-friction plugin manager and loader for Zsh.
-It is engineered to deliver sub-millisecond warm startup latency (< 0.5 ms)
+It is engineered to deliver sub-millisecond warm startup latency (about 0.6 ms for ten plugins)
 by consolidating declared plugins into a single static file, compiling it directly
 into memory-mapped Zsh wordcode (\fI.zwc\fR), automatically resolving canonical
 execution order, and completely eliminating subprocess forks during interactive shell launch.
@@ -54,6 +54,8 @@ zload romkatv/powerlevel10k
 zload omz:git
 .fi
 .RE
+.PP
+Every \fBzload\fR call has its own cached bundle, so separate calls all stay on the warm path. Canonical ordering (completions first; syntax highlighting, autosuggestions and history-substring-search last) is applied within a single call.
 
 .SH SUPPORTED SOURCES
 .TP
@@ -65,6 +67,9 @@ Pins the repository to a specific release tag.
 .TP
 \fIowner\fR/\fIrepo\fR#\fIbranch\fR
 Tracks a specific Git branch.
+.TP
+\fIowner\fR/\fIrepo\fR@\fIsha\fR
+Pins the repository to a commit (7 to 40 hexadecimal characters).
 .TP
 \fBomz:\fR\fIplugin\fR
 Fetches an Oh-My-Zsh plugin from a shared shallow repository checkout. Automatically sources required library dependencies (such as \fIlib/git.zsh\fR) and adds completion directories to \fB$fpath\fR.
@@ -85,10 +90,10 @@ Downloads a single script file via \fBcurl\fR without cloning a Git repository, 
 Queries the GitHub Releases API, identifies the precompiled binary asset matching the host operating system and CPU architecture, extracts the archive, and exports the binary directly into \fB$PATH\fR.
 .TP
 \fIurl\fR
-Clones an arbitrary remote Git repository (e.g. GitLab, Bitbucket, self-hosted).
+Clones an arbitrary remote Git repository (e.g. GitLab, Bitbucket, self-hosted). HTTPS, \fBfile://\fR and SSH (\fBgit@host:path\fR) forms are accepted, with optional \fB@ref\fR or \fB#ref\fR suffixes.
 .TP
 \fIpath\fR
-Loads a local plugin directory from disk (resolves \fB~\fR and relative paths).
+Loads a local plugin directory from disk (absolute, \fB~/\fR, \fB./\fR and \fB../\fR paths).
 
 .SH OPTIONS
 .TP
@@ -99,7 +104,7 @@ Registers lightweight proxy stub functions for the specified commands. Startup l
 Defers loading until the working directory matches \fIpattern\fR or contains a signature file matching \fIpattern\fR (e.g. \fI.git\fR or \fIpackage.json\fR). Hook deregisters upon match.
 .TP
 \fB--defer\fR, \fB--idle\fR
-Schedules plugin loading immediately after the initial prompt is rendered via \fBprecmd\fR. Sources immediately in non-interactive sessions.
+Schedules plugin loading right after the initial prompt is drawn (a one-shot \fBzle -F\fR callback armed from \fBprecmd\fR). Sources immediately in non-interactive sessions.
 .TP
 \fB--path\fR, \fB--subpath\fR \fIdir\fR
 Targets a specific subdirectory inside a mono-repository for script and completion discovery.
@@ -111,7 +116,10 @@ Executes \fIcommand\fR inside the cloned directory right after installation and 
 Adds a custom subdirectory to \fB$PATH\fR.
 .TP
 \fB--from\fR \fIgh-r|github-releases\fR
-Installs precompiled release binaries from GitHub Releases assets.
+Installs precompiled release binaries from GitHub Releases assets. The asset must name your operating system and CPU architecture; \fBzload\fR does not guess. A published \fI.sha256\fR asset is verified automatically.
+.TP
+\fB--sha256\fR \fIhash\fR
+Expected SHA-256 of a downloaded snippet or release asset. The install is rejected on mismatch.
 
 .SH COMMANDS
 .TP
@@ -122,10 +130,10 @@ Safely prepends directories to \fB$PATH\fR. Automatically validates that each di
 Prepends directories to \fB$fpath\fR with validation and deduplication.
 .TP
 \fBzload eval\fR \fIname\fR \fIcommand\fR
-Caches the shell output of a subshell initializer (such as \fBstarship init zsh\fR or \fBzoxide init zsh\fR) into a compiled \fI.zwc\fR wordcode file. On subsequent launches, sources the cache in 0.2 ms with zero child process forks.
+Caches the shell output of a subshell initializer (such as \fBstarship init zsh\fR or \fBzoxide init zsh\fR) into a compiled \fI.zwc\fR wordcode file. On subsequent launches, sources the cache in about 0.2 ms with zero child process forks. The cache is rebuilt when the command string changes or the tool binary is newer; a failing or empty command never replaces the last good cache.
 .TP
 \fBzload update\fR [\fB--self\fR|\fB--all\fR|\fB-f\fR|\fB--force\fR]
-Updates installed Git plugins and remote snippets in parallel, reporting commit diffs and re-running build hooks when changes are pulled. Pass \fB-f\fR to discard local working tree modifications and force updates. Pass \fB--self\fR to update only \fBzload\fR itself, or \fB--all\fR to update both \fBzload\fR and all plugins. Recompiles the wordcode bundle and all updated plugin scripts into \fI.zwc\fR upon completion.
+Updates installed Git plugins, remote snippets and unpinned release binaries, reporting commit diffs and re-running build hooks when changes are pulled. Pass \fB-f\fR to discard local working tree modifications and force updates. Pass \fB--self\fR to update only \fBzload\fR itself, or \fB--all\fR to update both \fBzload\fR and all plugins. Recompiles the wordcode bundle and all updated plugin scripts into \fI.zwc\fR upon completion.
 .TP
 \fBzload upgrade\fR [\fB-f\fR|\fB--force\fR], \fBzload self-update\fR [\fB-f\fR|\fB--force\fR]
 Upgrades \fBzload\fR itself to the latest commit from upstream Git, recompiles internal modules into wordcode, clears the runtime cache, and reloads updated functions in the active shell. Pass \fB-f\fR to discard local working tree changes before pulling.
@@ -149,13 +157,13 @@ Runs comprehensive environment diagnostics. Pass \fB--fix\fR to automatically re
 Measures startup latency breakdown using microsecond timers.
 .TP
 \fBzload lock\fR [\fIfile\fR]
-Exports all installed Git plugins and their resolved commit SHAs to a lockfile.
+Exports all installed Git plugins and their resolved commit SHAs to a lockfile. Release binaries and snippets are not recorded.
 .TP
 \fBzload sync\fR [\fIfile\fR]
-Synchronizes all installed plugins to match the exact commit SHAs recorded in the lockfile.
+Synchronizes all installed plugins to match the exact commit SHAs recorded in the lockfile, fetching commits on demand for shallow clones and installing declared plugins that are missing. Exits non-zero if any commit cannot be checked out.
 .TP
 \fBzload compile\fR
-Recompiles the static bundle, core loader, autoloaded functions, and installed plugin scripts into \fI.zwc\fR.
+Recompiles every static bundle (one per \fBzload\fR call), the core loader, autoloaded functions, and installed plugin scripts into \fI.zwc\fR.
 .TP
 \fBzload compinit\fR [\fB--lazy\fR]
 Initializes the completion system. Enabled automatically by default on plugin declarations unless \fBZLOAD_NO_COMPINIT\fR is set. When \fB--lazy\fR is specified (default), defers compinit until the first \fB<Tab>\fR keypress, executing completion seamlessly on that initial press.
@@ -178,15 +186,18 @@ Base directory for compiled bundles and dumps (defaults to \fI$XDG_CACHE_HOME/zl
 Directory where cloned plugins are stored (defaults to \fI$ZLOAD_DATA/plugins\fR).
 .TP
 .B ZLOAD_NO_COMPINIT
-If set to 1, disables automatic lazy completion system initialization.
+If set, disables automatic lazy completion system initialization.
 .TP
+.B GITHUB_TOKEN
+If set, sent to the GitHub API by \fB--from gh-r\fR to avoid anonymous rate limits.
+
 .SH FILES
 .TP
 .I ~/.zshrc
 Primary Zsh configuration file where \fBzload\fR is invoked.
 .TP
 .I ~/.cache/zload/bundle.zsh.zwc
-Compiled memory-mapped wordcode bundle containing all active plugins.
+Compiled memory-mapped wordcode bundle for the first \fBzload\fR call. Later calls use \fIbundle.2.zsh.zwc\fR, \fIbundle.3.zsh.zwc\fR, and so on. Each bundle is paired with a \fI.hash\fR file holding the exact arguments it was built from.
 .TP
 .I ~/.cache/zload/zcompdump-${ZSH_VERSION}.zwc
 Compiled completion dump cache.

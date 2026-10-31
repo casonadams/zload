@@ -1,6 +1,6 @@
 # zload Lazy Loading Primitives
 
-`zload` provides three distinct, safe mechanisms for lazy loading plugins to keep interactive shell startup strictly under 1 millisecond.
+`zload` provides four distinct, safe mechanisms for lazy loading plugins to keep interactive shell startup strictly under 1 millisecond.
 
 ---
 
@@ -57,6 +57,7 @@ zload "custom/dev-plugin" --on-dir "~/work/*"
 ```
 
 ### How it Works:
+0. A directory "matches" when `$PWD` matches the pattern (shell glob) or a file or directory with that name exists in `$PWD`.
 1. If the shell opens already inside a matching directory, the plugin loads immediately.
 2. If not, a lightweight `chpwd` hook is registered.
 3. Upon `cd` into a matching directory:
@@ -74,7 +75,7 @@ zload zsh-users/zsh-syntax-highlighting --defer
 ```
 
 ### How it Works:
-- In interactive shells, deferred plugins load immediately **after** the first prompt appears on screen via `precmd`.
+- In interactive shells, deferred plugins load right **after** the first prompt is drawn: a one-shot `precmd` hook registers a ZLE file-descriptor callback (`zle -F`) that fires once the prompt is on screen, so deferred plugins never delay it.
 - In non-interactive scripts (`zsh -c "..."`), deferred plugins source immediately so dependencies are never missing.
 
 ---
@@ -93,5 +94,6 @@ zload "casonadams/zline" --build "zline compile"
 
 ### How it Works:
 - Runs `./install --bin` inside the cloned directory right after cloning.
-- Runs again during `zload update` if new commits were pulled.
+- Runs again during `zload update` and `zload sync` if new commits were pulled.
+- If the hook fails, its output is shown and the half-built plugin is removed so the install is retried on the next start.
 - **Zero runtime overhead**: The build hook is never run during shell startup.

@@ -7,7 +7,7 @@
 
 `zload` is an ultra-fast, zero-friction, memory-mapped Zsh plugin manager and loader built with 100% pure Zsh.
 
-It delivers **< 0.5 ms warm interactive startup overhead** by compiling plugins into a consolidated `.zwc` wordcode bundle, automatically resolving canonical execution order, and completely eliminating subprocess forks.
+It delivers **~0.6 ms warm interactive startup overhead** (10 plugins, Apple Silicon; measured by `zsh benchmark/bench.zsh`) by compiling plugins into a consolidated `.zwc` wordcode bundle, automatically resolving canonical execution order, and completely eliminating subprocess forks.
 
 ---
 
@@ -67,14 +67,15 @@ bindkey '^ ' autosuggest-accept
 
 ## Benchmark
 
-Benchmarking 10 active plugins on macOS (Apple Silicon):
+Measured with `zsh benchmark/bench.zsh` on macOS (Apple Silicon), 10 active plugins:
 
-| Plugin Manager | Warm Startup Overhead | Subprocess Forks | Memory-Mapped Wordcode |
-|---|---|---|---|
-| **zload** | **0.45 ms** | **0 (Zero)** | **✓ Full Native (.zwc)** |
-| Antidote | 12 ms | Few | ✕ |
-| Zinit (Turbo) | 28 ms | Several | Partial |
-| Oh-My-Zsh | 340 ms | Many (10+) | ✕ |
+| Measurement | Result |
+|---|---|
+| Warm start, including sourcing `zload.zsh` | **~0.6 ms** |
+| Compiled `.zwc` bundle alone | **~0.35 ms** |
+| Subprocess forks on warm start | **0** |
+
+Run the benchmark yourself to get numbers for your hardware.
 
 ---
 
@@ -84,18 +85,22 @@ Comprehensive guides and technical documentation are organized in [`docs/`](docs
 
 - **[Declaration Syntax & Input Flexibility](docs/syntax.md)**
   - Native Zsh arrays (`plugins=( ... ); zload "${plugins[@]}"`), multiline strings, line-by-line, and inline arguments.
-  - Complete syntax table for GitHub repos, `@tag` pinning, `#branch` tracking, Oh-My-Zsh plugins/themes/libs, Prezto modules, remote snippets, and precompiled binaries (`--from gh-r`).
+  - Complete syntax table for GitHub repos, `@tag` / `@commit` pinning, `#branch` tracking, SSH and HTTPS Git URLs, Oh-My-Zsh plugins/themes/libs, Prezto modules, remote snippets, and precompiled binaries (`--from gh-r`).
+  - Full option reference (`--on`, `--on-dir`, `--defer`, `--path`, `--bin`, `--build`, `--from`, `--sha256`) and integrity checks for downloads.
+
+- **[How zload Works](docs/how-it-works.md)**
+  - Cold vs warm start, one cached bundle per `zload` call, canonical load order, exactly what invalidates the cache, files on disk, environment variables, and a troubleshooting table.
 
 - **[CLI Commands Reference](docs/commands.md)**
   - Complete reference for all subcommands formatted in standard 16-color ANSI output:
-    `zload path`, `zload fpath`, `update`, `clean`, `list`, `which`, `cd`, `doctor --fix`, `profile`, `lock`, `sync`, `compile`, and `eval`.
+    `zload path`, `zload fpath`, `update`, `upgrade`, `clean`, `list`, `which`, `cd`, `doctor --fix`, `profile`, `lock`, `sync`, `compile`, `compinit`, `eval`, and `help`.
   - Self-healing diagnostics (`zload doctor --fix`) to automatically repair missing wordcode caches.
 
 - **[Lazy Loading Primitives](docs/lazy-loading.md)**
   - **Command Proxy Stubs (`--on`)**: Inlines instant proxy functions directly into bundle wordcode, deferring heavy CLI runtimes (like `nvm`, `pyenv`, `tfswitch`) until invocation in 0.00ms with zero runtime `eval`.
   - **Directory-Triggered Loading (`--on-dir`)**: Loads plugins only upon entering matching directories (e.g. `.envrc`, `.tfswitchrc`, `.git`).
-  - **Post-Prompt Idle Deferral (`--defer`)**: Schedules visual highlighting plugins immediately after the prompt draws via `precmd`.
-  - **Post-Install Build Hooks (`--build`)**: Executes compilation scripts after cloning without runtime shell startup overhead.
+  - **Post-Prompt Idle Deferral (`--defer`)**: Loads visual highlighting plugins right after the first prompt is drawn (via `zle -F`), so they never delay it.
+  - **Post-Install Build Hooks (`--build`)**: Executes compilation scripts after cloning without runtime shell startup overhead; failures are reported and retried.
 
 - **[Smart PATH & Completion Management](docs/paths-and-completions.md)**
   - `zload path`: Auto-expands `~`, validates directory existence, filters out dead paths, and applies instant O(1) deduplication to `$PATH`.
@@ -103,10 +108,15 @@ Comprehensive guides and technical documentation are organized in [`docs/`](docs
   - **Automatic `~/.zfunc` Discovery**: Automatically detects and links custom completion directories (for `uv`, `rustup`, `pipx`) into `$fpath` with zero configuration in `.zshrc`.
   - **Automatic Lazy `<Tab>` Compinit**: Automatically buffers early `compdef` calls, defers `compinit` until your first `<Tab>` press, and executes completion seamlessly on that first press with zero dropped keystrokes.
   - **Highlighted Menu Selection**: Pair with `omz:lib/completion.zsh` or native `zstyle` for interactive `<Tab>` menu navigation.
+- **Fast, Safe Installs**
+  - Missing plugins clone in parallel on first run.
+  - Each `zload` call keeps its own cached bundle, so splitting plugins across several calls stays on the warm path.
+  - Release binaries and snippets can be pinned with `--sha256`; `@<commit>` pins work for Git plugins.
+
 - **[Zero-Subprocess Eval Caching](docs/commands.md#3-zload-eval)**
   - Replaces slow `eval "$(starship init zsh)"` or `eval "$(zoxide init zsh)"` subshells by compiling shell output into memory-mapped `.zwc` files, loading in 0.2ms with zero subprocesses.
 
-- **[Reproducible Lockfiles & Machine Sync](docs/commands.md#10-zload-lock--zload-sync)**
+- **[Reproducible Lockfiles & Machine Sync](docs/commands.md#11-zload-lock--zload-sync)**
   - Freeze exact Git commit hashes across all plugins with `zload lock`.
   - Check out identical pinned environments on new machines with `zload sync`.
 
@@ -124,7 +134,7 @@ man zload
 
 ## Development & Verification
 
-Run the unified specification test runner across all 32 tests and benchmark gates:
+Run the unified specification test runner (full test suite, benchmark and zero-fork gates):
 
 ```sh
 # Run ShellSpec BDD suite

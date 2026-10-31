@@ -1,0 +1,14 @@
+_zload_run_build() {
+  emulate -L zsh
+
+  local dir="$1" subpath="$2" cmd="$3" label="$4"
+  local build_dir="$dir" out
+  [[ -n "$subpath" && -d "$dir/$subpath" ]] && build_dir="$dir/$subpath"
+
+  if ! out="$( (cd "$build_dir" && eval "$cmd") 2>&1)"; then
+    print -u2 -P "%F{9}zload: build failed for ${label}%f"
+    [[ -n "$out" ]] && print -u2 -r -- "  ${out//$'\n'/$'\n'  }"
+    return 1
+  fi
+  return 0
+}

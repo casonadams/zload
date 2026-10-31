@@ -9,19 +9,11 @@ _zload_cmd_sync() {
 
   print -P "%F{14}zload%f  %F{8}syncing plugins from ${lock_file}...%f\n"
 
-  local -A build_hooks build_subpaths
-  local spec_entry
-  for spec_entry in "${_zload_specs[@]}"; do
-    local -A parsed
-    _zload_parse_spec parsed "$spec_entry"
-    if [[ -n "${parsed[dir]}" && -n "${parsed[build_cmd]}" ]]; then
-      build_hooks[${parsed[dir]}]=${parsed[build_cmd]}
-      build_subpaths[${parsed[dir]}]=${parsed[subpath]}
-    fi
-  done
+  local -A idx parsed
+  _zload_index_specs idx
 
-  integer synced=0
-  local line name commit dir curr bdir
+  integer synced=0 failed=0
+  local line name commit dir curr url
   for line in "${(f)"$(<"$lock_file")"}"; do
     [[ -z "$line" || "$line" == \#* ]] && continue
 
@@ -29,23 +21,49 @@ _zload_cmd_sync() {
     commit="${line#*:}"
     dir="${ZLOAD_PLUGINS}/${name}"
 
-    if [[ -d "$dir/.git" ]]; then
-      curr="$(command git -C "$dir" rev-parse HEAD 2>/dev/null)"
-      if [[ "$curr" != "$commit" ]]; then
-        command git -C "$dir" checkout -q "$commit" 2>/dev/null || {
-          command git -C "$dir" fetch -q origin 2>/dev/null || true
-          command git -C "$dir" checkout -q "$commit" 2>/dev/null || true
-        }
-        print -P "  %F{10}✓%f  %F{15}%B${(r:35:)name}%b%f  %F{10}synced%f  %F{8}(${commit[1,8]})%f"
-        ((synced++))
-        if [[ -n "${build_hooks[$dir]}" ]]; then
-          bdir="$dir"
-          [[ -n "${build_subpaths[$dir]}" && -d "$dir/${build_subpaths[$dir]}" ]] && bdir="$dir/${build_subpaths[$dir]}"
-          print -P "     %F{14}zload%f  %F{11}rebuilding%f  %F{15}%B${name}%b%f %F{8}(${build_hooks[$dir]})%f"
-          (cd "$bdir" && eval "${build_hooks[$dir]}") >/dev/null 2>&1
-        fi
-      else
-        print -P "  %F{12}•%f  %F{15}%B${(r:35:)name}%b%f  %F{8}already at locked commit%f"
+    if [[ "$name" == */* || "$name" == .* ]]; then
+      _zload_row 9 "✗" "$name" 9 "invalid name in lockfile"
+      ((failed++))
+      continue
+    fi
+
+    if [[ ! -d "$dir/.git" ]]; then
+      url=""
+      if ((${+idx[$dir]})); then
+        _zload_parse_spec parsed "${idx[$dir]}"
+        url="${parsed[url]}"
+      fi
+      if [[ -z "$url" ]]; then
+        _zload_row 11 "•" "$name" 11 "not installed and not declared (skipping)"
+        continue
+      fi
+      mkdir -p "${dir:h}"
+      command git init -q "$dir" 2>/dev/null && command git -C "$dir" remote add origin "$url" 2>/dev/null
+    fi
+
+    curr="$(command git -C "$dir" rev-parse HEAD 2>/dev/null)"
+    if [[ "$curr" == "$commit" ]]; then
+      _zload_row 12 "•" "$name" 8 "already at locked commit"
+      continue
+    fi
+
+    if ! command git -C "$dir" checkout -q "$commit" 2>/dev/null; then
+      command git -C "$dir" fetch -q --depth 1 origin "$commit" 2>/dev/null &&
+        command git -C "$dir" checkout -q "$commit" 2>/dev/null
+    fi
+    if [[ "$(command git -C "$dir" rev-parse HEAD 2>/dev/null)" != "$commit" ]]; then
+      _zload_row 9 "✗" "$name" 9 "could not check out ${commit[1,8]}"
+      ((failed++))
+      continue
+    fi
+
+    _zload_row 10 "✓" "$name" 10 "synced" "${commit[1,8]}"
+    ((synced++))
+    if ((${+idx[$dir]})); then
+      _zload_parse_spec parsed "${idx[$dir]}"
+      if [[ -n "${parsed[build_cmd]}" ]]; then
+        print -P "     %F{14}zload%f  %F{11}rebuilding%f  %F{15}%B${name}%b%f %F{8}(${parsed[build_cmd]})%f"
+        _zload_run_build "$dir" "${parsed[subpath]}" "${parsed[build_cmd]}" "$name" || ((failed++))
       fi
     fi
   done
@@ -55,6 +73,10 @@ _zload_cmd_sync() {
   fi
 
   _zload_compile_bundle
+  if ((failed > 0)); then
+    print -u2 -P "\n%F{9}zload%f  %F{9}sync finished with ${failed} failure(s)%f %F{8}($synced plugins updated)%f"
+    return 1
+  fi
   print -P "\n%F{10}zload%f  %F{10}✓ sync complete%f %F{8}($synced plugins updated)%f"
   return 0
 }

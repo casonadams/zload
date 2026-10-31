@@ -1,0 +1,10 @@
+_zload_flush_compdefs() {
+  emulate -L zsh
+
+  [[ "${functions[compdef]}" == *_zload_deferred_compdefs* ]] && unfunction compdef 2>/dev/null
+  local def
+  for def in "${_zload_deferred_compdefs[@]}"; do
+    eval "compdef $def" 2>/dev/null
+  done
+  _zload_deferred_compdefs=()
+}

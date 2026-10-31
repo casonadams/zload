@@ -1,0 +1,39 @@
+_zload_install_all() {
+  emulate -L zsh
+  setopt local_options null_glob no_monitor no_notify
+
+  local entry dir type
+  local -A parsed seen_dirs entry_dirs failed_dirs
+  local -a pids pid_dirs have
+
+  reply=()
+  for entry in "$@"; do
+    _zload_parse_spec parsed "$entry"
+    dir="${parsed[dir]}"
+    type="${parsed[type]}"
+    entry_dirs[$entry]="$dir"
+    [[ "$type" == "local" ]] && continue
+    if [[ "$type" == "gh-r" ]]; then
+      have=("$dir"/bin/*(N*x))
+      ((${#have} > 0)) && continue
+    elif [[ -d "$dir" ]]; then
+      continue
+    fi
+    ((${+seen_dirs[$dir]})) && continue
+    seen_dirs[$dir]=1
+
+    _zload_install parsed &
+    pids+=("$!")
+    pid_dirs+=("$dir")
+  done
+
+  integer i
+  for ((i = 1; i <= ${#pids}; i++)); do
+    wait "${pids[i]}" || failed_dirs[${pid_dirs[i]}]=1
+  done
+
+  for entry in "$@"; do
+    ((${+failed_dirs[${entry_dirs[$entry]}]})) && reply+=("$entry")
+  done
+  return 0
+}

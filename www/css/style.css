@@ -606,15 +606,7 @@ pre {
   font-size: 0.95rem;
 }
 
-/* Comparison Section: Desktop Table vs Mobile Cards */
-.desktop-matrix {
-  display: block;
-}
-
-.mobile-matrix {
-  display: none;
-}
-
+/* Reference tables */
 .matrix-table {
   width: 100%;
   border-collapse: collapse;
@@ -634,81 +626,6 @@ pre {
 .matrix-table th {
   background: rgba(255, 255, 255, 0.02);
   color: var(--text-secondary);
-  font-weight: 600;
-}
-
-.check { color: var(--success); font-weight: bold; }
-.cross { color: var(--danger); font-weight: bold; }
-
-/* Mobile Matrix Cards */
-.matrix-cards-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.matrix-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
-  text-align: left;
-  box-shadow: var(--shadow);
-}
-
-.matrix-card-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 10px;
-}
-
-.matrix-winner {
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.winner-tag {
-  font-weight: 700;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.92rem;
-}
-
-.winner-val {
-  font-weight: 800;
-  color: var(--success);
-  font-family: var(--font-mono);
-  font-size: 0.92rem;
-}
-
-.matrix-competitors {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.matrix-competitor-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  padding: 2px 0;
-}
-
-.matrix-competitor-val {
-  font-family: var(--font-mono);
   font-weight: 600;
 }
 
@@ -741,14 +658,6 @@ footer a:hover {
 
   .mobile-nav-toggle {
     display: inline-flex !important;
-  }
-
-  .desktop-matrix {
-    display: none !important;
-  }
-
-  .mobile-matrix {
-    display: block !important;
   }
 
   .hero {

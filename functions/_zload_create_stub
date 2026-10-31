@@ -9,6 +9,7 @@ _zload_create_stub() {
   [[ "$5" == "--emit" ]] && emit_mode=1
 
   local -a cmds clean_cmds
+  REPLY=""
   cmds=("${(s:,:)raw_cmds}")
   for cmd in "${cmds[@]}"; do
     cmd="${cmd//[[:space:]]/}"
@@ -39,7 +40,7 @@ _zload_create_stub() {
       }
     "
     if ((emit_mode)); then
-      print -r -- "$fn_code"
+      REPLY+="$fn_code"$'\n'
     else
       eval "$fn_code"
     fi

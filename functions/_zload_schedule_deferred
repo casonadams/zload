@@ -1,8 +1,7 @@
 _zload_schedule_deferred() {
   emulate -L zsh
 
-  local raw_entry="$1"
-  _zload_deferred_specs+=("$raw_entry")
+  _zload_deferred_specs+=("$@")
 
   if [[ ! -o interactive ]]; then
     _zload_run_deferred
@@ -10,5 +9,6 @@ _zload_schedule_deferred() {
   fi
 
   autoload -Uz add-zsh-hook
-  add-zsh-hook precmd _zload_run_deferred
+  add-zsh-hook -d precmd _zload_defer_arm 2>/dev/null
+  add-zsh-hook precmd _zload_defer_arm
 }

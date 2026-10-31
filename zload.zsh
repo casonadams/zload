@@ -23,26 +23,19 @@ if [[ -d "${ZLOAD_HOME}/man" ]]; then
   manpath=("${ZLOAD_HOME}/man" "${manpath[@]}")
 fi
 
-autoload -Uz _zload_parse_spec _zload_find_main_file _zload_install _zload_load_plugin _zload_ensure_omz _zload_omz_shim _zload_create_stub _zload_setup_lazy_compinit _zload_real_compinit _zload_schedule_deferred _zload_run_deferred _zload_sort_plugins _zload_compile_bundle _zload_cmd_compile _zload_cmd_update _zload_cmd_clean _zload_cmd_list _zload_cmd_doctor _zload_cmd_profile _zload_cmd_help _zload_eval _zload_schedule_on_dir _zload_cmd_path _zload_cmd_fpath _zload_install_gh_r _zload_cmd_which _zload_cmd_cd _zload_cmd_lock _zload_cmd_sync _zload_cmd_self_update
+autoload -Uz _zload_parse_spec _zload_find_main_file _zload_install _zload_load_plugin _zload_ensure_omz _zload_omz_shim _zload_omz_libs _zload_run_build _zload_update_snippets _zload_install_all _zload_write_bundle _zload_defer_arm _zload_defer_fire _zload_flush_compdefs _zload_lazy_compinit_widget _zload_compile_self _zload_compile_plugins _zload_index_specs _zload_row _zload_sha256 _zload_fetch_snippet _zload_resolve_plugin _zload_update_gh_r _zload_create_stub _zload_setup_lazy_compinit _zload_real_compinit _zload_schedule_deferred _zload_run_deferred _zload_sort_plugins _zload_compile_bundle _zload_cmd_compile _zload_cmd_update _zload_cmd_clean _zload_cmd_list _zload_cmd_doctor _zload_cmd_profile _zload_cmd_help _zload_eval _zload_schedule_on_dir _zload_cmd_path _zload_cmd_fpath _zload_install_gh_r _zload_cmd_which _zload_cmd_cd _zload_cmd_lock _zload_cmd_sync _zload_cmd_self_update
 
-typeset -g -a _zload_specs
+typeset -g -U -a _zload_specs
+typeset -g -A _zload_call_entries _zload_call_keys
+typeset -g -i _zload_call_n=0
 typeset -g -A _zload_loaded_plugins
 typeset -g -a _zload_deferred_specs
 typeset -g -a _zload_deferred_compdefs
 typeset -g _zload_compinit_done=0
 
-_zload_hash() {
-  local str="$1"
-  integer hash=5381 i len=${#str}
-  for ((i = 1; i <= len; i++)); do
-    ((hash = ((hash << 5) + hash) + "#str[i]"))
-  done
-  REPLY="$hash"
-}
-
 if ! typeset -f compdef >/dev/null 2>&1; then
   compdef() {
-    _zload_deferred_compdefs+=("$*")
+    _zload_deferred_compdefs+=("${(j: :)${(q)@}}")
   }
 fi
 
@@ -58,7 +51,6 @@ zload() {
   case "$1" in
     compinit)
       shift
-      autoload -Uz _zload_setup_lazy_compinit
       if [[ "$1" == "--lazy" ]]; then
         _zload_setup_lazy_compinit
       else
@@ -68,86 +60,53 @@ zload() {
       ;;
     eval)
       shift
-      autoload -Uz _zload_eval
       _zload_eval "$@"
-      return $?
-      ;;
-    path)
-      shift
-      autoload -Uz _zload_cmd_path
-      _zload_cmd_path "$@"
-      return $?
-      ;;
-    fpath)
-      shift
-      autoload -Uz _zload_cmd_fpath
-      _zload_cmd_fpath "$@"
-      return $?
-      ;;
-    which)
-      shift
-      autoload -Uz _zload_cmd_which
-      _zload_cmd_which "$@"
-      return $?
-      ;;
-    cd)
-      shift
-      autoload -Uz _zload_cmd_cd
-      _zload_cmd_cd "$@"
       return $?
       ;;
     self-update | upgrade)
       shift
-      autoload -Uz _zload_cmd_self_update
       _zload_cmd_self_update "$@"
       return $?
       ;;
     update)
       shift
-      if [[ "$1" == "--self" ]]; then
-        shift
-        autoload -Uz _zload_cmd_self_update
-        _zload_cmd_self_update "$@"
-        return $?
-      elif [[ "$1" == "--all" ]]; then
-        shift
-        autoload -Uz _zload_cmd_self_update _zload_cmd_update
-        _zload_cmd_self_update
-        _zload_cmd_update "$@"
-        return $?
-      else
-        autoload -Uz _zload_cmd_update
-        _zload_cmd_update "$@"
-        return $?
-      fi
+      case "$1" in
+        --self)
+          shift
+          _zload_cmd_self_update "$@"
+          ;;
+        --all)
+          shift
+          _zload_cmd_self_update
+          _zload_cmd_update "$@"
+          ;;
+        *) _zload_cmd_update "$@" ;;
+      esac
+      return $?
       ;;
-    clean | list | doctor | profile | compile | lock | sync | help)
+    path | fpath | which | cd | clean | list | doctor | profile | compile | lock | sync | help)
       local cmd="$1"
       shift
-      autoload -Uz "_zload_cmd_${cmd}" 2>/dev/null
-      if typeset -f "_zload_cmd_${cmd}" >/dev/null 2>&1; then
-        "_zload_cmd_${cmd}" "$@"
-        return $?
-      else
-        print -u2 "zload: command not implemented yet: $cmd"
-        return 1
-      fi
+      "_zload_cmd_${cmd}" "$@"
+      return $?
       ;;
   esac
 
   local raw_input="$*"
-  local current_hash
-  _zload_hash "$raw_input"
-  current_hash="$REPLY"
+  raw_input="${raw_input%%$'\n'#}"
 
-  if [[ -f "${ZLOAD_CACHE}/bundle.zsh.zwc" && -f "${ZLOAD_CACHE}/bundle.hash" ]]; then
-    if [[ "$(<"${ZLOAD_CACHE}/bundle.hash")" == "$current_hash" ]]; then
-      source "${ZLOAD_CACHE}/bundle.zsh"
-      return 0
-    fi
+  local slot=$((++_zload_call_n)) sfx=""
+  ((slot > 1)) && sfx=".${slot}"
+  local bundle="${ZLOAD_CACHE}/bundle${sfx}.zsh"
+  local hash_file="${ZLOAD_CACHE}/bundle${sfx}.hash"
+
+  if [[ -f "${bundle}.zwc" && -f "$hash_file" && "$(<"$hash_file")" == "$raw_input" ]]; then
+    source "$bundle"
+    return 0
   fi
 
   local -a entries
+  local arg entry
   if (($# == 1)) && [[ "$1" == *$'\n'* ]]; then
     entries=("${(f)1}")
   else
@@ -157,7 +116,7 @@ zload() {
       if ((expects_arg)); then
         current="$current ${(q)arg}"
         expects_arg=0
-      elif [[ "$arg" == --(on|bin|path|subpath|build|hook|on-dir|from) ]]; then
+      elif [[ "$arg" == --(on|bin|path|subpath|build|hook|on-dir|from|sha256) ]]; then
         current="$current $arg"
         expects_arg=1
       elif [[ "$arg" == --* ]] && [[ -n "$current" ]]; then
@@ -170,17 +129,27 @@ zload() {
     [[ -n "$current" ]] && entries+=("$current")
   fi
 
-  integer install_errors=0
+  local -a clean
   for entry in "${entries[@]}"; do
     entry="${entry#"${entry%%[![:space:]]*}"}"
     entry="${entry%"${entry##*[![:space:]]}"}"
-    [[ -z "$entry" || "$entry" == \#* ]] && continue
+    [[ -z "$entry" || "$entry" == \#* ]] || clean+=("$entry")
+  done
+  entries=("${clean[@]}")
+  _zload_specs+=("${entries[@]}")
 
-    _zload_specs+=("$entry")
+  _zload_install_all "${entries[@]}"
+  local -a failed_entries=("${reply[@]}")
+  integer install_errors=${#failed_entries}
 
-    local -A parsed
+  local -A parsed
+  for entry in "${entries[@]}"; do
+    if ((${failed_entries[(Ie)$entry]})); then
+      print -u2 "zload: failed to install $entry"
+      continue
+    fi
+
     _zload_parse_spec parsed "$entry"
-
     if ! _zload_install parsed; then
       print -u2 "zload: failed to install $entry"
       ((install_errors++))
@@ -196,9 +165,10 @@ zload() {
     fi
   done
 
-  if ((install_errors == 0 && ${#entries} > 0)); then
-    _zload_compile_bundle "${entries[@]}"
-    print "$current_hash" >"${ZLOAD_CACHE}/bundle.hash"
+  if ((${#entries} > 0)); then
+    _zload_call_entries[$slot]="${(F)entries}"
+    _zload_call_keys[$slot]="$raw_input"
+    ((install_errors == 0)) && _zload_write_bundle "$slot" "${entries[@]}"
   fi
 
   if ((! ${+ZLOAD_NO_COMPINIT})) && [[ -o interactive ]] && ((! _zload_compinit_done)); then

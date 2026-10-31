@@ -7,7 +7,7 @@
   <meta name="description" content="Complete documentation for zload: flexible input syntaxes, lazy loading primitives, smart path management, CLI reference, and Powerlevel10k instant prompt integration.">
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=10">
+  <link rel="stylesheet" href="css/style.css?v=11">
 
   <script>
     (function() {
@@ -60,9 +60,13 @@
       <li><a href="#getting-started" class="docs-nav-link" onclick="closeDocsToc()">Getting Started</a></li>
       <li><a href="#syntax" class="docs-nav-link" onclick="closeDocsToc()">Flexible Input Syntaxes</a></li>
       <li><a href="#sources" class="docs-nav-link" onclick="closeDocsToc()">Supported Source Formats</a></li>
+      <li><a href="#options" class="docs-nav-link" onclick="closeDocsToc()">Options</a></li>
+      <li><a href="#cache" class="docs-nav-link" onclick="closeDocsToc()">Caching &amp; Invalidation</a></li>
       <li><a href="#lazy-loading" class="docs-nav-link" onclick="closeDocsToc()">Lazy Loading Primitives</a></li>
       <li><a href="#paths-completions" class="docs-nav-link" onclick="closeDocsToc()">Smart PATH &amp; Completions</a></li>
       <li><a href="#commands" class="docs-nav-link" onclick="closeDocsToc()">CLI Commands Reference</a></li>
+      <li><a href="#environment" class="docs-nav-link" onclick="closeDocsToc()">Environment Variables</a></li>
+      <li><a href="#troubleshooting" class="docs-nav-link" onclick="closeDocsToc()">Troubleshooting</a></li>
       <li><a href="#prompts" class="docs-nav-link" onclick="closeDocsToc()">Prompts &amp; Themes</a></li>
     </ul>
   </div>
@@ -75,6 +79,7 @@
         <ul class="docs-nav-links">
           <li><a href="#getting-started" class="docs-nav-link active">Getting Started</a></li>
           <li><a href="#architecture" class="docs-nav-link">How It Works</a></li>
+          <li><a href="#cache" class="docs-nav-link">Caching &amp; Invalidation</a></li>
         </ul>
       </div>
 
@@ -83,6 +88,7 @@
         <ul class="docs-nav-links">
           <li><a href="#syntax" class="docs-nav-link">Flexible Syntaxes</a></li>
           <li><a href="#sources" class="docs-nav-link">Supported Sources</a></li>
+          <li><a href="#options" class="docs-nav-link">Options</a></li>
           <li><a href="#paths-completions" class="docs-nav-link">PATH &amp; Completions</a></li>
         </ul>
       </div>
@@ -99,6 +105,8 @@
         <div class="docs-nav-title">Reference</div>
         <ul class="docs-nav-links">
           <li><a href="#commands" class="docs-nav-link">CLI Commands</a></li>
+          <li><a href="#environment" class="docs-nav-link">Environment Variables</a></li>
+          <li><a href="#troubleshooting" class="docs-nav-link">Troubleshooting</a></li>
         </ul>
       </div>
     </aside>
@@ -109,7 +117,7 @@
       <section id="getting-started" class="docs-section">
         <h1>Getting Started with zload</h1>
         <p>
-          <strong>zload</strong> is an ultra-fast, zero-friction plugin manager and loader for Zsh. It delivers <strong>&lt; 0.5 ms warm interactive startup overhead</strong> by byte-compiling static plugins into a consolidated memory-mapped wordcode bundle (<code>.zwc</code>), automatically arranging safe canonical ordering, and eliminating subprocess forks.
+          <strong>zload</strong> is an ultra-fast, zero-friction plugin manager and loader for Zsh. It delivers <strong>~0.6 ms warm interactive startup overhead</strong> (10 plugins, Apple Silicon) by byte-compiling static plugins into a consolidated memory-mapped wordcode bundle (<code>.zwc</code>), automatically arranging safe canonical ordering, and eliminating subprocess forks.
         </p>
 
         <h2>Self-Bootstrapping Installation</h2>
@@ -134,12 +142,45 @@
       <section id="architecture" class="docs-section">
         <h2>Why zload is Fast: The Architecture</h2>
         <p>
-          Traditional Zsh managers (like Oh-My-Zsh and Antigen) suffer from two major performance bottlenecks:
+          Shell startup time is dominated by two costs, and zload is built to eliminate both:
         </p>
         <ol>
-          <li><strong>Subprocess Forks</strong>: Calling <code>git</code>, <code>sed</code>, <code>grep</code>, <code>uname</code>, or <code>$(...)</code> subshells costs 2–5 ms per fork on macOS. <code>zload</code> executes warm interactive startup using <strong>100% pure Zsh builtins</strong>—zero forks spawned.</li>
-          <li><strong>Disk I/O and Parsing</strong>: Sourcing 20 separate <code>.zsh</code> scripts requires 20 individual disk reads and AST syntax tokenizations. <code>zload</code> merges plugins into a single script (<code>bundle.zsh</code>) and byte-compiles it via <code>zcompile -R</code> into a binary wordcode image (<code>bundle.zsh.zwc</code>). Zsh memory-maps this binary image directly in <strong>0.4 ms</strong>.</li>
+          <li><strong>Subprocess Forks</strong>: Calling <code>git</code>, <code>sed</code>, <code>grep</code>, <code>uname</code>, or <code>$(...)</code> subshells costs milliseconds per fork. <code>zload</code> executes warm interactive startup using <strong>100% pure Zsh builtins</strong>—zero forks spawned.</li>
+          <li><strong>Disk I/O and Parsing</strong>: Sourcing 20 separate <code>.zsh</code> scripts requires 20 individual disk reads and AST syntax tokenizations. <code>zload</code> merges plugins into a single script (<code>bundle.zsh</code>) and byte-compiles it via <code>zcompile -R</code> into a binary wordcode image (<code>bundle.zsh.zwc</code>). Zsh memory-maps this binary image in about <strong>0.35 ms</strong>; sourcing <code>zload.zsh</code> plus ten plugins measures ~0.6 ms (run <code>zsh benchmark/bench.zsh</code> to measure on your machine).</li>
         </ol>
+      </section>
+
+      <!-- Section: Caching -->
+      <section id="cache" class="docs-section">
+        <h2>Caching &amp; Invalidation</h2>
+        <p>
+          Every <code>zload &lt;plugins...&gt;</code> call is <strong>cold</strong> the first time (or when its arguments change) and <strong>warm</strong> afterwards. A cold call installs missing plugins in parallel, resolves entry scripts, <code>fpath</code> and <code>bin</code> directories, sorts plugins into canonical order, and writes a compiled bundle. A warm call compares its raw arguments with a cached copy and sources the bundle: no subprocesses.
+        </p>
+        <h3>One bundle per <code>zload</code> call</h3>
+        <p>
+          The first call uses <code>bundle.zsh</code>, the second <code>bundle.2.zsh</code>, and so on. You can split plugins across several calls and every call stays warm; changing one call rebuilds only its own bundle. Canonical ordering is applied <em>within</em> a call, so keep plugins that depend on each other in the same call.
+        </p>
+        <h3>Canonical load order</h3>
+        <p>
+          <code>zsh-completions</code> first, then themes and prompts, then everything else in declared order, then <code>zsh-syntax-highlighting</code>, <code>zsh-autosuggestions</code> and <code>zsh-history-substring-search</code>.
+        </p>
+        <h3>What rebuilds the cache</h3>
+        <div class="table-responsive">
+          <table class="matrix-table">
+            <thead><tr><th>Event</th><th>Effect</th></tr></thead>
+            <tbody>
+              <tr><td>Change the arguments of a <code>zload</code> call</td><td>That call's bundle rebuilds on the next shell start.</td></tr>
+              <tr><td><code>zload update</code>, <code>sync</code>, <code>compile</code></td><td>Every bundle is rebuilt in place; the completion dump is cleared when something changed.</td></tr>
+              <tr><td><code>zload clean -f</code></td><td>Removes unreferenced plugins, all <code>bundle.*</code> files and the completion dump.</td></tr>
+              <tr><td><code>zload upgrade</code></td><td>Wipes the cache directory and reloads zload.</td></tr>
+              <tr><td>A bundle is rebuilt with different content</td><td><code>zcompdump*</code> is deleted so new completions are discovered.</td></tr>
+              <tr><td><code>zload eval</code> command string changes, or the tool binary is newer</td><td>That eval cache is regenerated.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Editing a plugin's own scripts takes effect immediately. If a plugin gains a new completion file or <code>bin/</code> directory, run <code>zload compile</code> so the bundle picks it up. If any plugin in a call fails to install, no bundle is written and the next shell start retries.
+        </p>
       </section>
 
       <!-- Section: Flexible Syntaxes -->
@@ -225,6 +266,11 @@ zload zsh-users/zsh-autosuggestions</code></pre>
                 <td>Tracks a specific Git branch.</td>
               </tr>
               <tr>
+                <td><strong>Git Commit</strong></td>
+                <td><code>user/repo@3f2a9c1</code></td>
+                <td>Checks out a pinned commit SHA (7-40 hex characters).</td>
+              </tr>
+              <tr>
                 <td><strong>Oh-My-Zsh Plugin</strong></td>
                 <td><code>omz:git</code></td>
                 <td>Loads plugin from shared OMZ clone; auto-loads <code>lib/git.zsh</code>.</td>
@@ -252,7 +298,7 @@ zload zsh-users/zsh-autosuggestions</code></pre>
               <tr>
                 <td><strong>Precompiled Binary</strong></td>
                 <td><code>user/repo --from gh-r</code></td>
-                <td>Downloads precompiled release binary for OS/Arch into PATH.</td>
+                <td>Downloads the release asset matching your OS/Arch into PATH; verified against a published <code>.sha256</code> or <code>--sha256</code>.</td>
               </tr>
               <tr>
                 <td><strong>Arbitrary Git URL</strong></td>
@@ -260,12 +306,43 @@ zload zsh-users/zsh-autosuggestions</code></pre>
                 <td>Clones GitLab, Bitbucket, or self-hosted Git repositories.</td>
               </tr>
               <tr>
+                <td><strong>SSH Git URL</strong></td>
+                <td><code>git@github.com:user/repo.git</code></td>
+                <td>Clones over SSH; <code>@ref</code> and <code>#ref</code> suffixes work as for other URLs.</td>
+              </tr>
+              <tr>
                 <td><strong>Local Directory</strong></td>
                 <td><code>~/code/my-local-plugin</code></td>
-                <td>Sources local development plugins from disk.</td>
+                <td>Sources local development plugins from disk (<code>/abs</code>, <code>~/</code>, <code>./rel</code>, <code>../rel</code>).</td>
               </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <!-- Section: Options -->
+      <section id="options" class="docs-section">
+        <h2>Options</h2>
+        <p>Options follow the plugin they apply to. Options that take a value need it as the next argument, e.g. <code>zload user/repo --build "make install"</code>.</p>
+        <div class="table-responsive">
+          <table class="matrix-table">
+            <thead><tr><th>Option</th><th>Effect</th></tr></thead>
+            <tbody>
+              <tr><td><code>--on cmd1,cmd2</code></td><td>Define proxy functions; the plugin is sourced when one of the commands first runs.</td></tr>
+              <tr><td><code>--on-dir pattern</code></td><td>Load when <code>$PWD</code> matches <code>pattern</code> or contains a file named <code>pattern</code>.</td></tr>
+              <tr><td><code>--defer</code>, <code>--idle</code></td><td>Load right after the first prompt is drawn.</td></tr>
+              <tr><td><code>--path dir</code>, <code>--subpath dir</code></td><td>Use a subdirectory of the plugin as its root (monorepos).</td></tr>
+              <tr><td><code>--bin dir</code></td><td>Add <code>dir</code> (relative to the plugin) to <code>$PATH</code>.</td></tr>
+              <tr><td><code>--build cmd</code>, <code>--hook cmd</code></td><td>Run <code>cmd</code> in the clone after install and after updates pull new commits. Failures are reported and retried.</td></tr>
+              <tr><td><code>--from gh-r</code></td><td>Install a GitHub release asset matching your OS and CPU.</td></tr>
+              <tr><td><code>--sha256 hash</code></td><td>Reject a snippet or release asset unless its SHA-256 matches.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A <code>@ref</code> can be a tag, a branch, or a commit SHA (7-40 hex characters).</p>
+        <div class="code-preview">
+          <pre><code>zload snippet:https://example.com/tool.zsh --sha256 &lt;sha256-of-the-file&gt;
+zload sharkdp/fd --from gh-r</code></pre>
         </div>
       </section>
 
@@ -278,7 +355,7 @@ zload zsh-users/zsh-autosuggestions</code></pre>
 
         <h3>1. Command Proxy Stubs (<code>--on</code>)</h3>
         <p>
-          Heavy runtime tools (like <code>nvm</code>, <code>pyenv</code>, <code>tfswitch</code>) often take 50–150ms to initialize. With <code>--on</code>, <code>zload</code> defines lightweight proxy functions. Startup cost is <strong>0.02 ms</strong>; the real tool loads only when invoked:
+          Heavy runtime tools (like <code>nvm</code>, <code>pyenv</code>, <code>tfswitch</code>) often take 50–150ms to initialize. With <code>--on</code>, <code>zload</code> defines lightweight proxy functions. Startup cost is effectively zero; the real tool loads only when invoked:
         </p>
         <div class="code-preview">
           <pre><code>zload lukechilds/zsh-nvm --on nvm,node,npm
@@ -296,7 +373,7 @@ zload "wbinglee/zsh-wakatime" --on-dir "package.json"</code></pre>
 
         <h3>3. Post-Prompt Idle Deferral (<code>--defer</code>)</h3>
         <p>
-          Visual plugins (like syntax highlighting) are scheduled via <code>precmd</code> immediately after the first prompt appears on screen:
+          Visual plugins (like syntax highlighting) load right after the first prompt is drawn, via a one-shot <code>zle -F</code> callback, so they never delay it:
         </p>
         <div class="code-preview">
           <pre><code>zload zsh-users/zsh-syntax-highlighting --defer</code></pre>
@@ -365,8 +442,16 @@ zstyle <span style="color: #38bdf8;">':completion:*'</span> list-colors <span st
             </thead>
             <tbody>
               <tr>
+                <td><code>zload path [dir...]</code></td>
+                <td>Prepends existing directories to <code>$PATH</code> with <code>~</code> expansion and deduplication; with no arguments prints the active <code>$PATH</code>.</td>
+              </tr>
+              <tr>
+                <td><code>zload fpath [dir...]</code></td>
+                <td>Prepends directories to <code>$fpath</code> with validation and deduplication; with no arguments prints it.</td>
+              </tr>
+              <tr>
                 <td><code>zload update [--all|--self|-f]</code></td>
-                <td>Updates installed plugins; <code>--all</code> also updates zload; <code>-f</code> discards local modifications.</td>
+                <td>Updates installed plugins in parallel, re-fetches snippets, reinstalls unpinned release binaries and re-runs build hooks; <code>--all</code> also updates zload; <code>-f</code> discards local modifications.</td>
               </tr>
               <tr>
                 <td><code>zload upgrade [-f]</code></td>
@@ -374,7 +459,7 @@ zstyle <span style="color: #38bdf8;">':completion:*'</span> list-colors <span st
               </tr>
               <tr>
                 <td><code>zload clean [-f]</code></td>
-                <td>Detects and removes unreferenced plugin directories from disk and flushes stale bundle caches.</td>
+                <td>Lists plugin directories that this session does not reference; <code>-f</code> deletes them and flushes bundle and completion caches.</td>
               </tr>
               <tr>
                 <td><code>zload list</code></td>
@@ -402,20 +487,64 @@ zstyle <span style="color: #38bdf8;">':completion:*'</span> list-colors <span st
               </tr>
               <tr>
                 <td><code>zload lock [file]</code></td>
-                <td>Exports pinned commit hashes to a reproducible lockfile.</td>
+                <td>Exports pinned commit hashes of Git plugins to a reproducible lockfile (release binaries and snippets are not locked).</td>
               </tr>
               <tr>
                 <td><code>zload sync [file]</code></td>
-                <td>Synchronizes installed plugins to exact lockfile commit hashes.</td>
+                <td>Checks out the lockfile commits (fetching on shallow clones), installs declared plugins that are missing, and exits non-zero if any commit cannot be checked out.</td>
               </tr>
               <tr>
                 <td><code>zload compile</code></td>
-                <td>Manually forces bundle, core module, and installed plugin bytecode recompilation (.zwc).</td>
+                <td>Rebuilds every bundle (one per <code>zload</code> call), core modules, and installed plugin bytecode (.zwc).</td>
               </tr>
               <tr>
                 <td><code>zload compinit [--lazy]</code></td>
-                <td>Initializes or defers the Zsh completion system (defers until first &lt;Tab&gt; with <code>--lazy</code>).</td>
+                <td>Initializes or defers the Zsh completion system (defers until first &lt;Tab&gt; with <code>--lazy</code>; armed on <code>expand-or-complete</code>, <code>complete-word</code>, <code>menu-complete</code> and the other widgets <code>compinit</code> rebinds).</td>
               </tr>
+              <tr>
+                <td><code>zload help</code></td>
+                <td>Prints a one-screen summary of commands, options and sources.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section: Environment -->
+      <section id="environment" class="docs-section">
+        <h2>Environment Variables</h2>
+        <div class="table-responsive">
+          <table class="matrix-table">
+            <thead><tr><th>Variable</th><th>Default</th><th>Purpose</th></tr></thead>
+            <tbody>
+              <tr><td><code>ZLOAD_HOME</code></td><td>Directory of <code>zload.zsh</code></td><td>zload installation.</td></tr>
+              <tr><td><code>ZLOAD_DATA</code></td><td><code>${XDG_DATA_HOME:-~/.local/share}/zload</code></td><td>Plugin and lockfile storage.</td></tr>
+              <tr><td><code>ZLOAD_CACHE</code></td><td><code>${XDG_CACHE_HOME:-~/.cache}/zload</code></td><td>Bundles, completion dump, eval caches.</td></tr>
+              <tr><td><code>ZLOAD_PLUGINS</code></td><td><code>$ZLOAD_DATA/plugins</code></td><td>Cloned plugins.</td></tr>
+              <tr><td><code>ZLOAD_NO_COMPINIT</code></td><td>unset</td><td>Set to stop zload from arming lazy <code>compinit</code>.</td></tr>
+              <tr><td><code>GITHUB_TOKEN</code></td><td>unset</td><td>Sent to the GitHub API by <code>--from gh-r</code> to avoid anonymous rate limits.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section: Troubleshooting -->
+      <section id="troubleshooting" class="docs-section">
+        <h2>Troubleshooting</h2>
+        <p>Start with <code>zload doctor</code>; <code>zload doctor --fix</code> creates missing directories and compiles missing wordcode.</p>
+        <div class="table-responsive">
+          <table class="matrix-table">
+            <thead><tr><th>Symptom</th><th>Cause and fix</th></tr></thead>
+            <tbody>
+              <tr><td>A new plugin's completions do not show up</td><td>Run <code>zload compile</code> (or <code>zload update</code>) so its completion directory is added.</td></tr>
+              <tr><td><code>zload: failed to install &lt;spec&gt;</code></td><td>The reason from git or curl follows. Fix the spec or network and open a new shell; no bundle was written, so it retries.</td></tr>
+              <tr><td>A build hook failed</td><td>Its output is printed and the half-built plugin is removed so it is retried on the next start.</td></tr>
+              <tr><td><code>--from gh-r</code>: no asset matches</td><td>No release asset names your OS and CPU architecture. zload does not guess; install the tool another way.</td></tr>
+              <tr><td><code>--from gh-r</code>: rate limit</td><td>Export <code>GITHUB_TOKEN</code>.</td></tr>
+              <tr><td><code>checksum mismatch</code> / <code>sha256 mismatch</code></td><td>The download did not match the published checksum or your <code>--sha256</code>. Nothing was installed.</td></tr>
+              <tr><td><code>zload sync</code>: <code>could not check out</code></td><td>The commit is no longer reachable from the remote. Re-run <code>zload lock</code> from a working setup.</td></tr>
+              <tr><td>Tab never triggers lazy compinit</td><td>Tab is bound to a widget zload does not hook. Call <code>zload compinit</code> after your <code>bindkey</code> lines.</td></tr>
+              <tr><td>Stale or odd cache state</td><td><code>zload clean -f</code> clears bundles and the completion dump; the next shell rebuilds them.</td></tr>
             </tbody>
           </table>
         </div>

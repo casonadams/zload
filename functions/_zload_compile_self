@@ -1,0 +1,10 @@
+_zload_compile_self() {
+  emulate -L zsh
+  setopt null_glob
+
+  local f
+  for f in "${ZLOAD_HOME}/zload.zsh" "${ZLOAD_HOME}/zload.plugin.zsh" "${ZLOAD_HOME}/functions"/*(N.); do
+    [[ -f "$f" && "$f" != *.zwc ]] && zcompile -R "$f" 2>/dev/null
+  done
+  return 0
+}

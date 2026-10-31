@@ -72,6 +72,8 @@ Normally, `compinit` scans `$fpath`, audits permissions, generates `.zcompdump`,
    - Immediately executes the registered completion widget so completion completes seamlessly on the first press.
 4. Subsequent `<Tab>` keystrokes run directly at native Zsh speeds.
 
+The lazy trigger is armed on every widget that `compinit` itself rebinds: `expand-or-complete`, `expand-or-complete-prefix`, `complete-word`, `menu-complete`, `menu-expand-or-complete`, and `reverse-menu-complete`. Binding Tab to `menu-complete` therefore works without extra configuration.
+
 ### Automatic Out of the Box
 `zload` automatically arms lazy `<Tab>` compinit whenever you load plugins with `zload "${plugins[@]}"`. No extra command in `.zshrc` is required:
 ```zsh

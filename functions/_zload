@@ -70,7 +70,8 @@ _zload() {
             '--path[Target specific subpath in repository]:path:_files -/' \
             '--build[Run post-install build hook]:command:' \
             '--on-dir[Load on entering matching directory]:pattern:' \
-            '--from[Install source type]:source:(gh-r)'
+            '--from[Install source type]:source:(gh-r)' \
+            '--sha256[Expected SHA-256 of the downloaded snippet or release asset]:hash:'
           ;;
       esac
       ;;

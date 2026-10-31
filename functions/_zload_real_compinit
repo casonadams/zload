@@ -3,28 +3,17 @@ _zload_real_compinit() {
   ((_zload_compinit_done)) && return 0
   _zload_compinit_done=1
 
-  unfunction compdef 2>/dev/null
+  if ! typeset -f _main_complete >/dev/null 2>&1 && ! typeset -p _comps >/dev/null 2>&1; then
+    [[ "${functions[compdef]}" == *_zload_deferred_compdefs* ]] && unfunction compdef 2>/dev/null
 
-  if typeset -f _main_complete >/dev/null 2>&1 || typeset -p _comps >/dev/null 2>&1; then
-    local def
-    for def in "${_zload_deferred_compdefs[@]}"; do
-      eval "compdef $def" 2>/dev/null
-    done
-    _zload_deferred_compdefs=()
-    return 0
+    local dump_file="${ZLOAD_CACHE}/zcompdump-${ZSH_VERSION}"
+    autoload -Uz compinit
+    compinit -C -d "$dump_file"
+
+    if [[ ! -f "${dump_file}.zwc" || "$dump_file" -nt "${dump_file}.zwc" ]]; then
+      zcompile -R "${dump_file}" 2>/dev/null
+    fi
   fi
 
-  local dump_file="${ZLOAD_CACHE}/zcompdump-${ZSH_VERSION}"
-  autoload -Uz compinit
-  compinit -C -d "$dump_file"
-
-  if [[ ! -f "${dump_file}.zwc" || "$dump_file" -nt "${dump_file}.zwc" ]]; then
-    zcompile -R "${dump_file}" 2>/dev/null
-  fi
-
-  for def in "${_zload_deferred_compdefs[@]}"; do
-    eval "compdef $def" 2>/dev/null
-  done
-  _zload_deferred_compdefs=()
-
+  _zload_flush_compdefs
 }

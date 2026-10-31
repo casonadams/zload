@@ -1,0 +1,13 @@
+_zload_index_specs() {
+  emulate -L zsh
+
+  local out_var="$1" spec_entry
+  local -A _zidx parsed
+  for spec_entry in "${_zload_specs[@]}"; do
+    _zload_parse_spec parsed "$spec_entry"
+    [[ -n "${parsed[dir]}" ]] && _zidx[${parsed[dir]}]="$spec_entry"
+  done
+
+  typeset -g -A "$out_var"
+  set -A "$out_var" "${(@kv)_zidx}"
+}

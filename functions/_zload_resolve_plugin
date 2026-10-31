@@ -1,0 +1,24 @@
+_zload_resolve_plugin() {
+  emulate -L zsh
+
+  local in_var="$1" out_var="$2"
+  local -A _rspec _rinfo
+  _rspec=("${(@Pkv)in_var}")
+
+  local target_dir="${_rspec[dir]}"
+  [[ -n "${_rspec[subpath]}" ]] && target_dir+="/${_rspec[subpath]}"
+  local plugin_name="${_rspec[subpath]:t}"
+  [[ -z "$plugin_name" ]] && plugin_name="${_rspec[name]}"
+
+  if [[ -f "$target_dir" ]]; then
+    _rinfo=(script "$target_dir")
+  elif [[ -f "${target_dir}.zsh-theme" ]]; then
+    _rinfo=(script "${target_dir}.zsh-theme")
+  else
+    _zload_find_main_file _rinfo "$target_dir" "$plugin_name"
+  fi
+  _rinfo[target]="$target_dir"
+
+  typeset -g -A "$out_var"
+  set -A "$out_var" "${(@kv)_rinfo}"
+}

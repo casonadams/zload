@@ -1,0 +1,18 @@
+_zload_omz_libs() {
+  emulate -L zsh
+  setopt extended_glob
+
+  local subpath="$1"
+  local script_file="$2"
+  local content=""
+  [[ -f "$script_file" ]] && content="$(<"$script_file")"
+
+  reply=()
+  if [[ "$subpath" == plugins/git || "$subpath" == themes/* ||
+    "$content" == *(current_branch|git_prompt_info|git_current_branch)* ]]; then
+    reply+=(git)
+  fi
+  [[ "$subpath" == themes/* ]] && reply+=(theme)
+  [[ "$content" == *(omz_termsupport|title )* ]] && reply+=(termsupport)
+  return 0
+}

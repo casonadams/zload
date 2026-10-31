@@ -30,11 +30,18 @@ ZWC_FILE="${CACHE_FILE}.zwc"
   exit 1
 }
 
-# 2. Warm eval execution: modify command to verify it sources cache, not command
+# 2. Warm eval execution: an identical command is not re-run
+RUN_LOG="$SANDBOX/runs"
+CMD="echo run >>$RUN_LOG; echo 'export MYTOOL_ACTIVE=1'"
+zload eval counted "$CMD"
 unset MYTOOL_ACTIVE
-zload eval mytool "echo 'export MYTOOL_ACTIVE=999'"
+zload eval counted "$CMD"
 [[ "$MYTOOL_ACTIVE" == "1" ]] || {
-  echo "FAIL: warm eval did not use cached script"
+  echo "FAIL: warm eval did not source cached script"
+  exit 1
+}
+[[ "$(wc -l <"$RUN_LOG" | tr -d ' ')" == "1" ]] || {
+  echo "FAIL: warm eval re-executed the command"
   exit 1
 }
 

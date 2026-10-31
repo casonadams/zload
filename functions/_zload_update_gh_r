@@ -1,0 +1,27 @@
+_zload_update_gh_r() {
+  emulate -L zsh
+
+  local spec_entry="$1" name="$2"
+  local -A parsed
+  _zload_parse_spec parsed "$spec_entry"
+
+  if [[ -n "${parsed[ref]}" ]]; then
+    _zload_row 11 "•" "$name" 11 "pinned ref (skipping)"
+    return 0
+  fi
+
+  local dir="${parsed[dir]}"
+  local backup="${dir}.bin.old.$$"
+  mv "$dir/bin" "$backup" 2>/dev/null
+
+  if _zload_install_gh_r parsed >/dev/null; then
+    rm -rf "$backup"
+    _zload_row 10 "✓" "$name" 10 "reinstalled latest release"
+    return 0
+  fi
+
+  mkdir -p "$dir"
+  [[ -d "$backup" ]] && mv "$backup" "$dir/bin"
+  _zload_row 9 "✗" "$name" 9 "update failed"
+  return 1
+}

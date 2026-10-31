@@ -1,0 +1,31 @@
+_zload_fetch_snippet() {
+  emulate -L zsh
+
+  local url="$1" dest="$2" want="${(L)3}"
+  local tmp="${dest}.tmp.$$"
+
+  mkdir -p "${dest:h}"
+  if [[ "$url" == file://* ]]; then
+    cp "${url#file://}" "$tmp" 2>/dev/null
+  else
+    command curl -fsSL "$url" -o "$tmp" >/dev/null 2>&1
+  fi
+  if (($? != 0)) || [[ ! -f "$tmp" ]]; then
+    rm -f "$tmp"
+    print -u2 -P "%F{9}zload: failed to fetch snippet ${url}%f"
+    return 1
+  fi
+
+  if [[ -n "$want" ]]; then
+    _zload_sha256 "$tmp"
+    if [[ "$REPLY" != "$want" ]]; then
+      rm -f "$tmp"
+      print -u2 -P "%F{9}zload: sha256 mismatch for ${url}%f"
+      return 1
+    fi
+  fi
+
+  mv -f "$tmp" "$dest"
+  zcompile -R "$dest" 2>/dev/null
+  return 0
+}

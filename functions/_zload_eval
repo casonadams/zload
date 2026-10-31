@@ -14,20 +14,31 @@ _zload_eval() {
   [[ -d "$eval_dir" ]] || mkdir -p "$eval_dir"
   local cache_file="${eval_dir}/${name}.zsh"
   local zwc_file="${cache_file}.zwc"
+  local cmd_file="${cache_file}.cmd"
 
   local bin_name="${cmd[(w)1]}"
   local bin_path="${commands[$bin_name]}"
 
   local need_rebuild=0
-  if [[ ! -f "$zwc_file" || ! -f "$cache_file" ]]; then
+  if [[ ! -f "$zwc_file" || ! -f "$cache_file" || ! -f "$cmd_file" ]]; then
+    need_rebuild=1
+  elif [[ "$(<"$cmd_file")" != "$cmd" ]]; then
     need_rebuild=1
   elif [[ -n "$bin_path" && -f "$bin_path" && "$bin_path" -nt "$cache_file" ]]; then
     need_rebuild=1
   fi
 
   if ((need_rebuild)); then
-    eval "$cmd" >"$cache_file" 2>/dev/null
-    zcompile -R "$cache_file" 2>/dev/null
+    local tmp_file="${cache_file}.tmp.$$"
+    if eval "$cmd" >"$tmp_file" 2>/dev/null && [[ -s "$tmp_file" ]]; then
+      mv -f "$tmp_file" "$cache_file"
+      print -r -- "$cmd" >"$cmd_file"
+      zcompile -R "$cache_file" 2>/dev/null
+    else
+      rm -f "$tmp_file"
+      print -u2 "zload eval: '$cmd' failed or produced no output"
+      [[ -f "$cache_file" ]] || return 1
+    fi
   fi
 
   source "$cache_file"

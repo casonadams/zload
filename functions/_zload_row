@@ -1,0 +1,6 @@
+_zload_row() {
+  emulate -L zsh
+
+  local icon_color="$1" icon="$2" name="$3" text_color="$4" text="$5" detail="$6"
+  print -P "  %F{${icon_color}}${icon}%f  %F{15}%B${(r:35:)name}%b%f  %F{${text_color}}${text}%f${detail:+  %F{8}(${detail})%f}"
+}

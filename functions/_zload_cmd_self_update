@@ -2,7 +2,7 @@ _zload_cmd_self_update() {
   emulate -L zsh
   setopt null_glob
 
-  local old_commit new_commit fn_file fn force=0 arg pull_err line
+  local old_commit new_commit fn force=0 arg pull_err line
   for arg in "$@"; do
     [[ "$arg" == "-f" || "$arg" == "--force" ]] && force=1
   done
@@ -31,18 +31,7 @@ _zload_cmd_self_update() {
   new_commit="$(command git -C "$ZLOAD_HOME" rev-parse --short HEAD 2>/dev/null)"
 
   rm -f "${ZLOAD_HOME}"/*.zwc(N) "${ZLOAD_HOME}/functions"/*.zwc(N)
-
-  if [[ -f "${ZLOAD_HOME}/zload.zsh" ]]; then
-    zcompile -R "${ZLOAD_HOME}/zload.zsh" 2>/dev/null
-  fi
-  if [[ -f "${ZLOAD_HOME}/zload.plugin.zsh" ]]; then
-    zcompile -R "${ZLOAD_HOME}/zload.plugin.zsh" 2>/dev/null
-  fi
-
-  for fn_file in "${ZLOAD_HOME}/functions"/*(N.); do
-    [[ "$fn_file" == *.zwc ]] && continue
-    zcompile -R "$fn_file" 2>/dev/null
-  done
+  _zload_compile_self
 
   if [[ -d "$ZLOAD_CACHE" ]]; then
     rm -rf "${ZLOAD_CACHE}"/*(ND)

@@ -1,6 +1,6 @@
 _zload_install_gh_r() {
   emulate -L zsh
-  setopt null_glob
+  setopt null_glob extended_glob
 
   local in_var="$1"
   local -A _zspec
@@ -9,24 +9,24 @@ _zload_install_gh_r() {
   local dir="${_zspec[dir]}"
   local bin_dir="${dir}/bin"
 
-  if [[ -d "$bin_dir" && -n "$bin_dir"/*(N*x) ]]; then
-    return 0
-  fi
+  local -a existing
+  existing=("$bin_dir"/*(N*x))
+  ((${#existing} > 0)) && return 0
 
-  mkdir -p "$bin_dir"
   local temp_dir="${dir}.tmp.$$"
-  mkdir -p "$temp_dir/extracted"
-  trap 'rm -rf "$temp_dir"' EXIT
+  local stage="${temp_dir}/stage"
+  mkdir -p "$temp_dir/extracted" "$stage"
+  trap "rm -rf ${(q)temp_dir}" EXIT
 
+  local owner_repo="${_zspec[spec]%%[@#]*}"
   local url="${_zspec[url]}"
-  local asset_file=""
+  local asset_file="" want="${_zspec[sha256]}"
 
   if [[ "$url" == file://* ]]; then
     local src_file="${url#file://}"
     asset_file="${temp_dir}/${src_file:t}"
-    cp "$src_file" "$asset_file"
+    cp "$src_file" "$asset_file" || return 1
   else
-    local owner_repo="${_zspec[spec]%%[@#]*}"
     local tag="${_zspec[ref]}"
     local api_url="https://api.github.com/repos/${owner_repo}/releases/latest"
     [[ -n "$tag" ]] && api_url="https://api.github.com/repos/${owner_repo}/releases/tags/${tag}"
@@ -34,49 +34,52 @@ _zload_install_gh_r() {
     local os_sys="${(L)OSTYPE}"
     local arch_sys="${(L)CPUTYPE}"
 
-    local -a os_patterns
+    local -a os_patterns arch_patterns
     if [[ "$os_sys" == darwin* ]]; then
       os_patterns=(darwin apple macos osx)
     else
       os_patterns=(linux)
     fi
 
-    local -a arch_patterns
     if [[ "$arch_sys" == *(arm64|aarch64)* ]]; then
       arch_patterns=(arm64 aarch64)
     else
       arch_patterns=(x86_64 amd64 x64)
     fi
 
+    local -a api_opts=(-fsSL)
+    [[ -n "$GITHUB_TOKEN" ]] && api_opts+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+
     print -P "%F{14}zload%f  %F{11}querying release%f   %F{15}%B${owner_repo}%b%f%F{8}...%f"
     local json_out
-    json_out="$(command curl -fsSL "$api_url" 2>/dev/null)" || {
-      print -u2 -P "%F{9}zload: failed to fetch release metadata from GitHub%f"
+    json_out="$(command curl "${api_opts[@]}" "$api_url" 2>/dev/null)" || {
+      print -u2 -P "%F{9}zload: failed to fetch release metadata from GitHub (set GITHUB_TOKEN if rate limited)%f"
       return 1
     }
 
     local -a urls
-    local line
-    for line in "${(f)json_out}"; do
-      if [[ "$line" == *\"browser_download_url\":* ]]; then
-        local u="${line#*\"browser_download_url\": \"}"
-        u="${u%\"*}"
-        urls+=("$u")
-      fi
+    local line u
+    for line in "${(f)${json_out//,/$'\n'}}"; do
+      [[ "$line" == *\"browser_download_url\"* ]] || continue
+      u="${line#*browser_download_url\"}"
+      u="${u#*\"}"
+      urls+=("${u%%\"*}")
     done
 
-    local target_url=""
+    local target_url="" lower_u op ap
+    local -i match_os match_arch
     for u in "${urls[@]}"; do
-      local lower_u="${(L)u}"
-      [[ "$lower_u" == *(\.sha256|\.sha256sum|\.sig|\.deb|\.rpm|\.msi|\.apk|\.txt) ]] && continue
+      lower_u="${(L)u}"
+      [[ "$lower_u" == *(.sha256|.sha256sum|.sha512|.md5|.sig|.asc|.pem|.minisig|.sbom|.json|.jsonl|.deb|.rpm|.msi|.apk|.exe|.dmg|.pkg|.txt|.md) ]] && continue
 
-      local match_os=0 match_arch=0
+      match_os=0 match_arch=0
       for op in "${os_patterns[@]}"; do
-        [[ "$lower_u" == *$op* ]] && match_os=1
+        [[ "${lower_u:t}" == *$op* ]] && match_os=1
       done
       for ap in "${arch_patterns[@]}"; do
-        [[ "$lower_u" == *$ap* ]] && match_arch=1
+        [[ "${lower_u:t}" == *$ap* ]] && match_arch=1
       done
+      [[ "${lower_u:t}" == *universal* ]] && match_arch=1
 
       if ((match_os && match_arch)); then
         target_url="$u"
@@ -84,10 +87,8 @@ _zload_install_gh_r() {
       fi
     done
 
-    [[ -z "$target_url" ]] && target_url="${urls[1]}"
-
     if [[ -z "$target_url" ]]; then
-      print -u2 -P "%F{9}zload: no matching release binary found for ${os_sys}_${arch_sys}%f"
+      print -u2 -P "%F{9}zload: no release asset of ${owner_repo} matches ${os_sys}/${arch_sys}%f"
       return 1
     fi
 
@@ -97,31 +98,56 @@ _zload_install_gh_r() {
       print -u2 -P "%F{9}zload: download failed for ${target_url}%f"
       return 1
     }
+
+    local sum_url=""
+    for u in "${urls[@]}"; do
+      [[ "$u" == "${target_url}.sha256" || "$u" == "${target_url}.sha256sum" ]] && sum_url="$u"
+    done
+    if [[ -z "$want" && -n "$sum_url" ]]; then
+      want="$(command curl -fsSL "$sum_url" 2>/dev/null)"
+      want="${(L)${(z)want}[1]}"
+    fi
   fi
 
-  if [[ "$asset_file" == *(\.tar\.gz|\.tgz) ]]; then
-    command tar -xzf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null
-  elif [[ "$asset_file" == *\.tar\.xz ]]; then
-    command tar -xJf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null
-  elif [[ "$asset_file" == *\.zip ]]; then
-    command unzip -q "$asset_file" -d "$temp_dir/extracted" 2>/dev/null
+  if [[ -n "$want" ]]; then
+    _zload_sha256 "$asset_file"
+    if [[ "$REPLY" != "$want" ]]; then
+      print -u2 -P "%F{9}zload: checksum mismatch for ${asset_file:t}%f"
+      return 1
+    fi
+  fi
+
+  local extract_ok=1
+  if [[ "$asset_file" == *(.tar.gz|.tgz) ]]; then
+    command tar -xzf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null || extract_ok=0
+  elif [[ "$asset_file" == *.tar.xz ]]; then
+    command tar -xJf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null || extract_ok=0
+  elif [[ "$asset_file" == *.zip ]]; then
+    command unzip -q "$asset_file" -d "$temp_dir/extracted" 2>/dev/null || extract_ok=0
   else
     chmod +x "$asset_file"
-    mv "$asset_file" "$bin_dir/"
+    mv "$asset_file" "$stage/${owner_repo:t}"
   fi
 
-  local -a found_bins
+  if ((! extract_ok)); then
+    print -u2 -P "%F{9}zload: failed to extract ${asset_file:t}%f"
+    return 1
+  fi
+
   local f
-  for f in "$temp_dir/extracted"/**/*(N*x); do
-    [[ -f "$f" ]] && found_bins+=("$f")
+  for f in "$temp_dir/extracted"/**/*(N.*x); do
+    mv -f "$f" "$stage/"
+    chmod +x "$stage/${f:t}"
   done
 
-  if ((${#found_bins} > 0)); then
-    for f in "${found_bins[@]}"; do
-      mv "$f" "$bin_dir/"
-      chmod +x "$bin_dir/${f:t}"
-    done
+  existing=("$stage"/*(N*x))
+  if ((${#existing} == 0)); then
+    print -u2 -P "%F{9}zload: no executables found in release of ${owner_repo}%f"
+    return 1
   fi
 
+  rm -rf "$dir"
+  mkdir -p "$dir"
+  mv "$stage" "$bin_dir"
   return 0
 }

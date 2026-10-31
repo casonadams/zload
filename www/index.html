@@ -12,7 +12,7 @@
   <meta property="og:type" content="website">
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/style.css?v=10">
+  <link rel="stylesheet" href="css/style.css?v=11">
 
   <script>
     (function() {
@@ -91,24 +91,20 @@ source "${HOME}/.zload/zload.zsh"</code></pre>
       <div id="benchmark" class="benchmark-card">
         <div class="benchmark-header">
           <span class="benchmark-title">Shell Startup Latency Benchmark (10 Plugins)</span>
-          <span style="font-size: 0.8rem; color: var(--text-secondary);">macOS Apple Silicon</span>
+          <span style="font-size: 0.8rem; color: var(--text-secondary);">macOS Apple Silicon · measured with <code>benchmark/bench.zsh</code></span>
         </div>
         <div class="stat-grid">
           <div class="stat-box">
-            <div class="stat-val fast">0.45 ms</div>
-            <div class="stat-label">zload (.zwc bundle)</div>
+            <div class="stat-val fast">0.6 ms</div>
+            <div class="stat-label">warm start incl. sourcing zload.zsh</div>
           </div>
           <div class="stat-box">
-            <div class="stat-val">12 ms</div>
-            <div class="stat-label">Antidote</div>
+            <div class="stat-val fast">0.35 ms</div>
+            <div class="stat-label">compiled .zwc bundle alone</div>
           </div>
           <div class="stat-box">
-            <div class="stat-val">28 ms</div>
-            <div class="stat-label">Zinit (Turbo)</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-val slow">340 ms</div>
-            <div class="stat-label">Oh-My-Zsh</div>
+            <div class="stat-val fast">0</div>
+            <div class="stat-label">subprocess forks on warm start</div>
           </div>
         </div>
       </div>
@@ -162,6 +158,18 @@ source "${HOME}/.zload/zload.zsh"</code></pre>
           <div class="feature-icon">🗂</div>
           <div class="feature-title">Smart PATH &amp; FPATH</div>
           <div class="feature-text">Deduplicates <code>$PATH</code> and <code>$fpath</code>, expands <code>~</code>, verifies directory existence, and auto-links <code>~/.zfunc</code> for custom completions.</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🧩</div>
+          <div class="feature-title">Warm Across Every Call</div>
+          <div class="feature-text">Each <code>zload</code> call gets its own cached bundle, so splitting plugins across several calls stays on the warm path. Missing plugins install in parallel on first run.</div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🛡</div>
+          <div class="feature-title">Verified Downloads</div>
+          <div class="feature-text">Pin release binaries and snippets with <code>--sha256</code>; published <code>.sha256</code> assets are checked automatically. Failed installs and builds leave nothing half-installed.</div>
         </div>
 
         <div class="feature-card">
@@ -264,246 +272,6 @@ zload fpath ~/.my-completions /opt/homebrew/share/zsh/site-functions
 <span style="color: #64748b;"># Inspect active entries anytime:</span>
 <span style="color: #64748b;"># $ zload path</span>
 <span style="color: #64748b;"># $ zload fpath</span></code></pre>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Comparison Section -->
-  <section id="matrix" class="section">
-    <div class="container">
-      <h2 class="section-title">Feature Comparison</h2>
-      <p class="section-desc">How zload compares to existing alternatives in the Zsh ecosystem.</p>
-
-      <!-- Desktop Table View (>= 769px) -->
-      <div class="desktop-matrix">
-        <table class="matrix-table">
-          <thead>
-            <tr>
-              <th>Feature</th>
-              <th>Oh-My-Zsh</th>
-              <th>Zinit</th>
-              <th>Antidote</th>
-              <th><strong>zload</strong></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Warm Startup Overhead</td>
-              <td>200–500 ms</td>
-              <td>15–40 ms</td>
-              <td>8–15 ms</td>
-              <td><strong>&lt; 0.5 ms</strong></td>
-            </tr>
-            <tr>
-              <td>Interactive Warm Subprocesses</td>
-              <td>Many</td>
-              <td>Several</td>
-              <td>Few</td>
-              <td><strong>Zero (0)</strong></td>
-            </tr>
-            <tr>
-              <td>Memory-Mapped Wordcode (.zwc)</td>
-              <td class="cross">✕</td>
-              <td class="cross">Partial</td>
-              <td class="cross">✕</td>
-              <td class="check">✓ Full Native</td>
-            </tr>
-            <tr>
-              <td>Pure Zsh Builtins (0 Dependencies)</td>
-              <td class="check">✓ Pure Zsh</td>
-              <td class="cross">✕ Complex Annexes</td>
-              <td class="check">✓ Pure Zsh</td>
-              <td class="check">✓ 100% Pure Zsh</td>
-            </tr>
-            <tr>
-              <td>Automatic Canonical Ordering</td>
-              <td class="cross">✕</td>
-              <td class="cross">✕</td>
-              <td class="cross">✕</td>
-              <td class="check">✓ Automatic</td>
-            </tr>
-            <tr>
-              <td>Built-in Lazy &lt;Tab&gt; Compinit</td>
-              <td class="cross">✕</td>
-              <td class="cross">Manual</td>
-              <td class="cross">✕</td>
-              <td class="check">✓ Automatic</td>
-            </tr>
-            <tr>
-              <td>Zero-Subprocess Eval Caching</td>
-              <td class="cross">✕</td>
-              <td class="cross">✕</td>
-              <td class="cross">✕</td>
-              <td class="check">✓ Native</td>
-            </tr>
-            <tr>
-              <td>OMZ Library Auto-Shims</td>
-              <td class="check">Native</td>
-              <td class="cross">Manual</td>
-              <td class="cross">✕</td>
-              <td class="check">✓ Automatic</td>
-            </tr>
-            <tr>
-              <td>GitHub Releases Binaries (gh-r)</td>
-              <td class="cross">✕</td>
-              <td class="check">✓ Complex</td>
-              <td class="cross">✕</td>
-              <td class="check">✓ Clean</td>
-            </tr>
-            <tr>
-              <td>Reproducible Lockfiles (sync)</td>
-              <td class="cross">✕</td>
-              <td class="cross">✕</td>
-              <td class="cross">✕</td>
-              <td class="check">✓ Built-in</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Mobile Cards View (<= 768px) -->
-      <div class="mobile-matrix">
-        <div class="matrix-cards-grid">
-          <!-- Card 1 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">⚡ Warm Startup Overhead</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">&lt; 0.5 ms (Fastest)</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Antidote</span><span>8–15 ms</span></div>
-              <div class="matrix-competitor-row"><span>Zinit (Turbo)</span><span>15–40 ms</span></div>
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">200–500 ms</span></div>
-            </div>
-          </div>
-
-          <!-- Card 2 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">🚫 Interactive Warm Subprocesses</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">0 (Zero Forks)</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Antidote</span><span>Few</span></div>
-              <div class="matrix-competitor-row"><span>Zinit</span><span>Several</span></div>
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">Many (10+)</span></div>
-            </div>
-          </div>
-
-          <!-- Card 3 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">📦 Memory-Mapped Bytecode (.zwc)</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">✓ Full Native Bundle</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Zinit</span><span>Partial</span></div>
-              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ None</span></div>
-            </div>
-          </div>
-
-          <!-- Card 4 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">🐚 Pure Zsh Builtins (0 Dependencies)</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">✓ 100% Pure Zsh</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Antidote</span><span class="check">✓ Pure Zsh</span></div>
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="check">✓ Pure Zsh</span></div>
-              <div class="matrix-competitor-row"><span>Zinit</span><span class="cross">✕ Complex Annexes</span></div>
-            </div>
-          </div>
-
-          <!-- Card 5 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">🪄 Automatic Canonical Ordering</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">✓ Automatic Sorting</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ Manual order</span></div>
-              <div class="matrix-competitor-row"><span>Zinit</span><span class="cross">✕ Manual order</span></div>
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ Manual order</span></div>
-            </div>
-          </div>
-
-          <!-- Card 6 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">⏳ Built-in Lazy Tab Compinit</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">✓ Automatic &lt;Tab&gt;</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Zinit</span><span>Manual ice syntax</span></div>
-              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ Synchronous (slow)</span></div>
-            </div>
-          </div>
-
-          <!-- Card 7 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">⚡ Zero-Subprocess Eval Caching</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">✓ Built-in (0.2ms)</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
-              <div class="matrix-competitor-row"><span>Zinit</span><span class="cross">✕ None</span></div>
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ None</span></div>
-            </div>
-          </div>
-
-          <!-- Card 8 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">🐚 Oh-My-Zsh Library Auto-Shims</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">✓ Auto-injected</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="check">Native (100MB framework)</span></div>
-              <div class="matrix-competitor-row"><span>Zinit</span><span>Manual pick/as snippets</span></div>
-              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ Manual handling</span></div>
-            </div>
-          </div>
-
-          <!-- Card 9 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">📥 GitHub Release Binaries (gh-r)</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">✓ Clean --from gh-r</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Zinit</span><span class="check">✓ Complex DSL</span></div>
-              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ None</span></div>
-            </div>
-          </div>
-
-          <!-- Card 10 -->
-          <div class="matrix-card">
-            <div class="matrix-card-title">🔒 Reproducible Lockfiles</div>
-            <div class="matrix-winner">
-              <span class="winner-tag">🚀 zload</span>
-              <span class="winner-val">✓ zload lock & sync</span>
-            </div>
-            <div class="matrix-competitors">
-              <div class="matrix-competitor-row"><span>Antidote</span><span class="cross">✕ None</span></div>
-              <div class="matrix-competitor-row"><span>Zinit</span><span class="cross">✕ Annexes needed</span></div>
-              <div class="matrix-competitor-row"><span>Oh-My-Zsh</span><span class="cross">✕ None</span></div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

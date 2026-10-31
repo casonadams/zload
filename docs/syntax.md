@@ -53,7 +53,7 @@ zload "
 ### Features:
 - Blank lines and whitespace are automatically trimmed.
 - Comment lines starting with `#` are automatically ignored.
-- Options like `--on`, `--defer`, and `--path` attach naturally to the preceding plugin.
+- Options like `--on`, `--defer`, and `--path` attach naturally to the preceding plugin (see [Options](#options)).
 
 ---
 
@@ -67,6 +67,8 @@ zload omz:git
 zload zsh-users/zsh-syntax-highlighting --defer
 zload zsh-users/zsh-autosuggestions
 ```
+
+Every `zload` call has its own cached bundle, so separate calls all stay on the warm path. Canonical ordering (completions first, syntax highlighting and autosuggestions last) is applied **within** a call, so put plugins that depend on each other in the same call. See [How zload Works](how-it-works.md).
 
 ---
 
@@ -87,6 +89,7 @@ zload zsh-users/zsh-completions omz:git romkatv/powerlevel10k
 | **GitHub repo** | `user/repo` | Resolves to `https://github.com/user/repo.git` |
 | **Specific Tag** | `user/repo@v1.2.0` | Checks out pinned Git tag |
 | **Specific Branch** | `user/repo#develop` | Checks out pinned Git branch |
+| **Specific Commit** | `user/repo@3f2a9c1` | Checks out a pinned commit SHA (7-40 hex chars) |
 | **Oh-My-Zsh Plugin** | `omz:git` or `omz:plugins/git` | Fetches plugin from shared OMZ shallow clone |
 | **Oh-My-Zsh Theme** | `omz:themes/robbyrussell` | Loads theme file and color/git dependencies |
 | **Oh-My-Zsh Library** | `omz:lib/git.zsh` | Sourced directly from OMZ libraries |
@@ -94,4 +97,39 @@ zload zsh-users/zsh-completions omz:git romkatv/powerlevel10k
 | **Remote Snippet** | `snippet:https://.../tool.zsh` | Downloads raw file via curl without Git clone |
 | **GitHub Release Binary** | `user/repo --from gh-r` | Downloads matching OS/Arch precompiled binary into PATH |
 | **Git Remote URL** | `https://gitlab.com/group/repo.git` | Clones any arbitrary remote Git repository |
-| **Local Directory** | `~/code/my-local-plugin` | Sources local development plugin from disk |
+| **SSH Git URL** | `git@github.com:user/repo.git` | Clones over SSH; `@ref` / `#ref` suffixes work as for other URLs |
+| **Local Directory** | `~/code/my-local-plugin` | Sources local development plugin from disk (`/abs`, `~/`, `./rel`, `../rel`) |
+
+> A `@ref` can be a tag, a branch name, or a commit SHA (7-40 hex characters). Tags and branches are cloned directly; a SHA is fetched afterwards, and abbreviated SHAs need a remote that resolves them (GitHub does).
+
+---
+
+## Options
+
+Options follow the plugin they apply to. Aliases are listed together.
+
+| Option | Applies to | Effect |
+|---|---|---|
+| `--on cmd1,cmd2` | any | Define proxy functions for those commands; the plugin is sourced when one is first run ([lazy loading](lazy-loading.md)) |
+| `--on-dir pattern` | any | Load when the working directory matches `pattern` or contains a file named `pattern` ([lazy loading](lazy-loading.md)) |
+| `--defer`, `--idle` | any | Load right after the first prompt is drawn ([lazy loading](lazy-loading.md)) |
+| `--path dir`, `--subpath dir` | any | Use a subdirectory of the plugin as its root (monorepos) |
+| `--bin dir` | any | Add `dir` (relative to the plugin) to `$PATH` |
+| `--build cmd`, `--hook cmd` | Git | Run `cmd` inside the clone after install and after `zload update` pulls new commits |
+| `--from gh-r` (or `github-releases`) | `user/repo` | Install a precompiled GitHub release asset matching your OS and CPU into `$PATH` |
+| `--sha256 hash` | snippets, `--from gh-r` | Reject the download unless its SHA-256 matches |
+
+Options that take a value need it as the next argument: `zload user/repo --build "make install"`.
+
+### Integrity checks
+
+```zsh
+# Reject a snippet whose contents change unexpectedly
+zload snippet:https://example.com/tool.zsh --sha256 <sha256-of-the-file>
+
+# Release binaries: verified against --sha256 when given, otherwise against
+# a published .sha256 / .sha256sum asset when the release has one
+zload sharkdp/fd --from gh-r
+```
+
+A failed check installs nothing and reports an error.

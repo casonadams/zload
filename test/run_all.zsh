@@ -92,6 +92,17 @@ zsh test/test_example.zsh
 zsh test/test_pages.zsh
 print -P "%F{green}[OK] Slice 13 passed.%f\n"
 
+print -P "%F{blue}==> Slice 14: Cache Correctness, Install Robustness & Lockfile Sync...%f"
+zsh test/test_cache_key.zsh
+zsh test/test_omz_static.zsh
+zsh test/test_eval_compdef.zsh
+zsh test/test_gh_r_robust.zsh
+zsh test/test_install_robust.zsh
+zsh test/test_sync_shallow.zsh
+zsh test/test_multi_call.zsh
+zsh test/test_integrity_parallel.zsh
+print -P "%F{green}[OK] Slice 14 passed.%f\n"
+
 print -P "%F{green}========================================%f"
 print -P "%F{green}  ALL TESTS PASSED SUCCESSFULLY!        %f"
 print -P "%F{green}========================================%f"

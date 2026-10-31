@@ -1,0 +1,8 @@
+_zload_defer_fire() {
+  emulate -L zsh
+
+  local fd="$1"
+  zle -F "$fd"
+  exec {fd}<&-
+  _zload_run_deferred
+}

@@ -2,19 +2,15 @@ _zload_cmd_clean() {
   emulate -L zsh
   setopt null_glob
 
-  local force=0 dir name cdir pdir capdir spec_entry
+  local force=0 dir name cdir
   [[ "$1" == "-f" || "$1" == "--force" ]] && force=1
 
-  local -A active_dirs
-  for spec_entry in "${_zload_specs[@]}"; do
-    local -A parsed
-    _zload_parse_spec parsed "$spec_entry"
-    if [[ -n "${parsed[dir]}" ]]; then
-      pdir="${parsed[dir]}"
-      capdir="${parsed[dir]:A}"
-      active_dirs[$pdir]=1
-      active_dirs[$capdir]=1
-    fi
+  local -A idx active_dirs
+  local key
+  _zload_index_specs idx
+  for key in "${(@k)idx}"; do
+    active_dirs[$key]=1
+    active_dirs[${key:A}]=1
   done
 
   local -a plugin_dirs

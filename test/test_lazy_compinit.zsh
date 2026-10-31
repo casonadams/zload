@@ -53,54 +53,36 @@ _zload_real_compinit
   exit 1
 }
 
-# 4. Test automatic lazy compinit arming in interactive mode
+# 4. Interactive plugin load arms every completion widget (including menu-complete)
 zsh -f -i -c "
   export XDG_DATA_HOME=\"$XDG_DATA_HOME\"
   export XDG_CACHE_HOME=\"$XDG_CACHE_HOME\"
+  zmodload zsh/zleparameter
   source ./zload.zsh
   mkdir -p \"$SANDBOX/p_auto\"
   echo 'export AUTO_P=1' > \"$SANDBOX/p_auto/p_auto.plugin.zsh\"
   zload \"$SANDBOX/p_auto\"
-  typeset -f _zload_lazy_compinit_widget >/dev/null || exit 1
+  for w in expand-or-complete complete-word menu-complete menu-expand-or-complete reverse-menu-complete; do
+    [[ \"\${widgets[\$w]}\" == user:_zload_lazy_compinit_widget ]] || { echo \"not armed: \$w\"; exit 1; }
+  done
 " || {
-  echo "FAIL: automatic lazy compinit did not arm widget"
+  echo "FAIL: automatic lazy compinit did not arm completion widgets"
   exit 1
 }
 
-# 5. Test ZLOAD_NO_COMPINIT=1 opt-out prevents arming
+# 5. ZLOAD_NO_COMPINIT=1 opt-out prevents arming
 zsh -f -i -c "
   export XDG_DATA_HOME=\"$XDG_DATA_HOME\"
   export XDG_CACHE_HOME=\"$XDG_CACHE_HOME\"
   export ZLOAD_NO_COMPINIT=1
+  zmodload zsh/zleparameter
   source ./zload.zsh
   mkdir -p \"$SANDBOX/p_nocomp\"
   echo 'export NO_COMP=1' > \"$SANDBOX/p_nocomp/p_nocomp.plugin.zsh\"
   zload \"$SANDBOX/p_nocomp\"
-  if typeset -f _zload_lazy_compinit_widget >/dev/null; then
-    exit 1
-  fi
+  [[ \"\${widgets[expand-or-complete]}\" != user:_zload_lazy_compinit_widget ]] || exit 1
 " || {
   echo "FAIL: ZLOAD_NO_COMPINIT=1 did not suppress lazy compinit arming"
-  exit 1
-}
-# 6. Test that lazy completion widgets forward to non-dot widgets
-zsh -f -i -c "
-  export XDG_DATA_HOME=\"$XDG_DATA_HOME\"
-  export XDG_CACHE_HOME=\"$XDG_CACHE_HOME\"
-  source ./zload.zsh
-  zload compinit --lazy
-  autoload -Uz _zload_setup_lazy_compinit
-  fn_body=\$(functions _zload_lazy_compinit_widget)
-  if [[ \"\$fn_body\" == *'.expand-or-complete'* ]]; then
-    echo 'FAIL: _zload_lazy_compinit_widget contains dot-prefixed .expand-or-complete'
-    exit 1
-  fi
-  if [[ \"\$fn_body\" != *'zle expand-or-complete'* ]]; then
-    echo 'FAIL: _zload_lazy_compinit_widget does not call zle expand-or-complete'
-    exit 1
-  fi
-" || {
-  echo "FAIL: lazy widget verification failed"
   exit 1
 }
 

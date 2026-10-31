@@ -1,0 +1,15 @@
+_zload_sha256() {
+  emulate -L zsh
+
+  local file="$1" out
+  REPLY=""
+  if ((${+commands[sha256sum]})); then
+    out="$(command sha256sum "$file" 2>/dev/null)"
+  elif ((${+commands[shasum]})); then
+    out="$(command shasum -a 256 "$file" 2>/dev/null)"
+  else
+    return 1
+  fi
+  REPLY="${(L)${(z)out}[1]}"
+  [[ -n "$REPLY" ]]
+}

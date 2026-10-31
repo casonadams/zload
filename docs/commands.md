@@ -68,7 +68,8 @@ zload eval zoxide "zoxide init zsh"
 - Executes the command once and saves output to `~/.cache/zload/eval/<name>.zsh`.
 - Automatically compiles to `.zwc`.
 - On subsequent shell startups, memory-maps the compiled file in **0.2 ms** with **0 subprocess forks**.
-- Automatically invalidates and recompiles when the tool binary timestamp changes.
+- Automatically invalidates and recompiles when the tool binary timestamp changes or the command string changes.
+- Output is written atomically; a failing or empty command never replaces the last good cache.
 
 ---
 
@@ -95,6 +96,8 @@ zload update --self
 - Reports commit diffs (`old_commit -> new_commit`) for modified plugins and marks unchanged ones as up to date.
 - Re-runs plugin build hooks (`--build` / `--hook`) automatically whenever new commits are pulled.
 - Re-fetches and recompiles remote snippets (`snippet:...`).
+- Reinstalls the latest release of unpinned `--from gh-r` binaries (pinned tags are skipped).
+- Reports failing build hooks with their output instead of ignoring them.
 - Automatically byte-compiles all updated plugin scripts into memory-mapped `.zwc` wordcode in-place.
 - Automatically triggers `zload compile` upon completion so the warm bytecode bundle is always in sync.
 - Invalidates completion dump caches (`zcompdump*`) when plugin changes are detected.
@@ -137,12 +140,13 @@ zload clean
 zload clean -f
 ```
 
-- Compares active plugin declarations against `$ZLOAD_PLUGINS`.
+- Compares the plugins declared in this session against `$ZLOAD_PLUGINS`. Run it from a shell that has loaded your full configuration, otherwise plugins declared elsewhere look unreferenced.
+- Never touches `_snippets`.
 - When called with `-f` or `--force`, deletes unreferenced plugin directories and removes stale `bundle.*` and completion dump caches from `~/.cache/zload`.
 
 ---
 
-## 6. `zload list`
+## 7. `zload list`
 
 Lists all installed plugins, their active Git branches, release tags, and current commit SHAs.
 
@@ -153,7 +157,7 @@ zload list
 
 ---
 
-## 7. `zload which` & `zload cd`
+## 8. `zload which` & `zload cd`
 
 Developer navigation helpers to locate and inspect plugin code.
 
@@ -172,7 +176,7 @@ zload cd zsh-autosuggestions
 
 ---
 
-## 8. `zload doctor [--fix]`
+## 9. `zload doctor [--fix]`
 
 Runs comprehensive diagnostics on your Zsh runtime version, Git presence, directory permissions, bytecode cache validity, and completion dump health.
 
@@ -187,7 +191,7 @@ zload doctor --fix
 
 ---
 
-## 9. `zload profile`
+## 10. `zload profile`
 
 Measures high-resolution microsecond startup latency breakdown using `$EPOCHREALTIME`.
 
@@ -198,7 +202,7 @@ zload profile
 
 ---
 
-## 10. `zload lock` & `zload sync`
+## 11. `zload lock` & `zload sync`
 
 Generates deterministic lockfiles for dotfile syncing across machines.
 
@@ -213,13 +217,19 @@ zload sync
 zload sync ~/dotfiles/zload.lock
 ```
 
+- `sync` also works on shallow clones (it fetches the locked commit on demand) and restores plugins that are declared in your config but missing from disk.
+- It exits non-zero and prints a failure line for any commit that cannot be checked out.
+- `lock` records Git-based plugins only. Release binaries (`--from gh-r`) and snippets are not locked; pin those with a tag (`user/repo@v1.2.3`) and `--sha256`.
+- Plugin names in a lockfile must be plain directory names; entries containing `/` are rejected.
+
 ---
 
-## 11. `zload compile`
+## 12. `zload compile`
 
 Manually recompiles the static plugin bundle (`bundle.zsh`), `zload.zsh`, all internal helper modules, and all installed plugin scripts in `$ZLOAD_PLUGINS` into memory-mapped wordcode (`.zwc`).
 
-- Inlines command proxy stubs (`--on`) directly into `bundle.zsh` bytecode so warm startups execute with zero subshells, string splitting, or `eval`.
+- Rewrites every bundle (one per `zload` call: `bundle.zsh`, `bundle.2.zsh`, ...). See [How zload Works](how-it-works.md).
+- Inlines command proxy stubs (`--on`) directly into bundle bytecode so warm startups execute with zero subshells, string splitting, or `eval`.
 - Recursively locates and compiles top-level `*.zsh` and `*.sh` scripts across all active plugins in `$ZLOAD_PLUGINS`.
 ### Usage
 ```zsh
@@ -228,7 +238,7 @@ zload compile
 
 ---
 
-## 12. `zload compinit [--lazy]`
+## 13. `zload compinit [--lazy]`
 
 Initializes or defers the Zsh completion system.
 
@@ -245,4 +255,11 @@ zload compinit
 
 - When run with `--lazy`, intercepts early `compdef` calls from plugins, draws your prompt in 0 ms, and triggers compilation and caching on your first `<Tab>` press.
 - Pair with `omz:lib/completion.zsh` or native `zstyle ':completion:*' menu select` for interactive highlighted menu navigation.
+- The lazy trigger is armed on `expand-or-complete`, `expand-or-complete-prefix`, `complete-word`, `menu-complete`, `menu-expand-or-complete` and `reverse-menu-complete`.
 - Set `export ZLOAD_NO_COMPINIT=1` to disable automatic completion initialization.
+
+---
+
+## 14. `zload help`
+
+Prints a one-screen summary of commands, options and source formats.

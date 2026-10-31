@@ -1,0 +1,14 @@
+_zload_defer_arm() {
+  emulate -L zsh
+
+  autoload -Uz add-zsh-hook
+  add-zsh-hook -d precmd _zload_defer_arm 2>/dev/null
+
+  # A readable fd makes ZLE call the handler once the first prompt is on screen.
+  local fd
+  if exec {fd}</dev/null 2>/dev/null; then
+    zle -F "$fd" _zload_defer_fire 2>/dev/null && return 0
+    exec {fd}<&-
+  fi
+  _zload_run_deferred
+}

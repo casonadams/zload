@@ -1,0 +1,23 @@
+_zload_update_snippets() {
+  emulate -L zsh
+
+  local -A _zidx parsed
+  _zidx=("${(@Pkv)1}")
+
+  local dir
+  integer updated=0
+  local -a failed
+  for dir in "${(@k)_zidx}"; do
+    _zload_parse_spec parsed "${_zidx[$dir]}"
+    [[ "${parsed[type]}" == "snippet" ]] || continue
+    if _zload_fetch_snippet "${parsed[url]}" "${dir}/${parsed[subpath]}" "${parsed[sha256]}"; then
+      _zload_row 10 "✓" "${_zidx[$dir]}" 10 "snippet updated"
+      ((updated++))
+    else
+      _zload_row 9 "✗" "${_zidx[$dir]}" 9 "snippet update failed"
+      failed+=("${_zidx[$dir]}")
+    fi
+  done
+
+  reply=("$updated" "${failed[@]}")
+}
