@@ -35,6 +35,7 @@ print -P "%F{blue}==> Slice 3: Lazy Loading Primitives...%f"
 zsh test/test_lazy_cmd.zsh
 zsh test/test_lazy_compinit.zsh
 zsh test/test_defer.zsh
+zsh test/test_defer_prompt.zsh
 zsh test/test_eval.zsh
 print -P "%F{green}[OK] Slice 3 passed.%f\n"
 

@@ -75,4 +75,24 @@ done
   exit 1
 }
 
+# Missing directories are ignored silently (no output, no error, nothing added)
+PATH_BEFORE="${#path}"
+FPATH_BEFORE="${#fpath}"
+MISSING_OUT="$(
+  zload path "$SANDBOX/does-not-exist" '~/no-such-dir-zload' 2>&1
+  zload fpath "$SANDBOX/also-missing" 2>&1
+)"
+[[ -z "$MISSING_OUT" ]] || {
+  echo "FAIL: missing directories produced output: $MISSING_OUT"
+  exit 1
+}
+zload path "$SANDBOX/does-not-exist" || {
+  echo "FAIL: missing directory made zload path fail"
+  exit 1
+}
+[[ "${#path}" == "$PATH_BEFORE" && "${#fpath}" == "$FPATH_BEFORE" ]] || {
+  echo "FAIL: missing directories were added"
+  exit 1
+}
+
 echo "PASS: test_paths (path and fpath prepend, multiline string, and deduplication helpers)"

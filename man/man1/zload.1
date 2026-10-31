@@ -124,7 +124,7 @@ Expected SHA-256 of a downloaded snippet or release asset. The install is reject
 .SH COMMANDS
 .TP
 \fBzload path\fR [\fIdirectories...\fR]
-Safely prepends directories to \fB$PATH\fR. Automatically validates that each directory exists on disk, expands \fB~\fR and variables, and applies strict global deduplication. Running with no arguments prints the active \fB$PATH\fR one entry per line.
+Safely prepends directories to \fB$PATH\fR. Silently skips directories that do not exist, expands \fB~\fR and variables, and applies strict global deduplication. Running with no arguments prints the active \fB$PATH\fR one entry per line.
 .TP
 \fBzload fpath\fR [\fIdirectories...\fR]
 Prepends directories to \fB$fpath\fR with validation and deduplication.

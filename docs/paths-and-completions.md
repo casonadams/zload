@@ -26,7 +26,7 @@ zload path "${user_paths[@]}"
 ```
 
 ### Key Capabilities:
-- **Existence Validation**: Only directories that actually exist on disk are added. Dead or deleted paths are filtered out automatically, preventing command lookup stalls.
+- **Existence Validation**: Only directories that actually exist on disk are added. Dead or deleted paths are skipped silently (no warning, no error), so one list works on every machine and preventing command lookup stalls.
 - **Tilde & Variable Expansion**: Automatically expands `~`, `$HOME`, and relative paths into clean canonical paths.
 - **Strict Deduplication**: Guarantees each directory appears exactly once at the front of `$PATH`, even when `.zshrc` is re-sourced repeatedly.
 - **Inspection**: Run `zload path` with no arguments to print your clean, active `$PATH` one entry per line.
@@ -39,7 +39,7 @@ zload path "${user_paths[@]}"
 zload fpath ~/.my-completions /opt/homebrew/share/zsh/site-functions
 ```
 
-- Verifies directory existence and deduplicates entries.
+- Verifies directory existence (missing directories are skipped silently) and deduplicates entries.
 - Run `zload fpath` with no arguments to inspect all active completion directories.
 
 ---
