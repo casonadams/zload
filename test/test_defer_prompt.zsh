@@ -34,7 +34,7 @@ run_interactive() {
   local chunk
   integer i
   out=""
-  zpty z env ZDOTDIR="$SANDBOX/zd" HOME="$HOME" zsh -i
+  zpty z env ZDOTDIR="$SANDBOX/zd" HOME="$HOME" zsh -o no_global_rcs -i
   for ((i = 0; i < 40; i++)); do
     if zpty -r -t z chunk 2>/dev/null; then out+="$chunk"; else sleep 0.1; fi
     [[ "$out" == *DEFERRED-RAN* ]] && break

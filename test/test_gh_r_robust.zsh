@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 set -e
+zmodload -F zsh/stat b:zstat
+mtime() { zstat +mtime "$@"; }
 
 SANDBOX=$(mktemp -d)
 SANDBOX="${SANDBOX:A}"
@@ -49,6 +51,6 @@ _zload_install_gh_r bare >/dev/null || fail "bare asset install failed"
 # 4. Re-running is a no-op once executables exist.
 touch -t 202001010000 "${bare[dir]}/bin/tool"
 _zload_install_gh_r bare >/dev/null
-[[ "$(stat -f %Sm -t %Y "${bare[dir]}/bin/tool")" == 2020 ]] || fail "existing install was rewritten"
+[[ "$(zmodload zsh/datetime; strftime %Y "$(mtime "${bare[dir]}/bin/tool")")" == 2020 ]] || fail "existing install was rewritten"
 
 echo "PASS: test_gh_r_robust (atomic install, empty-archive error, bare asset naming)"

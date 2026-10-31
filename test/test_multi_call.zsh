@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 set -e
+zmodload -F zsh/stat b:zstat
+mtime() { zstat +mtime "$@"; }
 
 SANDBOX=$(mktemp -d)
 SANDBOX="${SANDBOX:A}"
@@ -31,26 +33,26 @@ for p in a b c; do [[ "$out" == *load-$p* ]] || fail "plugin $p not loaded: $out
 [[ -f "$CACHE/bundle.zsh.zwc" && -f "$CACHE/bundle.2.zsh.zwc" ]] || fail "per-call bundles missing"
 
 # 2. A second shell with the same calls rebuilds nothing.
-m1="$(stat -f %m "$CACHE/bundle.zsh" "$CACHE/bundle.2.zsh")"
+m1="$(mtime "$CACHE/bundle.zsh" "$CACHE/bundle.2.zsh")"
 sleep 1.1
 out="$(run_shell 'print specs=${#_zload_specs}')"
 for p in a b c; do [[ "$out" == *load-$p* ]] || fail "warm plugin $p not loaded: $out"; done
 [[ "$out" == *specs=3* ]] || fail "warm shell lost specs: $out"
-[[ "$(stat -f %m "$CACHE/bundle.zsh" "$CACHE/bundle.2.zsh")" == "$m1" ]] || fail "warm shell rebuilt bundles"
+[[ "$(mtime "$CACHE/bundle.zsh" "$CACHE/bundle.2.zsh")" == "$m1" ]] || fail "warm shell rebuilt bundles"
 
 # 3. Recompiling (update/sync/compile) keeps every slot warm.
 run_shell '_zload_compile_bundle' >/dev/null
-m2="$(stat -f %m "$CACHE/bundle.zsh" "$CACHE/bundle.2.zsh")"
+m2="$(mtime "$CACHE/bundle.zsh" "$CACHE/bundle.2.zsh")"
 sleep 1.1
 run_shell ':' >/dev/null
-[[ "$(stat -f %m "$CACHE/bundle.zsh" "$CACHE/bundle.2.zsh")" == "$m2" ]] || fail "recompile lost a slot key"
+[[ "$(mtime "$CACHE/bundle.zsh" "$CACHE/bundle.2.zsh")" == "$m2" ]] || fail "recompile lost a slot key"
 
 # 4. Changing only the second call rebuilds only that slot.
-m3="$(stat -f %m "$CACHE/bundle.zsh")"
+m3="$(mtime "$CACHE/bundle.zsh")"
 sleep 1.1
 out="$(zsh -c "source ${(q)PWD}/zload.zsh; zload $SANDBOX/pa; zload $SANDBOX/pc" 2>&1)"
 [[ "$out" == *load-a* && "$out" == *load-c* && "$out" != *load-b* ]] || fail "changed second call not honored: $out"
-[[ "$(stat -f %m "$CACHE/bundle.zsh")" == "$m3" ]] || fail "unchanged first slot was rebuilt"
+[[ "$(mtime "$CACHE/bundle.zsh")" == "$m3" ]] || fail "unchanged first slot was rebuilt"
 
 # 5. Re-sourcing the whole config in one shell (a "reload" alias) reuses the same bundles.
 rm -rf "$CACHE"

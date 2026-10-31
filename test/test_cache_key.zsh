@@ -1,5 +1,7 @@
 #!/usr/bin/env zsh
 set -e
+zmodload -F zsh/stat b:zstat
+mtime() { zstat +mtime "$@"; }
 
 SANDBOX=$(mktemp -d)
 SANDBOX="${SANDBOX:A}"
@@ -29,11 +31,11 @@ out_b="$(run_shell "$SANDBOX/pb")"
 [[ "$out_b" == *load-b* && "$out_b" != *load-a* ]] || fail "same-length spec served stale bundle: $out_b"
 
 # 2. Unchanged spec takes the warm path (bundle sourced, no rebuild).
-before="$(stat -f %m "$XDG_CACHE_HOME/zload/bundle.zsh")"
+before="$(mtime "$XDG_CACHE_HOME/zload/bundle.zsh")"
 sleep 1.1
 out_b2="$(run_shell "$SANDBOX/pb")"
 [[ "$out_b2" == *load-b* ]] || fail "warm run did not load plugin: $out_b2"
-after="$(stat -f %m "$XDG_CACHE_HOME/zload/bundle.zsh")"
+after="$(mtime "$XDG_CACHE_HOME/zload/bundle.zsh")"
 [[ "$before" == "$after" ]] || fail "warm run rebuilt the bundle"
 
 # 3. The compiled bundle is actually used: tamper with the text, keep it older than the .zwc.
@@ -54,10 +56,10 @@ run_shell "$SANDBOX/pa" >/dev/null
 
 # 5. Recompiling without changes (as update/sync do) keeps the warm key.
 zsh -c "source ${(q)PWD}/zload.zsh; zload ${(q)SANDBOX}/pa >/dev/null; _zload_compile_bundle" >/dev/null 2>&1
-before="$(stat -f %m "$XDG_CACHE_HOME/zload/bundle.zsh")"
+before="$(mtime "$XDG_CACHE_HOME/zload/bundle.zsh")"
 sleep 1.1
 run_shell "$SANDBOX/pa" >/dev/null
-after="$(stat -f %m "$XDG_CACHE_HOME/zload/bundle.zsh")"
+after="$(mtime "$XDG_CACHE_HOME/zload/bundle.zsh")"
 [[ "$before" == "$after" ]] || fail "key lost after recompiling bundle"
 
 echo "PASS: test_cache_key (exact-key bundle cache, wordcode name, completion dump invalidation)"
