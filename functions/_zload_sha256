@@ -10,6 +10,6 @@ _zload_sha256() {
   else
     return 1
   fi
-  REPLY="${(L)${(z)out}[1]}"
+  REPLY="${(L)${out%%[[:space:]]*}}"
   [[ -n "$REPLY" ]]
 }

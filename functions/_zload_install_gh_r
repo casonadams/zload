@@ -58,8 +58,8 @@ _zload_install_gh_r() {
     }
 
     local -a urls
-    local line u
-    for line in "${(f)${json_out//,/$'\n'}}"; do
+    local line u nl=$'\n'
+    for line in "${(f)${json_out//,/$nl}}"; do
       [[ "$line" == *\"browser_download_url\"* ]] || continue
       u="${line#*browser_download_url\"}"
       u="${u#*\"}"
@@ -105,7 +105,7 @@ _zload_install_gh_r() {
     done
     if [[ -z "$want" && -n "$sum_url" ]]; then
       want="$(command curl -fsSL "$sum_url" 2>/dev/null)"
-      want="${(L)${(z)want}[1]}"
+      want="${(L)${want%%[[:space:]]*}}"
     fi
   fi
 

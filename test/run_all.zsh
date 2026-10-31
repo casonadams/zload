@@ -97,6 +97,7 @@ zsh test/test_cache_key.zsh
 zsh test/test_omz_static.zsh
 zsh test/test_eval_compdef.zsh
 zsh test/test_gh_r_robust.zsh
+zsh test/test_gh_r_api.zsh
 zsh test/test_install_robust.zsh
 zsh test/test_sync_shallow.zsh
 zsh test/test_multi_call.zsh
