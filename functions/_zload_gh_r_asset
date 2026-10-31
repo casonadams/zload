@@ -1,0 +1,68 @@
+_zload_gh_r_asset() {
+  emulate -L zsh
+  setopt extended_glob
+
+  local owner_repo="$1" tag="$2"
+  local api_url="https://api.github.com/repos/${owner_repo}/releases/latest"
+  [[ -n "$tag" ]] && api_url="https://api.github.com/repos/${owner_repo}/releases/tags/${tag}"
+
+  local os_sys="${(L)OSTYPE}" arch_sys="${(L)CPUTYPE}"
+  local -a os_patterns arch_patterns api_opts=(-fsSL)
+  if [[ "$os_sys" == darwin* ]]; then
+    os_patterns=(darwin apple macos osx)
+  else
+    os_patterns=(linux)
+  fi
+  if [[ "$arch_sys" == *(arm64|aarch64)* ]]; then
+    arch_patterns=(arm64 aarch64)
+  else
+    arch_patterns=(x86_64 amd64 x64)
+  fi
+  [[ -n "$GITHUB_TOKEN" ]] && api_opts+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+
+  print -P "%F{14}zload%f  %F{11}querying release%f   %F{15}%B${owner_repo}%b%f%F{8}...%f"
+  local json_out
+  json_out="$(command curl "${api_opts[@]}" "$api_url" 2>/dev/null)" || {
+    print -u2 -P "%F{9}zload: failed to fetch release metadata from GitHub (set GITHUB_TOKEN if rate limited)%f"
+    return 1
+  }
+
+  local -a urls
+  local line u lower_u op ap target_url="" sum_url="" nl=$'\n'
+  local -i match_os match_arch
+  for line in "${(f)${json_out//,/$nl}}"; do
+    [[ "$line" == *\"browser_download_url\"* ]] || continue
+    u="${line#*browser_download_url\"}"
+    u="${u#*\"}"
+    urls+=("${u%%\"*}")
+  done
+
+  for u in "${urls[@]}"; do
+    lower_u="${(L)u:t}"
+    [[ "$lower_u" == *(.sha256|.sha256sum|.sha512|.md5|.sig|.asc|.pem|.minisig|.sbom|.json|.jsonl|.deb|.rpm|.msi|.apk|.exe|.dmg|.pkg|.txt|.md) ]] && continue
+
+    match_os=0 match_arch=0
+    for op in "${os_patterns[@]}"; do
+      [[ "$lower_u" == *$op* ]] && match_os=1
+    done
+    for ap in "${arch_patterns[@]}"; do
+      [[ "$lower_u" == *$ap* ]] && match_arch=1
+    done
+    [[ "$lower_u" == *universal* ]] && match_arch=1
+
+    if ((match_os && match_arch)); then
+      target_url="$u"
+      break
+    fi
+  done
+
+  if [[ -z "$target_url" ]]; then
+    print -u2 -P "%F{9}zload: no release asset of ${owner_repo} matches ${os_sys}/${arch_sys}%f"
+    return 1
+  fi
+
+  for u in "${urls[@]}"; do
+    [[ "$u" == "${target_url}.sha256" || "$u" == "${target_url}.sha256sum" ]] && sum_url="$u"
+  done
+  reply=("$target_url" "$sum_url")
+}

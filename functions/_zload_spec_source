@@ -1,0 +1,40 @@
+_zload_spec_source() {
+  emulate -L zsh
+  setopt extended_glob
+
+  local spec="$1" base="$2" ref="$3" from="$4" slug url file rest expanded
+  reply=()
+
+  if [[ "$from" == *(gh-r|github-releases)* ]]; then
+    slug="${base//\//---}"
+    reply=(type gh-r ref "$ref" url "https://github.com/${base}.git" name "gh-r---${slug}" dir "${ZLOAD_PLUGINS}/gh-r---${slug}" bin bin)
+  elif [[ "$spec" == snippet:* || ("$spec" == (http|https|file)://* && "$spec" == *(.zsh|.sh)) ]]; then
+    url="${spec#snippet:}"
+    slug="${url#*://}"
+    slug="${slug//[:\/]/---}"
+    file="${url:t}"
+    [[ "$file" == *.* ]] || file="snippet.zsh"
+    reply=(type snippet url "$url" name "$slug" dir "${ZLOAD_PLUGINS}/_snippets/${slug}" subpath "$file")
+  elif [[ "$spec" == omz:* ]]; then
+    rest="${spec#omz:}"
+    [[ "$rest" == (plugins|themes|lib)/* ]] || rest="plugins/$rest"
+    reply=(type omz name _omz url "https://github.com/ohmyzsh/ohmyzsh.git" dir "${ZLOAD_PLUGINS}/_omz" subpath "$rest")
+  elif [[ "$spec" == prezto:* ]]; then
+    rest="${spec#prezto:}"
+    [[ "$rest" == modules/* ]] || rest="modules/$rest"
+    reply=(type prezto name _prezto url "https://github.com/sorin-ionescu/prezto.git" dir "${ZLOAD_PLUGINS}/_prezto" subpath "$rest")
+  elif [[ "$spec" == (http|https|file)://* || "$spec" == git@* ]]; then
+    slug="${base#*://}"
+    slug="${slug#git@}"
+    slug="${slug%.git}"
+    slug="${slug//[:\/]/---}"
+    reply=(type git ref "$ref" url "$base" name "$slug" dir "${ZLOAD_PLUGINS}/${slug}")
+  elif [[ "$spec" == (/|\~|./|../)* ]]; then
+    expanded="${(e)spec}"
+    expanded="${expanded:A}"
+    reply=(type local name "local---${expanded:t}" dir "$expanded")
+  else
+    slug="${base//\//---}"
+    reply=(type github ref "$ref" url "https://github.com/${base}.git" name "$slug" dir "${ZLOAD_PLUGINS}/${slug}")
+  fi
+}

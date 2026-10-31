@@ -20,77 +20,15 @@ _zload_install_gh_r() {
 
   local owner_repo="${_zspec[spec]%%[@#]*}"
   local url="${_zspec[url]}"
-  local asset_file="" want="${_zspec[sha256]}"
+  local asset_file="" want="${_zspec[sha256]}" target_url sum_url
 
   if [[ "$url" == file://* ]]; then
-    local src_file="${url#file://}"
-    asset_file="${temp_dir}/${src_file:t}"
-    cp "$src_file" "$asset_file" || return 1
+    asset_file="${temp_dir}/${url:t}"
+    cp "${url#file://}" "$asset_file" || return 1
   else
-    local tag="${_zspec[ref]}"
-    local api_url="https://api.github.com/repos/${owner_repo}/releases/latest"
-    [[ -n "$tag" ]] && api_url="https://api.github.com/repos/${owner_repo}/releases/tags/${tag}"
-
-    local os_sys="${(L)OSTYPE}"
-    local arch_sys="${(L)CPUTYPE}"
-
-    local -a os_patterns arch_patterns
-    if [[ "$os_sys" == darwin* ]]; then
-      os_patterns=(darwin apple macos osx)
-    else
-      os_patterns=(linux)
-    fi
-
-    if [[ "$arch_sys" == *(arm64|aarch64)* ]]; then
-      arch_patterns=(arm64 aarch64)
-    else
-      arch_patterns=(x86_64 amd64 x64)
-    fi
-
-    local -a api_opts=(-fsSL)
-    [[ -n "$GITHUB_TOKEN" ]] && api_opts+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
-
-    print -P "%F{14}zload%f  %F{11}querying release%f   %F{15}%B${owner_repo}%b%f%F{8}...%f"
-    local json_out
-    json_out="$(command curl "${api_opts[@]}" "$api_url" 2>/dev/null)" || {
-      print -u2 -P "%F{9}zload: failed to fetch release metadata from GitHub (set GITHUB_TOKEN if rate limited)%f"
-      return 1
-    }
-
-    local -a urls
-    local line u nl=$'\n'
-    for line in "${(f)${json_out//,/$nl}}"; do
-      [[ "$line" == *\"browser_download_url\"* ]] || continue
-      u="${line#*browser_download_url\"}"
-      u="${u#*\"}"
-      urls+=("${u%%\"*}")
-    done
-
-    local target_url="" lower_u op ap
-    local -i match_os match_arch
-    for u in "${urls[@]}"; do
-      lower_u="${(L)u}"
-      [[ "$lower_u" == *(.sha256|.sha256sum|.sha512|.md5|.sig|.asc|.pem|.minisig|.sbom|.json|.jsonl|.deb|.rpm|.msi|.apk|.exe|.dmg|.pkg|.txt|.md) ]] && continue
-
-      match_os=0 match_arch=0
-      for op in "${os_patterns[@]}"; do
-        [[ "${lower_u:t}" == *$op* ]] && match_os=1
-      done
-      for ap in "${arch_patterns[@]}"; do
-        [[ "${lower_u:t}" == *$ap* ]] && match_arch=1
-      done
-      [[ "${lower_u:t}" == *universal* ]] && match_arch=1
-
-      if ((match_os && match_arch)); then
-        target_url="$u"
-        break
-      fi
-    done
-
-    if [[ -z "$target_url" ]]; then
-      print -u2 -P "%F{9}zload: no release asset of ${owner_repo} matches ${os_sys}/${arch_sys}%f"
-      return 1
-    fi
+    _zload_gh_r_asset "$owner_repo" "${_zspec[ref]}" || return 1
+    target_url="${reply[1]}"
+    sum_url="${reply[2]}"
 
     print -P "%F{14}zload%f  %F{11}downloading%f       %F{15}%B${target_url:t}%b%f%F{8}...%f"
     asset_file="${temp_dir}/${target_url:t}"
@@ -99,10 +37,6 @@ _zload_install_gh_r() {
       return 1
     }
 
-    local sum_url=""
-    for u in "${urls[@]}"; do
-      [[ "$u" == "${target_url}.sha256" || "$u" == "${target_url}.sha256sum" ]] && sum_url="$u"
-    done
     if [[ -z "$want" && -n "$sum_url" ]]; then
       want="$(command curl -fsSL "$sum_url" 2>/dev/null)"
       want="${(L)${want%%[[:space:]]*}}"
@@ -117,34 +51,7 @@ _zload_install_gh_r() {
     fi
   fi
 
-  local extract_ok=1
-  if [[ "$asset_file" == *(.tar.gz|.tgz) ]]; then
-    command tar -xzf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null || extract_ok=0
-  elif [[ "$asset_file" == *.tar.xz ]]; then
-    command tar -xJf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null || extract_ok=0
-  elif [[ "$asset_file" == *.zip ]]; then
-    command unzip -q "$asset_file" -d "$temp_dir/extracted" 2>/dev/null || extract_ok=0
-  else
-    chmod +x "$asset_file"
-    mv "$asset_file" "$stage/${owner_repo:t}"
-  fi
-
-  if ((! extract_ok)); then
-    print -u2 -P "%F{9}zload: failed to extract ${asset_file:t}%f"
-    return 1
-  fi
-
-  local f
-  for f in "$temp_dir/extracted"/**/*(N.*x); do
-    mv -f "$f" "$stage/"
-    chmod +x "$stage/${f:t}"
-  done
-
-  existing=("$stage"/*(N*x))
-  if ((${#existing} == 0)); then
-    print -u2 -P "%F{9}zload: no executables found in release of ${owner_repo}%f"
-    return 1
-  fi
+  _zload_gh_r_unpack "$asset_file" "$temp_dir" "$stage" "${owner_repo:t}" || return 1
 
   rm -rf "$dir"
   mkdir -p "$dir"

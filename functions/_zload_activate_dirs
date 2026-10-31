@@ -1,0 +1,29 @@
+_zload_activate_dirs() {
+  emulate -L zsh
+  setopt null_glob
+
+  local -A _aspec _ainfo
+  _aspec=("${(@Pkv)1}")
+  _ainfo=("${(@Pkv)2}")
+
+  local target_dir="${_ainfo[target]}" fp bin_dir="${_ainfo[bin]}"
+  local -a funcs fps
+
+  if [[ "${_aspec[type]}" == "prezto" && -d "$target_dir/functions" ]]; then
+    funcs=("$target_dir/functions"/*(N:t))
+    if ((${#funcs} > 0)); then
+      fpath=("$target_dir/functions" "${fpath[@]}")
+      autoload -Uz "${funcs[@]}"
+    fi
+  fi
+
+  fps=("${(s.:.)_ainfo[fpath]}")
+  for fp in "${fps[@]}"; do
+    [[ -d "$fp" ]] && ((! ${fpath[(Ie)$fp]})) && fpath=("$fp" "${fpath[@]}")
+  done
+
+  [[ -n "${_aspec[bin]}" ]] && bin_dir="${_aspec[dir]}/${_aspec[bin]}"
+  if [[ -n "$bin_dir" && -d "$bin_dir" ]] && ((! ${path[(Ie)$bin_dir]})); then
+    path=("$bin_dir" "${path[@]}")
+  fi
+}

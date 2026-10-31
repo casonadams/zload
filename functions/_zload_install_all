@@ -4,9 +4,8 @@ _zload_install_all() {
 
   local entry dir type
   local -A parsed seen_dirs entry_dirs failed_dirs
-  local -a pids pid_dirs have
+  local -a pids pid_dirs have failed_entries
 
-  reply=()
   for entry in "$@"; do
     _zload_parse_spec parsed "$entry"
     dir="${parsed[dir]}"
@@ -33,7 +32,8 @@ _zload_install_all() {
   done
 
   for entry in "$@"; do
-    ((${+failed_dirs[${entry_dirs[$entry]}]})) && reply+=("$entry")
+    ((${+failed_dirs[${entry_dirs[$entry]}]})) && failed_entries+=("$entry")
   done
+  reply=("${failed_entries[@]}")
   return 0
 }

@@ -1,0 +1,37 @@
+_zload_doctor_env() {
+  emulate -L zsh
+  autoload -Uz is-at-least
+
+  local do_fix="$1" var_name path_val git_ver
+
+  if is-at-least 5.1 "$ZSH_VERSION"; then
+    print -P "  %F{10}[OK]%f    Zsh version: %F{15}%B$ZSH_VERSION%b%f"
+  else
+    print -P "  %F{9}[FAIL]%f  Zsh version: %F{15}%B$ZSH_VERSION%b%f %F{9}(older than required 5.1)%f"
+    ((_zload_doctor_errors++))
+  fi
+
+  if (($+commands[git])); then
+    git_ver="$(command git --version 2>/dev/null)"
+    print -P "  %F{10}[OK]%f    Git: %F{15}%B${git_ver}%b%f"
+  else
+    print -P "  %F{9}[FAIL]%f  Git command not found in PATH"
+    ((_zload_doctor_errors++))
+  fi
+
+  for var_name in ZLOAD_HOME ZLOAD_DATA ZLOAD_CACHE ZLOAD_PLUGINS; do
+    path_val="${(P)var_name}"
+    if [[ -d "$path_val" && -w "$path_val" ]]; then
+      print -P "  %F{10}[OK]%f    $var_name: %F{15}%B$path_val%b%f %F{8}(writable)%f"
+    elif [[ -d "$path_val" ]]; then
+      print -P "  %F{11}[WARN]%f  $var_name: %F{15}%B$path_val%b%f %F{11}(not writable)%f"
+      ((_zload_doctor_warnings++))
+    elif ((do_fix)); then
+      mkdir -p "$path_val"
+      print -P "  %F{10}[FIXED]%f $var_name: created directory %F{15}%B$path_val%b%f"
+    else
+      print -P "  %F{11}[WARN]%f  $var_name: %F{15}%B$path_val%b%f %F{11}(directory not found)%f"
+      ((_zload_doctor_warnings++))
+    fi
+  done
+}

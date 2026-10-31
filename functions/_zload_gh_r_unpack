@@ -1,0 +1,32 @@
+_zload_gh_r_unpack() {
+  emulate -L zsh
+  setopt null_glob extended_glob
+
+  local asset_file="$1" temp_dir="$2" stage="$3" bin_name="$4" f ok=1
+  local -a existing
+
+  case "$asset_file" in
+    *.tar.gz | *.tgz) command tar -xzf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null || ok=0 ;;
+    *.tar.xz) command tar -xJf "$asset_file" -C "$temp_dir/extracted" 2>/dev/null || ok=0 ;;
+    *.zip) command unzip -q "$asset_file" -d "$temp_dir/extracted" 2>/dev/null || ok=0 ;;
+    *)
+      chmod +x "$asset_file"
+      mv "$asset_file" "$stage/$bin_name"
+      ;;
+  esac
+  if ((! ok)); then
+    print -u2 -P "%F{9}zload: failed to extract ${asset_file:t}%f"
+    return 1
+  fi
+
+  for f in "$temp_dir/extracted"/**/*(N.*x); do
+    mv -f "$f" "$stage/"
+    chmod +x "$stage/${f:t}"
+  done
+
+  existing=("$stage"/*(N*x))
+  if ((${#existing} == 0)); then
+    print -u2 -P "%F{9}zload: no executables found in ${asset_file:t}%f"
+    return 1
+  fi
+}
