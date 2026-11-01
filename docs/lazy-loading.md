@@ -88,8 +88,9 @@ For plugins that require a compilation or install step before first use (e.g. `f
 # Run install binary for fzf
 zload "junegunn/fzf" --build "./install --bin" --bin "bin"
 
-# Pre-compile prompt wordcode on install and update
-zload "casonadams/zline" --build "zline compile"
+# Build hooks run in a subshell before the plugin is loaded, so its shell
+# functions are not defined yet; call scripts by path instead
+zload "casonadams/zline" --build "zsh -fc 'source ./zline.zsh && zline compile'"
 ```
 
 ### How it Works:
