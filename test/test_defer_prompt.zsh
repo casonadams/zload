@@ -39,7 +39,7 @@ run_interactive() {
     if zpty -r -t z chunk 2>/dev/null; then out+="$chunk"; else sleep 0.1; fi
     [[ "$out" == *DEFERRED-RAN* ]] && break
   done
-  zpty -w z 'print DEF_OK=$DEF_OK'
+  zpty -w z '[[ -t 2 ]] && print STDERR_${:-TTY}; print DEF_OK=$DEF_OK'
   for ((i = 0; i < 20; i++)); do
     if zpty -r -t z chunk 2>/dev/null; then out+="$chunk"; else sleep 0.1; fi
     [[ "$out" == *DEF_OK=1* ]] && break
@@ -55,6 +55,7 @@ check() {
   before="${out%%DEFERRED-RAN*}"
   [[ "$before" == *"READY> "* ]] || fail "$label: plugin ran before the first prompt was drawn: $out"
   [[ "$out" == *DEF_OK=1* ]] || fail "$label: deferred plugin's environment missing: $out"
+  [[ "$out" == *STDERR_TTY* ]] || fail "$label: shell stderr no longer attached to the terminal: $out"
 }
 
 # Cold start (installs/compiles), then warm start (sources the bundle).
