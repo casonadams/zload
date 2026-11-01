@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/casonadams/zload/compare/v0.1.1...v0.1.2) (2026-11-01)
+
+
+### Bug Fixes
+
+* **defer:** scope stderr redirect to the fd-open exec so it stops silencing the shell ([f745cc6](https://github.com/casonadams/zload/commit/f745cc6a423888eb2383a679f2ffc06fbc9b1b82))
+
 ## [0.1.1](https://github.com/casonadams/zload/compare/v0.1.0...v0.1.1) (2026-10-31)
 
 
